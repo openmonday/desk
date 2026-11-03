@@ -45,7 +45,9 @@ async function loadEntry(entry, opts = {}) {
     // Single column: the page scrolls, not the article pane. Opening an entry
     // from the rail, graph or list brings the document into view.
     if (narrow()) {
-      const top = Math.max(0, window.scrollY + articlePanel.getBoundingClientRect().top - 64);
+      const topbar = document.querySelector(".topbar");
+      const offset = (topbar?.offsetHeight || 54) + 10;
+      const top = Math.max(0, window.scrollY + articlePanel.getBoundingClientRect().top - offset);
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       window.scrollTo({ top, behavior });
     }

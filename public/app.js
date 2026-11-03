@@ -4,7 +4,7 @@
  * action registry and starts the page; all reads and writes still go through the
  * same API and hash routes as before. */
 import { actions } from "./js/actions.js";
-import { S } from "./js/state.js";
+import { S, defaultDocsEntry, docsMode, docsSections } from "./js/state.js";
 import { connectEvents, scheduleRefresh } from "./js/live.js";
 import { defaultEntry, entryForTab, readHash, writeHash, writeTabHash } from "./js/hash.js";
 import { loadEntry, open } from "./js/navigation.js";
@@ -14,6 +14,7 @@ import { renderRail } from "./js/rail.js";
 import { renderGraph } from "./js/graph.js";
 import { initPanel, initRailSplit, showArticle } from "./js/panel.js";
 import { initTheme } from "./js/theme.js";
+import { tabs } from "./js/refs.js";
 
 Object.assign(actions, {
   open,
@@ -27,16 +28,17 @@ Object.assign(actions, {
 });
 
 function bindTabs() {
-  document.querySelectorAll(".tab").forEach((b) => {
-    b.addEventListener("click", async () => {
-      S.tab = b.dataset.tab;
-      const loc = readHash();
-      const preferred = loc?.entry?.feature?.slug;
-      let entry = loc && loc.tab === S.tab ? loc.entry : null;
-      if (!entry) entry = entryForTab(S.tab, preferred);
-      await loadEntry(entry, { silent: true });
-      writeHash(entry);
-    });
+  tabs.addEventListener("click", async (ev) => {
+    const b = ev.target.closest?.(".tab");
+    if (!b || !tabs.contains(b)) return;
+    S.tab = b.dataset.tab;
+    const loc = readHash();
+    const preferred = loc?.entry?.feature?.slug;
+    let entry = loc && loc.tab === S.tab ? loc.entry : null;
+    if (!entry) entry = entryForTab(S.tab, preferred);
+    await loadEntry(entry, { silent: true });
+    writeHash(entry);
+    renderTabs();
   });
 }
 
@@ -48,9 +50,14 @@ async function boot() {
   await refreshTree();
   const loc = readHash();
   if (loc) S.tab = loc.tab;
+  else if (docsMode()) {
+    const first = defaultDocsEntry();
+    S.tab = first?.tab || docsSections()[0]?.key || "";
+  }
   else if (!(S.tree?.features || []).some((f) => f.specPath) && (S.tree?.architecture || []).length) S.tab = "architecture";
   else if (!(S.tree?.features || []).length && !(S.tree?.architecture || []).length && !S.tree?.context?.exists) S.tab = "features";
   const entry = loc ? (loc.entry || entryForTab(loc.tab)) : defaultEntry();
+  if (!loc && docsMode() && entry) S.tab = entry.tab;
   await loadEntry(entry, { silent: true });
   if (entry) writeHash(entry);
   else {

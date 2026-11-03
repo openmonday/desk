@@ -6,3 +6,11 @@ export function report(tree) {
   const errors = tree.diagnostics.filter((d) => d.severity === "error").length;
   return { features, tickets, done, arch: tree.architecture.length, errors, diagnostics: tree.diagnostics.length };
 }
+
+/** The one-line startup and --check summary for docs mode. */
+export function reportDocs(tree) {
+  const sections = tree.sections.length;
+  const docs = tree.sections.reduce((n, s) => n + s.count, 0);
+  const errors = tree.diagnostics.filter((d) => d.severity === "error").length;
+  return { sections, docs, errors, diagnostics: tree.diagnostics.length };
+}

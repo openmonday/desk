@@ -9,10 +9,11 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { findWorkspace, scanWorkspace } from "./lib/scan.mjs";
+import { scanDocs } from "./lib/docs/scan.mjs";
 import { parseArgs } from "./server/args.mjs";
 import { createBroadcaster } from "./server/events.mjs";
 import { createRequestHandler } from "./server/http.mjs";
-import { report } from "./server/report.mjs";
+import { report, reportDocs } from "./server/report.mjs";
 import { watchWorkspace } from "./server/watcher.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -20,19 +21,38 @@ const PUBLIC = path.resolve(HERE, "..", "public");
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
-  const workspace = opts.root
-    ? (opts.root.endsWith(".desk") ? path.resolve(opts.root) : path.join(path.resolve(opts.root), ".desk"))
-    : await findWorkspace(process.cwd());
+  const docsRoot = opts.docs ? path.resolve(opts.docs) : null;
+  const workspace = docsRoot
+    ? null
+    : opts.root
+      ? (opts.root.endsWith(".desk") ? path.resolve(opts.root) : path.join(path.resolve(opts.root), ".desk"))
+      : await findWorkspace(process.cwd());
 
-  if (!workspace) {
-    console.error("desk page: no .desk directory found. Run /setup-desk first, or pass --root.");
+  if (!docsRoot && !workspace) {
+    console.error("desk page: no .desk directory found. Run /setup-desk first, or pass --root or --docs.");
     process.exit(1);
   }
 
+  const mode = docsRoot ? "docs" : "desk";
+  const root = docsRoot || workspace;
+
   if (opts.check) {
-    const tree = await scanWorkspace(workspace);
+    if (mode === "docs") {
+      const tree = await scanDocs(root);
+      const r = reportDocs(tree);
+      console.log(`desk docs  ${root}`);
+      console.log(`  ${r.sections} sections · ${r.docs} documents`);
+      if (r.diagnostics) {
+        console.log(`  ${r.diagnostics} diagnostics:`);
+        for (const d of tree.diagnostics) console.log(`    ${d.severity}  ${d.path}: ${d.message}`);
+      } else {
+        console.log("  no diagnostics");
+      }
+      process.exit(r.errors ? 1 : 0);
+    }
+    const tree = await scanWorkspace(root);
     const r = report(tree);
-    console.log(`desk page  ${workspace}`);
+    console.log(`desk page  ${root}`);
     console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
     if (r.diagnostics) {
       console.log(`  ${r.diagnostics} diagnostics:`);
@@ -45,8 +65,8 @@ async function main() {
 
   const clients = new Set();
   const broadcast = createBroadcaster(clients);
-  const watcher = watchWorkspace(workspace, broadcast);
-  const handler = createRequestHandler({ workspace, publicDir: PUBLIC, clients, broadcast });
+  const watcher = watchWorkspace(root, broadcast);
+  const handler = createRequestHandler({ mode, workspace, docsRoot, publicDir: PUBLIC, clients, broadcast });
 
   const server = http.createServer(handler);
   const listen = (port, attempts = 8) =>
@@ -76,12 +96,21 @@ async function main() {
   const urlBase = `http://${opts.host === "0.0.0.0" ? "localhost" : opts.host}:${port}`;
 
   if (!opts.quiet) {
-    const tree = await scanWorkspace(workspace);
-    const r = report(tree);
-    console.log(`desk page  ${urlBase}  (live)`);
-    console.log(`  ${workspace}`);
-    console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
-    if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check`);
+    if (mode === "docs") {
+      const tree = await scanDocs(root);
+      const r = reportDocs(tree);
+      console.log(`desk docs  ${urlBase}  (live)`);
+      console.log(`  ${root}`);
+      console.log(`  ${r.sections} sections · ${r.docs} documents`);
+      if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check --docs ${root}`);
+    } else {
+      const tree = await scanWorkspace(root);
+      const r = report(tree);
+      console.log(`desk page  ${urlBase}  (live)`);
+      console.log(`  ${root}`);
+      console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
+      if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check`);
+    }
   }
 
   if (opts.open) {

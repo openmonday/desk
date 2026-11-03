@@ -2,6 +2,7 @@
 
 import {
   S, entryForPath, featureIndex, key, num, plural, shortState, tallyText,
+  docsMode, docsSection, docsSections,
 } from "./state.js";
 import { cmd, el, glyph, progressLine } from "./dom.js";
 import { actions } from "./actions.js";
@@ -74,6 +75,49 @@ function featureGroup(f) {
   return el("li", { class: `feature${isOpen ? " is-open" : ""}` }, kids);
 }
 
+function docsNode(node) {
+  if (node.type === "dir") {
+    return el("li", { class: "doc-folder" }, [
+      el("details", { class: "doc-details", open: "" }, [
+        el("summary", { class: "doc-folder-name", title: "Collapse or expand this folder" }, [
+          el("span", { class: "doc-branch doc-chevron", "aria-hidden": "true" }, ["▸"]),
+          el("span", { class: "doc-folder-label" }, [node.title || node.name]),
+          el("span", { class: "doc-folder-count" }, [String(node.count || 0)]),
+        ]),
+        el("ul", { class: "tree doc-tree" }, (node.children || []).map(docsNode)),
+      ]),
+    ]);
+  }
+  return row({
+    cls: "row-doc",
+    lead: el("span", { class: "doc-branch", "aria-hidden": "true" }, ["└"]),
+    label: node.title || node.name,
+    sub: node.name,
+    active: S.doc?.path === node.path,
+    path: node.path,
+    onClick: () => actions.open(node.path),
+  });
+}
+
+function renderDocsRail() {
+  const section = docsSection(S.tab) || docsSections()[0] || null;
+  railLabel.textContent = section?.kind === "features" ? section.title : "Tree";
+  railBody.textContent = "";
+  let list;
+  if (section?.kind === "features") {
+    list = el("ul", { class: "features" }, (section.features || []).map(featureGroup));
+    if (!list.children.length) list = el("p", { class: "empty" }, ["No features in this section."]);
+  } else {
+    list = section?.tree?.length
+      ? el("ul", { class: "tree doc-tree" }, section.tree.map(docsNode))
+      : el("p", { class: "empty" }, ["No Markdown documents in this section."]);
+  }
+  railBody.append(el("nav", { class: "rail-block", "aria-label": section?.title || "Documents" }, [list]));
+  const diag = diagnosticBlock();
+  if (diag) railBody.append(diag);
+  requestAnimationFrame(revealActive);
+}
+
 function docList() {
   const t = S.tree || {};
   if (S.tab === "context") {
@@ -126,7 +170,7 @@ function diagnosticBlock() {
   const summary = [errors ? plural(errors, "error") : null, warns ? plural(warns, "warning") : null].filter(Boolean).join(", ");
   return el("details", { class: "diagnostics", open: errors ? "" : null, "data-worst": errors ? "error" : "warn" }, [
     el("summary", {}, [
-      el("span", { class: "diag-title" }, ["Workspace check"]),
+      el("span", { class: "diag-title" }, [docsMode() ? "Docs check" : "Workspace check"]),
       el("span", { class: "diag-count" }, [summary]),
     ]),
     el("ul", {}, ds.map((d) => {
@@ -139,7 +183,11 @@ function diagnosticBlock() {
           : el("span", { class: "where" }, [d.path]),
       ]);
     })),
-    el("p", { class: "diag-hint" }, ["Fix the file and this updates by itself. ", cmd("desk check"), " prints the same list."]),
+    el("p", { class: "diag-hint" }, [
+      "Fix the file and this updates by itself. ",
+      cmd(docsMode() ? "desk check --docs <dir>" : "desk check"),
+      " prints the same list.",
+    ]),
   ]);
 }
 
@@ -156,6 +204,7 @@ function revealActive() {
 }
 
 function renderRail() {
+  if (docsMode()) return renderDocsRail();
   const label = S.tab === "context" ? "Context" : S.tab === "architecture" ? "Architecture" : "Features";
   railLabel.textContent = label;
   railBody.textContent = "";

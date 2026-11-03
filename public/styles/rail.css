@@ -210,3 +210,63 @@
 
 .diag-hint { margin: 0 0 var(--s2); font-size: 12px; color: var(--faint); }
 .diag-hint code { font-size: 11px; }
+
+/* docs mode: a recursive, monospaced tree in the style of a document TOC */
+.doc-tree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+}
+
+.doc-tree .doc-tree {
+  margin-left: 9px;
+  padding-left: 7px;
+  border-left: 1px solid var(--line);
+}
+
+.doc-folder { margin: 0; }
+
+.doc-folder-name {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 5px var(--s2) 5px 6px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--ink-soft);
+  font: 400 12px/1.45 var(--mono);
+}
+
+.doc-folder-name::-webkit-details-marker { display: none; }
+.doc-folder-name:hover { color: var(--ink); background: var(--oat-soft); }
+
+.doc-branch { flex: none; width: 1.2em; color: var(--faint); }
+.doc-chevron {
+  font: 400 11px/1 var(--mono);
+  transform: rotate(0deg);
+  transition: transform 120ms ease;
+}
+.doc-details[open] > .doc-folder-name .doc-chevron { transform: rotate(90deg); }
+.doc-folder-label { flex: 1; min-width: 0; overflow-wrap: break-word; }
+.doc-folder-count { flex: none; color: var(--faint); font: 400 10px/1 var(--mono); }
+
+/* File rows use the same connector as the reference tree. */
+.doc-tree .row {
+  position: relative;
+  gap: var(--s2);
+  padding: 5px var(--s2) 5px 6px;
+  font: 400 12.5px/1.5 var(--mono);
+}
+
+.doc-tree .row[aria-current="true"] .doc-branch { color: var(--clay); }
+.doc-tree .row .row-label { line-height: 1.5; }
+.doc-tree .row .row-sub {
+  max-width: 38%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 400 10px/1.7 var(--mono);
+}
+
+.row-doc .row-lead { height: auto; }

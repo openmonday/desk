@@ -124,3 +124,21 @@
 :root[data-theme-mode="light"] .theme-icon-light,
 :root[data-theme-mode="dark"] .theme-icon-dark,
 :root:not([data-theme-mode]) .theme-icon-system { display: block; }
+
+/* Dynamic tabs: docs mode can add one section per top-level folder. Keep the
+ * strip on one line and let it scroll rather than pushing the theme control. */
+.topbar nav {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.topbar nav::-webkit-scrollbar { display: none; }
+
+.tabs { width: max-content; }
+
+.tab {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

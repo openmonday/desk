@@ -8,11 +8,18 @@ import { actions } from "./actions.js";
 import { article } from "./refs.js";
 import { toast } from "./live.js";
 import { mdToNodes } from "./markdown.js";
+import { encodeDocPath } from "./docs-path.js";
 
 function emptyArticle() {
   const page = (title, ...kids) => [el("h1", {}, [title]), el("p", { class: "empty" }, kids)];
   if (!S.tree || S.tree.ok === false) {
     return page("No workspace found", "There is no ", cmd(".desk/"), " directory here. Run ", cmd("/setup-desk"), " in this project; the page picks it up on its own.");
+  }
+  if (S.tree?.mode === "docs") {
+    if (!(S.tree.sections || []).length) {
+      return page("No Markdown documents found", "Put .md files in this folder, or point desk at another folder with ", cmd("desk docs <dir>"), ".");
+    }
+    return page("Nothing to read here", "This section has no Markdown documents.");
   }
   if (S.tab === "context") {
     return page("No glossary yet", "Run ", cmd("/setup-desk"), " to create ", cmd("CONTEXT.md"), " with the project's domain terms.");
@@ -47,13 +54,21 @@ async function act(feature, n, body, button) {
   }
 }
 
+const featureHref = (f) => S.tree?.mode === "docs"
+  ? `#/docs/${encodeDocPath(f.specPath)}`
+  : `#/features/${f.slug}`;
+
+const ticketHref = (f, t) => S.tree?.mode === "docs"
+  ? `#/docs/${encodeDocPath(t.path)}`
+  : `#/features/${f.slug}/${t.n}`;
+
 function ticketLink(t, f) {
   const st = t.missing ? { kind: "unknown" } : featureIndex(f).states.get(key(t.n));
   const label = [el("span", { class: "link-n" }, [num(t.n)]), " ", t.missing ? "does not exist" : t.title];
   return t.missing
     ? el("span", { class: "tlink is-missing" }, [glyph("unknown", 12), ...label])
     : el("a", {
-      class: "tlink", href: `#/features/${f.slug}/${t.n}`,
+      class: "tlink", href: ticketHref(f, t),
       title: `${KIND_LABEL[st.kind]} · Status: ${t.statusRaw}`,
     }, [glyph(st.kind, 12), ...label]);
 }
@@ -85,14 +100,14 @@ function ticketHeader(doc) {
 
   const crumbs = el("nav", { class: "crumbs", "aria-label": "Ticket location" }, [
     f.specPath
-      ? el("a", { class: "crumb-back", href: `#/features/${f.slug}`, title: "Back to the overview" }, [
+      ? el("a", { class: "crumb-back", href: featureHref(f), title: "Back to the overview" }, [
         el("span", { "aria-hidden": "true" }, ["← "]), f.title,
       ])
       : el("span", {}, [f.title]),
     el("span", { class: "crumb-here" }, [`Ticket ${num(tk.n)} of ${num(tickets.length)}`]),
     el("span", { class: "crumb-step" }, [
-      prev ? el("a", { href: `#/features/${f.slug}/${prev.n}`, title: `Previous: ${prev.title}`, "aria-label": `Previous ticket, ${num(prev.n)}` }, [`‹ ${num(prev.n)}`]) : null,
-      next ? el("a", { href: `#/features/${f.slug}/${next.n}`, title: `Next: ${next.title}`, "aria-label": `Next ticket, ${num(next.n)}` }, [`${num(next.n)} ›`]) : null,
+      prev ? el("a", { href: ticketHref(f, prev), title: `Previous: ${prev.title}`, "aria-label": `Previous ticket, ${num(prev.n)}` }, [`‹ ${num(prev.n)}`]) : null,
+      next ? el("a", { href: ticketHref(f, next), title: `Next: ${next.title}`, "aria-label": `Next ticket, ${num(next.n)}` }, [`${num(next.n)} ›`]) : null,
     ]),
   ]);
 
@@ -170,6 +185,9 @@ function specHeader(f) {
 }
 
 function docEyebrow() {
+  if (S.doc.kind === "doc") {
+    return el("p", { class: "eyebrow eyebrow-doc", title: S.doc.path }, [S.doc.section?.title || "Document"]);
+  }
   if (S.doc.kind === "arch") return el("p", { class: "eyebrow eyebrow-doc", title: S.doc.path }, ["Architecture record"]);
   if (S.doc.kind === "context") return el("p", { class: "eyebrow eyebrow-doc", title: S.doc.path }, ["Glossary"]);
   return null;
@@ -177,7 +195,9 @@ function docEyebrow() {
 
 function articleMarkdown() {
   let md = S.doc?.md || "";
-  if (S.doc?.kind === "arch") md = md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
+  if (S.doc?.kind === "arch" || S.doc?.kind === "doc") {
+    md = md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
+  }
   if (S.doc?.kind !== "ticket") return md;
   // The ticket header carries these; do not repeat them in the body.
   return md.replace(/^[ \t]*(Status|Blocked by):.*$/gim, "").replace(/\n{3,}/g, "\n\n").trimStart();
@@ -195,7 +215,8 @@ function renderArticle() {
 
   let nodes;
   try {
-    nodes = mdToNodes(articleMarkdown());
+    const basePath = S.tree?.mode === "docs" && ["doc", "spec", "ticket"].includes(S.doc.kind) ? S.doc.path : null;
+    nodes = mdToNodes(articleMarkdown(), basePath ? { basePath } : null);
   } catch (err) {
     S.mdError = String(err?.message || err);
     nodes = document.createElement("div");

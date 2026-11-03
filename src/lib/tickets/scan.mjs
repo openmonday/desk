@@ -7,7 +7,7 @@ import { detectCycles, parseTicket } from "./parse.mjs";
 const SPEC_SECTIONS = ["Problem Statement", "Solution", "Implementation Decisions", "Testing Decisions", "Out of Scope"];
 const numKey = (n) => String(Number(n));
 
-async function scanFeature(assist, slug, diagnostics) {
+export async function scanFeature(assist, slug, diagnostics) {
   const rel = `features/${slug}`;
   const dir = path.join(assist, rel);
   const specMd = await readIfExists(path.join(dir, "spec.md"));
@@ -78,6 +78,15 @@ async function scanFeature(assist, slug, diagnostics) {
   };
 }
 
+/** Scan only the `features/` folder, for mixed docs workspaces. */
+export async function scanFeatures(assist, diagnostics = []) {
+  const features = [];
+  for (const slug of await listSubdirs(path.join(assist, "features"))) {
+    features.push(await scanFeature(assist, slug, diagnostics));
+  }
+  return features;
+}
+
 /** Build the navigation model for the page. */
 export async function scanWorkspace(assist) {
   const diagnostics = [];
@@ -103,13 +112,10 @@ export async function scanWorkspace(assist) {
     });
   }
 
-  const features = [];
-  for (const slug of await listSubdirs(path.join(assist, "features"))) {
-    features.push(await scanFeature(assist, slug, diagnostics));
-  }
+  const features = await scanFeatures(assist, diagnostics);
 
   const severityRank = { error: 0, warn: 1 };
   diagnostics.sort((a, b) => (severityRank[a.severity] ?? 2) - (severityRank[b.severity] ?? 2));
 
-  return { ok: true, root: assist, context, architecture, features, diagnostics };
+  return { ok: true, mode: "desk", root: assist, context, architecture, features, diagnostics };
 }

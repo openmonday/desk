@@ -1,5 +1,7 @@
 /* HTTP routes for reads, ticket writes, live events, and static assets. */
 import { readDoc, scanWorkspace } from "../lib/scan.mjs";
+import { scanDocs } from "../lib/docs/scan.mjs";
+import { readDocsAsset, readDocsDoc } from "../lib/docs/read.mjs";
 import {
   completeTicket, createTicket, removeTicket, updateTicket,
 } from "../lib/ticket.mjs";
@@ -49,7 +51,12 @@ function json(res, code, body) {
   res.end(JSON.stringify(body));
 }
 
-export function createRequestHandler({ workspace, publicDir, clients, broadcast }) {
+export function createRequestHandler({ mode = "desk", workspace, docsRoot, publicDir, clients, broadcast }) {
+  const docs = mode === "docs";
+  const scan = docs ? () => scanDocs(docsRoot) : () => scanWorkspace(workspace);
+  const read = docs ? (rel) => readDocsDoc(docsRoot, rel) : (rel) => readDoc(workspace, rel);
+  const ticketRoot = docs ? docsRoot : workspace;
+
   return async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
     const route = url.pathname;
@@ -83,10 +90,10 @@ export function createRequestHandler({ workspace, publicDir, clients, broadcast 
         }
 
         let out;
-        if (req.method === "POST") out = await createTicket(workspace, payload);
-        else if (req.method === "DELETE") out = await removeTicket(workspace, payload);
-        else if (payload.action === "complete") out = await completeTicket(workspace, payload);
-        else out = await updateTicket(workspace, payload);
+        if (req.method === "POST") out = await createTicket(ticketRoot, payload);
+        else if (req.method === "DELETE") out = await removeTicket(ticketRoot, payload);
+        else if (payload.action === "complete") out = await completeTicket(ticketRoot, payload);
+        else out = await updateTicket(ticketRoot, payload);
 
         broadcast();
         return json(res, 200, out);
@@ -106,7 +113,7 @@ export function createRequestHandler({ workspace, publicDir, clients, broadcast 
 
     if (route === "/api/tree") {
       try {
-        return json(res, 200, await scanWorkspace(workspace));
+        return json(res, 200, await scan());
       } catch (err) {
         return json(res, 500, { ok: false, error: String(err?.message || err) });
       }
@@ -116,14 +123,29 @@ export function createRequestHandler({ workspace, publicDir, clients, broadcast 
       const rel = url.searchParams.get("path") || "";
       let doc = null;
       try {
-        doc = await readDoc(workspace, rel);
+        doc = await read(rel);
       } catch { /* fall through */ }
       if (!doc) return json(res, 404, { ok: false, error: "not found" });
       if (route === "/api/raw") {
         res.writeHead(200, { "content-type": "text/markdown; charset=utf-8", "cache-control": "no-store" });
         return res.end(doc.md);
       }
-      return json(res, 200, { path: rel, md: doc.md, mtime: doc.mtime });
+      return json(res, 200, { path: doc.path || rel, md: doc.md, mtime: doc.mtime });
+    }
+
+    if (docs && route === "/api/asset") {
+      const rel = url.searchParams.get("path") || "";
+      let asset = null;
+      try {
+        asset = await readDocsAsset(docsRoot, rel);
+      } catch { /* fall through */ }
+      if (!asset) return json(res, 404, { ok: false, error: "not found" });
+      res.writeHead(200, {
+        "content-type": asset.type,
+        "content-length": String(asset.size),
+        "cache-control": "no-store",
+      });
+      return res.end(req.method === "HEAD" ? undefined : asset.body);
     }
 
     if (await serveStatic(publicDir, route, req, res)) return;

@@ -1,14 +1,15 @@
 # desk API and usage
 
 A live local view of a `.desk/` workspace, plus the write interface agents use
-to change it.
+to change it. The same page can also render an arbitrary Markdown folder in
+docs mode.
 
 ```text
 src/
 ├── serve.mjs        HTTP server: reads + ticket writes + live events
 ├── desk.mjs         CLI for agents (add / update / done / rm / list / check / page)
 ├── server/          request handling, SSE, static assets, watcher
-└── lib/             workspace scanner and ticket writer
+└── lib/             workspace scanner, ticket writer, docs scanner and reads
 public/              shell, styles, client modules, vendored marked
 test/                scanner and ticket-writer tests
 tools/shot.mjs       headless screenshot helper
@@ -23,6 +24,11 @@ npm start                               # or: node src/serve.mjs --root . --open
 npm run check                           # or: node src/serve.mjs --check --root .
 npm test                                # scanner + ticket-writer tests
 node src/desk.mjs page --open           # serve from the CLI
+
+# docs mode: a folder of Markdown, with top-level folders as sections
+node src/serve.mjs --docs ~/notes --open
+node src/desk.mjs docs ~/notes --open
+node src/desk.mjs check --docs ~/notes
 ```
 
 ## Theme
@@ -82,6 +88,25 @@ curl -s -X DELETE 'localhost:7777/api/tickets?feature=plan-page&n=6'
 
 Reads stay the same: `GET /api/tree`, `GET /api/doc?path=…`, `GET /api/raw?path=…`,
 `GET /api/events` (SSE).
+
+## Docs mode
+
+With `--docs <dir>`, `/api/tree` returns `{ mode: "docs", sections: [...] }`
+instead of the `.desk` model. Each top-level folder is a section; root Markdown
+files are collected into a section with key `home` and title `Overview` (so a
+real `overview/` folder can coexist). Ordering is deterministic:
+`README.md` / `index.md`, then other files, then folders, with natural numeric
+sorting. `/api/doc` and `/api/raw` read Markdown from that root; `/api/tickets`
+writes are available only for a detected top-level `features/` section.
+
+Docs mode adds a confined asset route for local images and downloads:
+
+```bash
+curl -s 'localhost:7777/api/asset?path=guides/images/install.png'
+```
+
+It serves only allowlisted extensions under the docs root and rejects path
+traversal, symlink escapes, and files over 8 MB.
 
 ## What the page does with a change
 

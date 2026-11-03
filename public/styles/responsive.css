@@ -28,11 +28,34 @@
   .graph-list { display: block; }
 }
 
+@media (max-width: 560px) {
+  /* Give long section labels their own full-width row instead of clipping the
+   * first tab when the active section is scrolled into view. */
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--topbar);
+    column-gap: 12px;
+    row-gap: 0;
+  }
+  .brand,
+  .topbar-tools { height: var(--topbar); }
+  .topbar nav {
+    order: 3;
+    flex: 1 0 100%;
+    width: calc(100% + 28px);
+    margin: 0 -14px;
+    padding: 0 14px;
+  }
+  .tabs { gap: 18px; }
+  .tab { padding: 9px 0 8px; }
+}
+
 @media (max-width: 430px) {
-  .topbar { padding: 0 14px; gap: 14px; }
+  .topbar { padding: 0 14px; }
   .wordmark { display: none; }
-  .tabs { gap: 14px; }
-  .tab { font-size: 13px; }
+  .tabs { gap: 18px; }
+  .tab { font-size: 11px; letter-spacing: 0.07em; }
   .rail { padding: var(--s4) var(--s2) var(--s3); }
   .work { --pad-r: 18px; }
   .article-scroll { padding: 40px 18px var(--s8); }
@@ -48,9 +71,10 @@
 
 /* Keep the live dot and theme control inside very narrow phone headers. */
 @media (max-width: 360px) {
-  .topbar { padding: 0 10px; gap: 10px; }
-  .tabs { gap: 10px; }
-  .tab { font-size: 12.5px; }
+  .topbar { padding: 0 10px; column-gap: 8px; }
+  .topbar nav { width: calc(100% + 20px); margin: 0 -10px; padding: 0 10px; }
+  .tabs { gap: 14px; }
+  .tab { font-size: 10.5px; letter-spacing: 0.05em; }
   .topbar-tools { gap: 8px; }
   .theme-toggle { width: 28px; height: 28px; }
   .article-tools,

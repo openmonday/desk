@@ -12,7 +12,7 @@
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="#/features" aria-label="desk — features">
+  <a class="brand" id="brand" href="#/features" aria-label="desk — features">
     <svg class="mark" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
       <g stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
         <path d="M12 2.6v6.2M12 15.2v6.2M2.6 12h6.2M15.2 12h6.2M5.4 5.4l4.3 4.3M14.3 14.3l4.3 4.3M18.6 5.4l-4.3 4.3M9.7 14.3l-4.3 4.3"/>
@@ -20,12 +20,8 @@
     </svg>
     <span class="wordmark">desk</span>
   </a>
-  <nav aria-label="Workspace sections">
-    <ul class="tabs" role="tablist">
-      <li><button class="tab" role="tab" data-tab="context" aria-selected="false">Context</button></li>
-      <li><button class="tab" role="tab" data-tab="architecture" aria-selected="false">Architecture</button></li>
-      <li><button class="tab" role="tab" data-tab="features" aria-selected="false">Features</button></li>
-    </ul>
+  <nav class="tabs-nav" aria-label="Workspace sections">
+    <ul class="tabs" id="tabs" role="tablist"></ul>
   </nav>
   <div class="topbar-tools">
     <div class="live" id="live" data-state="up" title="Live: watching .desk. Changes made by you or an agent appear here on their own."><i></i><span>Live</span></div>

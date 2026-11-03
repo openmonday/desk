@@ -2,7 +2,7 @@
   "name": "desk",
   "version": "0.1.0",
   "private": true,
-  "description": "A live local view of a .desk workspace, plus the agent CLI and HTTP API that edit it.",
+  "description": "A live local view of a .desk workspace or a Markdown docs folder, plus the agent CLI and HTTP API.",
   "type": "module",
   "bin": {
     "desk": "./src/desk.mjs"

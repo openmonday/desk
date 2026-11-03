@@ -19,9 +19,112 @@ function featureBySlug(s) {
   return (S.tree?.features || []).find((f) => f.slug === s) || null;
 }
 
+const docsMode = () => S.tree?.mode === "docs";
+
+function docsSections() {
+  return S.tree?.sections || [];
+}
+
+function docsSection(key) {
+  return docsSections().find((s) => s.key === key) || null;
+}
+
+function findDocsFile(nodes, path) {
+  for (const node of nodes || []) {
+    if (node.type === "file" && node.path === path) return node;
+    if (node.type === "dir") {
+      const hit = findDocsFile(node.children, path);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+function docsEntryForFile(section, file) {
+  return {
+    kind: "doc",
+    path: file.path,
+    title: file.title,
+    tab: section.key,
+    section,
+    file,
+  };
+}
+
+function docsEntryForFeature(section, feature) {
+  if (feature.specPath) {
+    return {
+      kind: "spec",
+      path: feature.specPath,
+      title: feature.title,
+      tab: section.key,
+      feature,
+    };
+  }
+  const first = feature.tickets?.[0];
+  return first ? {
+    kind: "ticket", path: first.path, title: first.title, tab: section.key, feature, ticket: first,
+  } : null;
+}
+
+function docsFeatureByPath(path) {
+  for (const section of docsSections()) {
+    if (section.kind !== "features") continue;
+    for (const feature of section.features || []) {
+      if (feature.specPath === path) return { section, feature, ticket: null };
+      const ticket = (feature.tickets || []).find((t) => t.path === path);
+      if (ticket) return { section, feature, ticket };
+    }
+  }
+  return null;
+}
+
+function docsEntryByPath(path) {
+  for (const section of docsSections()) {
+    const file = findDocsFile(section.tree, path);
+    if (file) return docsEntryForFile(section, file);
+  }
+  return null;
+}
+
+function docsEntryByTab(tab) {
+  const section = docsSection(tab) || docsSections()[0];
+  if (!section) return null;
+  if (section.kind === "features") {
+    const feature = section.features?.find((f) => f.specPath) || section.features?.[0];
+    return feature ? docsEntryForFeature(section, feature) : null;
+  }
+  if (!section.firstPath) return null;
+  return docsEntryByPath(section.firstPath);
+}
+
+function defaultDocsEntry() {
+  const overview = docsSections().find((section) => section.kind === "overview");
+  const first = overview || docsSections()[0];
+  if (!first) return null;
+  return first.kind === "features" ? docsEntryByTab(first.key) : docsEntryByPath(first.firstPath);
+}
+
 function entryForPath(path) {
   const t = S.tree;
   if (!t || !path) return null;
+  if (t.mode === "docs") {
+    const feature = docsFeatureByPath(path);
+    if (feature) {
+      if (feature.ticket) {
+        return {
+          kind: "ticket",
+          path,
+          title: feature.ticket.title,
+          tab: feature.section.key,
+          feature: feature.feature,
+          ticket: feature.ticket,
+        };
+      }
+      return docsEntryForFeature(feature.section, feature.feature);
+    }
+    return docsEntryByPath(path);
+  }
   if (t.context?.path === path && t.context?.exists) {
     return { kind: "context", path, title: t.context.title || "Context", tab: "context" };
   }
@@ -106,8 +209,32 @@ function tallyText(f) {
 
 /* ---------- data ---------- */
 
+function docsPaths(nodes) {
+  const out = [];
+  for (const node of nodes || []) {
+    if (node.type === "file") out.push([node.path, node.title]);
+    else out.push(...docsPaths(node.children));
+  }
+  return out;
+}
+
+function docsFeatureSignature(section) {
+  return (section.features || []).map((f) => [
+    f.slug,
+    f.specPath,
+    f.progress?.done,
+    f.progress?.total,
+    (f.tickets || []).map((t) => [t.path, t.status, t.statusRaw, t.title, t.blockedBy.join(",")]),
+  ]);
+}
+
 function treeSignature(tree) {
   if (!tree) return "";
+  if (tree.mode === "docs") {
+    return JSON.stringify((tree.sections || []).map((s) => [
+      s.key, s.kind, s.firstPath, docsPaths(s.tree), docsFeatureSignature(s),
+    ]));
+  }
   return JSON.stringify((tree.features || []).map((f) => [
     f.slug,
     f.progress.done,
@@ -120,6 +247,7 @@ function treeSignature(tree) {
 
 function docTitle() {
   if (!S.doc) return "desk";
+  if (S.doc.kind === "doc") return S.doc.title;
   if (S.doc.kind === "spec") return S.doc.feature.title;
   if (S.doc.kind === "ticket") return `${num(S.doc.ticket.n)} ${S.doc.ticket.title}`;
   return S.doc.title;
@@ -127,6 +255,8 @@ function docTitle() {
 
 export {
   S, num, key, plural, narrow, featureBySlug, entryForPath,
+  docsMode, docsSections, docsSection, docsEntryByTab, defaultDocsEntry,
+  docsEntryForFeature, docsFeatureByPath,
   KIND_LABEL, featureIndex, stateOf, shortState, tally, tallyText,
   treeSignature, docTitle,
 };

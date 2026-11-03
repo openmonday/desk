@@ -1,6 +1,8 @@
 /* The shell's stable DOM nodes, looked up once after the document is parsed. */
 const $ = (sel) => document.querySelector(sel);
 
+export const brand = $("#brand");
+export const tabs = $("#tabs");
 export const rail = $("#rail");
 export const railBody = $("#rail-body");
 export const railLabel = $("#rail-label");

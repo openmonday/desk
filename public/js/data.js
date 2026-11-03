@@ -4,6 +4,14 @@ import { S, num } from "./state.js";
 import { api } from "./api.js";
 import { setLive, toast } from "./live.js";
 
+function allFeatures(tree) {
+  if (!tree) return [];
+  if (tree.mode === "docs") {
+    return (tree.sections || []).flatMap((s) => s.features || []);
+  }
+  return tree.features || [];
+}
+
 async function refreshTree() {
   const prev = S.tree;
   try {
@@ -11,14 +19,15 @@ async function refreshTree() {
     setLive("up");
   } catch {
     setLive("down");
-    if (!S.tree) S.tree = { ok: false, features: [], architecture: [], context: { exists: false }, diagnostics: [] };
+    if (!S.tree) S.tree = { ok: false, mode: "desk", features: [], architecture: [], context: { exists: false }, diagnostics: [] };
     return false;
   }
 
   if (prev) {
+    const prevFeatures = allFeatures(prev);
     const finished = [];
-    for (const f of S.tree.features || []) {
-      const old = (prev.features || []).find((x) => x.slug === f.slug);
+    for (const f of allFeatures(S.tree)) {
+      const old = prevFeatures.find((x) => x.slug === f.slug);
       for (const t of f.tickets || []) {
         const before = old?.tickets?.find((x) => x.path === t.path);
         if (before && before.status !== "done" && t.status === "done") {

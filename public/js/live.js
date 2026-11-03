@@ -8,8 +8,9 @@ import { live } from "./refs.js";
 
 function setLive(state) {
   live.dataset.state = state;
+  const target = S.tree?.mode === "docs" ? "docs" : ".desk";
   live.title = state === "up"
-    ? "Live: watching .desk. Changes made by you or an agent appear here on their own."
+    ? `Live: watching ${target}. Changes made by you or an agent appear here on their own.`
     : state === "stale"
       ? "Reconnecting to the local desk server."
       : "Offline: the local desk server is not reachable. Restart it with node src/serve.mjs.";
@@ -55,7 +56,9 @@ function scheduleRefresh() {
     }
     const entry = entryForPath(S.doc.path);
     if (!entry) {
-      await actions.loadEntry(defaultEntry(), { silent: true });
+      // The open file disappeared: show the section default and replace the
+      // stale hash so a reload does not land on a missing document.
+      await actions.loadEntry(defaultEntry(), { silent: false });
       return;
     }
     await actions.loadEntry(entry, { silent: true, keepScroll: true, force: changed || S.justDone.size > 0 });

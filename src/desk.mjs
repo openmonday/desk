@@ -13,12 +13,14 @@
  *   desk list [feature]
  *   desk check
  *   desk page [--port 7777] [--open]
+ *   desk docs ./tutorial [--port 7777] [--open]
  */
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { findWorkspace, scanWorkspace } from "./lib/scan.mjs";
+import { scanDocs } from "./lib/docs/scan.mjs";
 import {
   createTicket, updateTicket, completeTicket, removeTicket, listTickets,
 } from "./lib/ticket.mjs";
@@ -32,10 +34,12 @@ const HELP = `desk — add, change, and complete tickets in a .desk workspace
   desk done <feature> <n>              mark done and tick every acceptance box
   desk rm <feature> <n> [--force]      delete a ticket
   desk list [feature]                  every ticket with status and blockers
-  desk check                           scan and print diagnostics
-  desk page [--port <n>] [--open]      serve the live page
+  desk check [--docs <dir>]            scan and print diagnostics
+  desk page [--port <n>] [--open]      serve the live .desk page
+  desk docs [dir] [--port <n>] [--open] serve a folder as a Markdown docs library
 
   --root <dir>   project directory containing .desk (default: walk up from cwd)
+  --docs <dir>   docs folder for "desk check", "desk page", or "desk docs"
   --json         always on; output is one JSON object per command
 
 Statuses: pending | in-progress | done | blocked. "complete", "wip", and
@@ -44,7 +48,7 @@ Statuses: pending | in-progress | done | blocked. "complete", "wip", and
 function parse(argv) {
   const flags = {};
   const pos = [];
-  const valued = new Set(["title", "status", "blocked-by", "body", "root", "port", "host"]);
+  const valued = new Set(["title", "status", "blocked-by", "body", "root", "docs", "port", "host"]);
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--help" || a === "-h") flags.help = true;
@@ -91,12 +95,34 @@ async function main() {
   if (command === "page" || command === "serve") {
     const args = [path.join(HERE, "serve.mjs")];
     if (flags.root) args.push("--root", flags.root);
+    if (flags.docs) args.push("--docs", flags.docs);
     if (flags.port) args.push("--port", flags.port);
     if (flags.host) args.push("--host", flags.host);
     if (flags.open) args.push("--open");
     if (flags.quiet) args.push("--quiet");
     const child = spawn(process.execPath, args, { stdio: "inherit" });
     child.on("exit", (code) => process.exit(code ?? 0));
+    return;
+  }
+
+  if (command === "docs" || command === "doc") {
+    const dir = flags.docs || feature || ".";
+    const args = [path.join(HERE, "serve.mjs"), "--docs", path.resolve(dir)];
+    if (flags.port) args.push("--port", flags.port);
+    if (flags.host) args.push("--host", flags.host);
+    if (flags.open) args.push("--open");
+    if (flags.quiet) args.push("--quiet");
+    const child = spawn(process.execPath, args, { stdio: "inherit" });
+    child.on("exit", (code) => process.exit(code ?? 0));
+    return;
+  }
+
+  if (command === "check" && flags.docs) {
+    const root = path.resolve(flags.docs);
+    const tree = await scanDocs(root);
+    const errors = tree.diagnostics.filter((d) => d.severity === "error").length;
+    print({ ok: errors === 0, mode: "docs", root, diagnostics: tree.diagnostics });
+    if (errors) process.exitCode = 1;
     return;
   }
 
