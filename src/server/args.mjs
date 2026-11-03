@@ -3,7 +3,7 @@
 export function usage() {
   console.log(`desk page — live view of .desk
 
-  node serve.mjs [options]
+  node src/serve.mjs [options]
 
   --root <dir>    project directory containing .desk (default: walk up from cwd)
   --port <n>      port to listen on (default: 7777, falls back to the next free one)

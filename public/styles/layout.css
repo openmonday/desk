@@ -1,0 +1,80 @@
+/* ---------- layout ---------- */
+
+.viewport {
+  display: grid;
+  grid-template-columns: min(var(--rail), 45vw) 9px minmax(0, 1fr);
+  height: calc(100vh - var(--topbar));
+  height: calc(100dvh - var(--topbar));
+}
+
+.rail {
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--s6) var(--s4) var(--s7) var(--s5);
+  background: var(--paper);
+}
+
+.rail-split {
+  position: relative;
+  z-index: 6;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.rail-split::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: var(--line);
+  transition: background 120ms ease, left 120ms ease, width 120ms ease;
+}
+
+.rail-split::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 3px;
+  height: 30px;
+  margin-top: -15px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease;
+}
+
+.rail-split:hover::before,
+.rail-split.is-active::before,
+.rail-split:focus-visible::before { left: 3px; width: 2px; background: var(--clay); }
+
+.rail-split:hover::after,
+.rail-split.is-active::after,
+.rail-split:focus-visible::after { opacity: 1; background: var(--clay); }
+.rail-split[hidden] { display: none; }
+
+.is-resizing-x { cursor: col-resize; user-select: none; }
+
+.work {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  --pad-r: var(--s8);
+}
+
+.article-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-width: 0;
+  padding: var(--s7) var(--pad-r) 140px var(--s7);
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 1200px) {
+  :root { --rail: 272px; }
+  .work { --pad-r: var(--s6); }
+  .article-scroll { padding-left: var(--s6); }
+}

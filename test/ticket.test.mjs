@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
-import { scanWorkspace } from "../page/lib/scan.mjs";
+import { scanWorkspace } from "../src/lib/scan.mjs";
 import {
   canonicalStatus, completeTicket, createTicket, listTickets, normalizeBlockedBy, removeTicket,
   slugify, updateTicket,
-} from "../page/lib/ticket.mjs";
+} from "../src/lib/ticket.mjs";
 import { makeWorkspace, writeTicket } from "./helpers.mjs";
 
 test("createTicket writes the header, blockers, and body", async (t) => {

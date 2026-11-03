@@ -1,0 +1,16 @@
+/* desk page — visual system.
+ * Warm paper and ink, hairlines instead of boxes, clay for identity and live work.
+ * Display for titles, Text for prose, Mono for small-caps labels.
+ *
+ * Rules are split by responsibility under styles/. The import order below is
+ * the cascade order; keep responsive.css last. */
+@import url("./styles/base.css");
+@import url("./styles/topbar.css");
+@import url("./styles/layout.css");
+@import url("./styles/graph-panel.css");
+@import url("./styles/rail.css");
+@import url("./styles/article.css");
+@import url("./styles/ticket.css");
+@import url("./styles/graph.css");
+@import url("./styles/components.css");
+@import url("./styles/responsive.css");

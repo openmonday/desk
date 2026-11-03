@@ -1,0 +1,176 @@
+/* ---------- article ---------- */
+
+.article {
+  max-width: var(--wide);
+  min-width: 0;
+}
+
+/* prose and headers keep a reading measure */
+.article > *,
+.prose > * { max-width: var(--measure); }
+
+.article h1 {
+  margin: 0 0 var(--s4);
+  font: 500 32px/1.18 var(--sans-display);
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.eyebrow-doc { margin: 0 0 var(--s3); }
+.eyebrow-quiet { color: var(--faint); }
+
+.prose { margin-top: var(--s6); }
+.prose > :first-child { margin-top: 0; }
+
+.prose h2 {
+  margin: var(--s7) 0 var(--s3);
+  font: 500 21px/1.3 var(--sans-display);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  scroll-margin-top: var(--s5);
+}
+
+.prose h3 {
+  margin: var(--s6) 0 var(--s2);
+  font: 500 16px/1.4 var(--sans-text);
+  scroll-margin-top: var(--s5);
+}
+
+.prose p,
+.prose li {
+  font: 400 var(--prose-size)/1.68 var(--sans-text);
+  color: var(--ink);
+}
+
+.prose p { margin: 0 0 1.05em; }
+.prose ul, .prose ol { margin: 0 0 1.15em; padding-left: 1.3em; }
+.prose li { margin: 0 0 0.38em; }
+.prose li::marker { color: var(--faint); }
+.prose ol > li::marker { font: 400 0.82em var(--mono); }
+
+.prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--muted);
+}
+
+.prose a:hover { text-decoration-color: var(--clay); }
+.prose strong { font-weight: 600; }
+
+.article code {
+  font: 400 0.84em/1.5 var(--mono);
+  background: var(--oat);
+  padding: 0.1em 0.3em;
+}
+
+.prose pre {
+  margin: 0 0 1.2em;
+  padding: var(--s3) var(--s4);
+  overflow-x: auto;
+  background: var(--oat-soft);
+  border: 1px solid var(--line);
+}
+
+.prose pre code { background: none; padding: 0; font-size: 12.5px; line-height: 1.6; }
+
+.prose blockquote {
+  margin: 0 0 1.2em;
+  padding-left: var(--s4);
+  border-left: 2px solid var(--clay);
+  color: var(--ink-soft);
+}
+
+.prose hr { border: 0; border-top: 1px solid var(--line); margin: 2.2em 0; }
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.2em;
+  font: 400 13.5px/1.5 var(--sans-text);
+}
+
+.prose th {
+  text-align: left;
+  font: 400 10.5px/1.4 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-bottom: 1px solid var(--line-strong);
+  padding: var(--s2) var(--s3) var(--s2) 0;
+}
+
+.prose td {
+  border-bottom: 1px solid var(--line);
+  padding: 9px var(--s3) 9px 0;
+  vertical-align: top;
+}
+
+.prose li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.3em; }
+
+.prose input[type="checkbox"] {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin: 0 var(--s2) 0 0;
+  border: 1.5px solid var(--faint);
+  vertical-align: -1px;
+  position: relative;
+}
+
+.prose input[type="checkbox"]:checked { background: var(--ink-soft); border-color: var(--ink-soft); }
+
+.prose input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0;
+  width: 4px;
+  height: 7px;
+  border: solid var(--paper);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.prose img { max-width: 100%; height: auto; }
+
+/* ---------- spec header ---------- */
+
+.next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--s2);
+  row-gap: var(--s1);
+  margin: 0;
+  font: 400 15.5px/1.5 var(--sans-text);
+  color: var(--ink-soft);
+}
+
+.next-label {
+  font: 400 10.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.next-gap { width: var(--s4); }
+.next-more { color: var(--faint); font-size: 14px; }
+
+/* linked ticket reference: glyph, number, title */
+.tlink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tlink .glyph { align-self: center; }
+.tlink:hover { color: var(--clay-ink); }
+.tlink:hover .link-title, a.tlink:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.link-n { font: 400 0.8em/1 var(--mono); color: var(--faint); }
+.tlink.is-missing { color: var(--clay-ink); }
+.sep { color: var(--muted); margin: 0 2px; }

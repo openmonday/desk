@@ -1,0 +1,121 @@
+/* Desk page — tokens, reset, typography, status glyphs. */
+:root {
+  /* palette */
+  --paper: #faf9f5;
+  --oat: #f0eee6;
+  --oat-soft: #f5f4ee;
+  --ink: #141413;
+  --ink-soft: #3d3d3a;
+  --faint: #6b6a64;      /* secondary text, 5.1:1 on paper */
+  --muted: #b0aea5;      /* decoration only */
+  --line: #e8e6dc;
+  --line-strong: #d4d1c5;
+  --clay: #d97757;
+  --clay-strong: #c6613f; /* small graphics */
+  --clay-ink: #a9532f;   /* clay text, 5:1 on paper */
+  --clay-wash: #f6e7df;
+  --green: #788c5d;
+  --green-ink: #5f7148;
+  --blue: #6a9bcc;
+
+  /* status hues: shape + label carry meaning, colour reinforces */
+  --k-done: var(--green);
+  --k-active: var(--clay-strong);
+  --k-ready: var(--ink-soft);
+  --k-waiting: #87867f;
+  --k-blocked: var(--ink);
+  --k-unknown: var(--clay-strong);
+
+  /* type */
+  --sans-display: "Anthropic Sans Display", ui-sans-serif, -apple-system, system-ui, sans-serif;
+  --sans-text: "Anthropic Sans Text", ui-sans-serif, -apple-system, system-ui, sans-serif;
+  --mono: "Anthropic Mono Web", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --prose-size: 16.5px;
+
+  /* rhythm */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  --topbar: 54px;
+  --rail: 320px;
+  --measure: 68ch;
+  --wide: 1180px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+}
+
+::selection { background: var(--clay-wash); }
+
+code { font-family: var(--mono); }
+
+button { font-family: inherit; color: inherit; }
+
+/* small-caps mono label used across the page */
+.eyebrow {
+  margin: 0;
+  font: 400 10.5px/1.2 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ---------- status glyphs ---------- */
+
+.glyph { display: block; flex: none; overflow: visible; color: var(--k-waiting); }
+.glyph[data-kind="done"] { color: var(--k-done); }
+.glyph[data-kind="active"] { color: var(--k-active); }
+.glyph[data-kind="ready"] { color: var(--k-ready); }
+.glyph[data-kind="blocked"] { color: var(--k-blocked); }
+.glyph[data-kind="unknown"] { color: var(--k-unknown); }
+
+.g-fill { fill: currentColor; }
+.g-ring { fill: none; stroke: currentColor; stroke-width: 1.5; }
+.g-dash { stroke-dasharray: 2.2 2.1; }
+.g-knock {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* one segment per ticket, in ticket order */
+.progress {
+  display: flex;
+  gap: 2px;
+  height: 3px;
+}
+
+.progress i {
+  flex: 1 1 0;
+  min-width: 2px;
+  background: var(--line-strong);
+  transition: background 300ms ease;
+}
+
+.progress i[data-kind="done"] { background: var(--k-done); }
+.progress i[data-kind="active"] { background: var(--clay); }
+.progress i[data-kind="blocked"] { background: var(--ink); }

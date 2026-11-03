@@ -1,0 +1,204 @@
+/* ---------- rail ---------- */
+
+.rail-block > .eyebrow { margin: 0 0 var(--s3) var(--s2); }
+
+.features,
+.tree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feature + .feature { margin-top: var(--s2); }
+
+.feature-row {
+  appearance: none;
+  border: 0;
+  background: none;
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  padding: var(--s2);
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.feature-row:hover { background: var(--oat-soft); }
+
+.feature-title {
+  flex: 1;
+  min-width: 0;
+  font: 500 15px/1.35 var(--sans-display);
+  letter-spacing: -0.005em;
+  text-wrap: pretty;
+}
+
+.feature-count {
+  flex: none;
+  font: 400 11px/1 var(--mono);
+  color: var(--faint);
+}
+
+.progress-rail { margin: 2px var(--s2) var(--s3); }
+
+.feature .tree { margin-bottom: var(--s3); }
+
+.row {
+  appearance: none;
+  border: 0;
+  background: none;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  padding: 6px var(--s2) 6px 6px;
+  border-left: 2px solid transparent;
+  font: 400 13.5px/1.4 var(--sans-text);
+  color: var(--ink-soft);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.row:hover { background: var(--oat-soft); color: var(--ink); }
+
+.row[aria-current="true"] {
+  background: var(--oat);
+  border-left-color: var(--clay);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.row-label {
+  flex: 1;
+  min-width: 0;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+
+.row-sub {
+  flex: none;
+  font: 400 11px/1.6 var(--mono);
+  color: var(--faint);
+}
+
+.row-lead {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 19px; /* one line of label */
+}
+
+.row-n {
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.02em;
+  color: var(--faint);
+  min-width: 2ch;
+}
+
+.row-spec .row-lead { padding-left: 19px; }
+.row-spec .row-n { letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; min-width: 4ch; }
+.row-spec .row-label { font-style: normal; }
+
+.dot {
+  position: relative;
+  display: inline-flex;
+  border-radius: 50%;
+}
+
+.dot.just-done::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  animation: ring 1100ms var(--ease) both;
+}
+
+@keyframes ring {
+  0% { box-shadow: 0 0 0 0 rgba(120, 140, 93, 0.6); }
+  100% { box-shadow: 0 0 0 10px rgba(120, 140, 93, 0); }
+}
+
+/* diagnostics: specific, linked to the file, quiet when warnings only */
+
+.diagnostics {
+  margin-top: var(--s6);
+  padding: var(--s3) var(--s2) 0;
+  border-top: 1px solid var(--line);
+  font: 400 12.5px/1.5 var(--sans-text);
+  color: var(--ink-soft);
+}
+
+.diagnostics summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  cursor: pointer;
+  list-style: none;
+}
+
+.diagnostics summary::-webkit-details-marker { display: none; }
+
+.diagnostics summary::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: none;
+  align-self: center;
+  background: var(--muted);
+  transform: rotate(45deg);
+}
+
+.diagnostics[data-worst="error"] summary::before { background: var(--clay-strong); }
+
+.diag-title { font: 500 13px/1.4 var(--sans-text); color: var(--ink); }
+.diag-count { margin-left: auto; font: 400 11px/1 var(--mono); color: var(--faint); }
+.diagnostics[data-worst="error"] .diag-count { color: var(--clay-ink); }
+
+.diagnostics ul { margin: var(--s3) 0 0; padding: 0; list-style: none; }
+
+.diagnostics li {
+  display: grid;
+  gap: 2px;
+  margin: 0 0 var(--s3);
+  padding-left: var(--s3);
+  border-left: 2px solid var(--line-strong);
+  overflow-wrap: anywhere;
+}
+
+.diagnostics li[data-severity="error"] { border-left-color: var(--clay-strong); }
+
+.diagnostics .severity {
+  font: 400 10px/1.4 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.diagnostics li[data-severity="error"] .severity { color: var(--clay-ink); }
+
+.diagnostics .where {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+  font: 400 11px/1.5 var(--mono);
+  color: var(--faint);
+}
+
+.diagnostics button.where {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 2px;
+}
+
+.diagnostics button.where:hover { color: var(--ink); text-decoration-color: var(--clay); }
+
+.diag-hint { margin: 0 0 var(--s2); font-size: 12px; color: var(--faint); }
+.diag-hint code { font-size: 11px; }

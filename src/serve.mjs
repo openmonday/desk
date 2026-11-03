@@ -16,7 +16,7 @@ import { report } from "./server/report.mjs";
 import { watchWorkspace } from "./server/watcher.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const PUBLIC = path.join(HERE, "public");
+const PUBLIC = path.resolve(HERE, "..", "public");
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
@@ -81,7 +81,7 @@ async function main() {
     console.log(`desk page  ${urlBase}  (live)`);
     console.log(`  ${workspace}`);
     console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
-    if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node serve.mjs --check`);
+    if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check`);
   }
 
   if (opts.open) {

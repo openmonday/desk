@@ -8,9 +8,9 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node page/serve.mjs",
-    "serve": "node page/serve.mjs",
-    "check": "node page/serve.mjs --check",
+    "start": "node src/serve.mjs",
+    "serve": "node src/serve.mjs",
+    "check": "node src/serve.mjs --check",
     "test": "node --test test/*.test.mjs"
   }
 }

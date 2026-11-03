@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import {
   findWorkspace, parseTicket, readDoc, resolveDoc, scanWorkspace,
-} from "../page/lib/scan.mjs";
+} from "../src/lib/scan.mjs";
 import { makeWorkspace, writeTicket } from "./helpers.mjs";
 
 test("findWorkspace walks up to the .desk directory", async (t) => {

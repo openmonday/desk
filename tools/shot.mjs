@@ -5,7 +5,7 @@
  * holds an SSE connection open, so we drive Chromium through the DevTools
  * protocol instead: navigate, wait, capture.
  *
- *   node page/tools/shot.mjs http://127.0.0.1:7777/ /tmp/spec.png [width] [height] [waitMs]
+ *   node tools/shot.mjs http://127.0.0.1:7777/ /tmp/spec.png [width] [height] [waitMs]
  */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -14,7 +14,7 @@ import path from "node:path";
 
 const [, , url, out, width = "1440", height = "1000", waitMs = "2200"] = process.argv;
 if (!url || !out) {
-  console.error("usage: node page/tools/shot.mjs <url> <out.png> [width] [height] [waitMs]");
+  console.error("usage: node tools/shot.mjs <url> <out.png> [width] [height] [waitMs]");
   process.exit(2);
 }
 

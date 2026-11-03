@@ -12,7 +12,7 @@ function setLive(state) {
     ? "Live: watching .desk. Changes made by you or an agent appear here on their own."
     : state === "stale"
       ? "Reconnecting to the local desk server."
-      : "Offline: the local desk server is not reachable. Restart it with node page/serve.mjs.";
+      : "Offline: the local desk server is not reachable. Restart it with node src/serve.mjs.";
   const label = live.querySelector("span");
   if (label) label.textContent = state === "up" ? "Live" : state === "stale" ? "Reconnecting" : "Offline";
 }
