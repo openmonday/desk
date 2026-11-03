@@ -20,7 +20,8 @@
 
 .graph-canvas { position: relative; }
 
-.graph-canvas svg {
+/* Edge layer only: node status glyphs are SVGs too, so keep this direct-child. */
+.graph-canvas > svg {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -104,9 +105,9 @@
   height: 16px;
 }
 
-.node-glyph { position: relative; display: inline-flex; flex: none; }
+.node-glyph { position: relative; display: inline-flex; flex: none; width: 14px; height: 14px; }
 
-.node-n { font: 400 11px/1 var(--mono); color: var(--faint); }
+.node-n { flex: none; white-space: nowrap; font: 400 11px/1 var(--mono); color: var(--faint); }
 
 .node-state {
   margin-left: auto;
