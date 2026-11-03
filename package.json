@@ -4,6 +4,9 @@
   "private": true,
   "description": "A live local view of a .desk workspace, plus the agent CLI and HTTP API that edit it.",
   "type": "module",
+  "bin": {
+    "desk": "./src/desk.mjs"
+  },
   "engines": {
     "node": ">=18"
   },

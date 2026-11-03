@@ -20,16 +20,16 @@ feature view.
 ```text
 .
 ├── .desk/                  sample workspace: glossary, architecture, features
-├── page/                   the app
+├── src/                    server and library code
 │   ├── serve.mjs           HTTP entry: options, workspace, lifecycle
 │   ├── desk.mjs            agent CLI
 │   ├── server/             request handler, SSE, static assets, watcher
-│   ├── lib/                scanner and ticket writer, split by responsibility
-│   ├── public/             shell, styles, client modules, vendored marked
-│   ├── tools/shot.mjs      headless screenshot helper
-│   └── README.md           full behaviour and API reference
+│   └── lib/                scanner and ticket writer, split by responsibility
+├── public/                 shell, styles, client modules, vendored marked
+├── tools/shot.mjs          headless screenshot helper
+├── docs/                   API reference, design brief, reference images
 └── test/                   node:test fixtures and tests
 ```
 
-See [`page/README.md`](page/README.md) for commands, the CLI, the HTTP API, and
-the hash routes.
+See [`docs/API.md`](docs/API.md) for commands, the CLI, the HTTP API, and
+hash routes.

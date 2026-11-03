@@ -1,5 +1,10 @@
 # Design brief — beautify the desk page
 
+> Historical brief. The app now lives in `src/` (server and library) and
+> `public/` (shell, styles, client modules). The layout has been split since
+> this brief was written, but the visual and behaviour contracts below still
+> apply.
+
 You are taking over a small, self-contained tool and making it beautiful, clear,
 and unmistakably Claude. This is a visual and interaction redesign, not a
 rewrite. You have wide creative latitude on the look; the behaviour and data
@@ -21,8 +26,8 @@ while the human watches.
 
 ```bash
 cd /Users/openmonday/projects/desk
-node page/serve.mjs --root . --open        # http://127.0.0.1:7777 (falls forward)
-node page/serve.mjs --check --root .       # scan + diagnostics, exit 1 on errors
+node src/serve.mjs --root . --open        # http://127.0.0.1:7777 (falls forward)
+node src/serve.mjs --check --root .       # scan + diagnostics, exit 1 on errors
 ```
 
 If a server is already running, use it or start another port; reloading the
@@ -33,21 +38,26 @@ browser is enough for CSS/JS changes, while `serve.mjs` changes need a restart.
 ```text
 /Users/openmonday/projects/desk/
 ├── .desk/                      sample workspace (5 tickets, 4 arch records) — test data
-└── page/                       the app; edit here
-    ├── serve.mjs               HTTP server: reads, ticket writes, SSE
-    ├── desk.mjs                agent CLI (add / update / done / rm / list / check / page)
-    ├── lib/scan.mjs            workspace → page model
-    ├── lib/ticket.mjs          ticket file writer
-    ├── public/shell.html       the shell
-    ├── public/theme.css        visual system
-    ├── public/app.js           client (vanilla IIFE, ~700 lines)
-    ├── public/marked.min.js    vendored markdown parser
-    ├── tools/shot.mjs          screenshot helper (see Verification)
-    ├── reference/before-*.png  current screenshots, for comparison
-    └── README.md               behaviour + API reference
+├── src/                        server and library code; edit here
+│   ├── serve.mjs               HTTP server: reads, ticket writes, SSE
+│   ├── desk.mjs                agent CLI (add / update / done / rm / list / check / page)
+│   ├── server/                 request handler, SSE, static assets, watcher
+│   ├── lib/scan.mjs            workspace → page model
+│   └── lib/ticket.mjs          ticket file writer
+├── public/
+│   ├── shell.html              the shell
+│   ├── theme.css               stylesheet entry point
+│   ├── styles/                 visual system, split by responsibility
+│   ├── app.js                  client entry (ES modules under js/)
+│   ├── js/                     state, views, graph, article, live updates
+│   └── marked.min.js           vendored markdown parser
+├── tools/shot.mjs              screenshot helper (see Verification)
+├── docs/reference/before-*.png current screenshots, for comparison
+├── docs/API.md                 behaviour + API reference
+└── test/                       scanner and ticket-writer tests
 ```
 
-Read `page/README.md` before changing anything. Do **not** edit
+Read `docs/API.md` before changing anything. Do **not** edit
 `/Users/openmonday/projects/agent/cli/skm/skills/dev/plan-page/` — that is the
 upstream template, not this copy.
 
@@ -190,20 +200,20 @@ If you have a better idea than anything above, do it and explain the tradeoff.
 Run the server and exercise the real flows:
 
 ```bash
-node page/serve.mjs --check --root .          # expect: no diagnostics
+node src/serve.mjs --check --root .          # expect: no diagnostics
 
 # horizontal graph with branches and a merge, then clean up
-node page/desk.mjs add plan-page-template --title "Branch A" --blocked-by 02
-node page/desk.mjs add plan-page-template --title "Branch B" --blocked-by 02
-node page/desk.mjs add plan-page-template --title "Merge point" --blocked-by 06,07
-node page/desk.mjs done plan-page-template 8
-node page/desk.mjs rm plan-page-template 8
-node page/desk.mjs rm plan-page-template 7
-node page/desk.mjs rm plan-page-template 6
+node src/desk.mjs add plan-page-template --title "Branch A" --blocked-by 02
+node src/desk.mjs add plan-page-template --title "Branch B" --blocked-by 02
+node src/desk.mjs add plan-page-template --title "Merge point" --blocked-by 06,07
+node src/desk.mjs done plan-page-template 8
+node src/desk.mjs rm plan-page-template 8
+node src/desk.mjs rm plan-page-template 7
+node src/desk.mjs rm plan-page-template 6
 
 # live change while the page is open (completion animation)
-node page/desk.mjs update plan-page-template 5 --status in-progress
-node page/desk.mjs done plan-page-template 5
+node src/desk.mjs update plan-page-template 5 --status in-progress
+node src/desk.mjs done plan-page-template 5
 ```
 
 Screenshots: **do not use Chrome's `--screenshot` flag** — the page holds an SSE
@@ -211,9 +221,9 @@ connection open and the command never settles. Use the bundled tool, which drive
 headless Chromium over CDP:
 
 ```bash
-node page/tools/shot.mjs http://127.0.0.1:7777/ /tmp/spec-1440.png 1440 1000
-node page/tools/shot.mjs "http://127.0.0.1:7777/#/features/plan-page-template/3" /tmp/ticket-1440.png 1440 1000
-node page/tools/shot.mjs http://127.0.0.1:7777/ /tmp/spec-390.png 390 844
+node tools/shot.mjs http://127.0.0.1:7777/ /tmp/spec-1440.png 1440 1000
+node tools/shot.mjs "http://127.0.0.1:7777/#/features/plan-page-template/3" /tmp/ticket-1440.png 1440 1000
+node tools/shot.mjs http://127.0.0.1:7777/ /tmp/spec-390.png 390 844
 ```
 
 Also verify, by hand or via DevTools protocol:
@@ -222,7 +232,7 @@ Also verify, by hand or via DevTools protocol:
 - `Start` → `Mark done` → `Reopen` each update the file and the page.
 - Completion animation fires (rail dot, node check/ring, toast) and settles.
 - No console errors, no 404s, no page-level horizontal scroll at 390px.
-- `node page/serve.mjs --check --root .` still reports no diagnostics.
+- `node src/serve.mjs --check --root .` still reports no diagnostics.
 
 ## Definition of done
 
