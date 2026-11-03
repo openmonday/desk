@@ -1,0 +1,16 @@
+{
+  "name": "desk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A live local view of a .desk workspace, plus the agent CLI and HTTP API that edit it.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node page/serve.mjs",
+    "serve": "node page/serve.mjs",
+    "check": "node page/serve.mjs --check",
+    "test": "node --test test/*.test.mjs"
+  }
+}
