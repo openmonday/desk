@@ -17,6 +17,33 @@
   --green: #788c5d;
   --green-ink: #5f7148;
   --blue: #6a9bcc;
+  --on-clay: #141413;
+
+  /* overlays and inverted surfaces */
+  --toast-bg: var(--ink);
+  --toast-ink: var(--paper);
+  --pulse: rgba(120, 140, 93, 0.6);
+  --pulse-clear: rgba(120, 140, 93, 0);
+
+  /* graph edges and node washes */
+  --edge: #a9a69c;
+  --edge-done: #d3d0c4;
+  --node-done-bg: #f1f4ec;
+  --node-done-border: #ccd7bd;
+  --node-done-bg-hover: #e9eedf;
+  --node-done-border-hover: #b3c39e;
+  --node-active-bg: #fbeee8;
+  --node-active-border: #e6b7a3;
+  --node-active-bg-hover: #f8e6dd;
+  --node-active-border-hover: #d99b81;
+  --node-ready-bg: #fffefb;
+  --node-waiting-bg: #f6f5ef;
+  --node-waiting-bg-hover: #eeede5;
+  --node-blocked-bg: #f1f0eb;
+  --node-blocked-bg-hover: #e9e7df;
+  --node-unknown-bg: #fbf1ec;
+  --node-unknown-bg-hover: #f7e5dc;
+  --list-active-bg: #fcf3ee;
 
   /* status hues: shape + label carry meaning, colour reinforces */
   --k-done: var(--green);
@@ -47,11 +74,64 @@
   --measure: 68ch;
   --wide: 1180px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  color-scheme: light;
+}
+
+/* A warm charcoal counterpart. Text and hairlines keep the same hierarchy;
+ * clay and green lift slightly so they stay legible on the dark ground. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #1b1a17;
+  --oat: #2a2823;
+  --oat-soft: #23221d;
+  --ink: #f1efe7;
+  --ink-soft: #c7c4b8;
+  --faint: #9a978c;      /* secondary text, 5.9:1 on paper */
+  --muted: #6f6c63;      /* decoration only */
+  --line: #34322c;
+  --line-strong: #4b4841;
+  --clay: #e08b6b;
+  --clay-strong: #ed9a78;
+  --clay-ink: #e3a084;
+  --clay-wash: #3a2922;
+  --green: #9ab17c;
+  --green-ink: #b3c797;
+  --blue: #86b3e0;
+
+  --toast-bg: #2a2823;
+  --toast-ink: var(--ink);
+  --pulse: rgba(154, 177, 124, 0.55);
+  --pulse-clear: rgba(154, 177, 124, 0);
+
+  --edge: #57544b;
+  --edge-done: #3a3832;
+  --node-done-bg: #22281d;
+  --node-done-border: #465239;
+  --node-done-bg-hover: #293022;
+  --node-done-border-hover: #5c6c4a;
+  --node-active-bg: #30231d;
+  --node-active-border: #6d4a3d;
+  --node-active-bg-hover: #392a22;
+  --node-active-border-hover: #8a5b49;
+  --node-ready-bg: #23221d;
+  --node-waiting-bg: #24231e;
+  --node-waiting-bg-hover: #2a2924;
+  --node-blocked-bg: #221f1a;
+  --node-blocked-bg-hover: #2b2822;
+  --node-unknown-bg: #2c211c;
+  --node-unknown-bg-hover: #34251e;
+  --list-active-bg: #30231d;
+
+  --k-waiting: #8f8c82;
 }
 
 * { box-sizing: border-box; }
 
 html, body { height: 100%; }
+
+html { background: var(--paper); }
 
 body {
   margin: 0;

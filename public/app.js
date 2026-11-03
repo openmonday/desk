@@ -13,6 +13,7 @@ import { render, renderTabs } from "./js/render.js";
 import { renderRail } from "./js/rail.js";
 import { renderGraph } from "./js/graph.js";
 import { initPanel, initRailSplit, showArticle } from "./js/panel.js";
+import { initTheme } from "./js/theme.js";
 
 Object.assign(actions, {
   open,
@@ -67,4 +68,5 @@ window.addEventListener("hashchange", async () => {
   renderTabs();
 });
 
+initTheme();
 boot();

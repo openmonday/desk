@@ -14,7 +14,8 @@ The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and its
 tickets. Changes made by an agent through the CLI or HTTP API appear live over
 server-sent events. The shared ticket dependency graph opens from the rail and
 replaces the article; close it to return to reading. Every view can fill the
-browser window with in-page fullscreen.
+browser window with in-page fullscreen. The round button at the top right cycles
+auto, light, and dark; auto follows the operating system.
 
 ## Layout
 

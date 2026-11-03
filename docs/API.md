@@ -25,6 +25,12 @@ npm test                                # scanner + ticket-writer tests
 node src/desk.mjs page --open           # serve from the CLI
 ```
 
+## Theme
+
+The round button at the right edge of the top bar cycles through auto, light,
+and dark. Auto follows the operating system's `prefers-color-scheme` and updates
+live when it changes; the choice is remembered in local storage.
+
 ## Agent interface (CLI)
 
 Every command prints one JSON object. Numbers may be given as `4` or `04`.

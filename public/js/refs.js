@@ -10,6 +10,7 @@ export const articlePanel = $("#article-panel");
 export const articleTools = $("#article-tools");
 export const scroller = $("#scroll");
 export const live = $("#live");
+export const themeToggle = $("#theme-toggle");
 export const work = $("#work");
 export const viewport = $(".viewport");
 export const railSplit = $("#rail-split");

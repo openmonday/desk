@@ -54,8 +54,14 @@
 .tab:hover { color: var(--ink); }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--clay); }
 
-.live {
+.topbar-tools {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+
+.live {
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
@@ -92,3 +98,29 @@
 
 .live[data-state="stale"] i { background: var(--blue); }
 .live[data-state="down"] i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
+
+/* theme control: auto (system), light, and dark in one circular button */
+
+.theme-toggle {
+  appearance: none;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--oat);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.theme-toggle:hover { color: var(--ink); border-color: var(--line-strong); background: var(--oat-soft); }
+.theme-icon { display: none; width: 16px; height: 16px; }
+
+:root[data-theme-mode="system"] .theme-icon-system,
+:root[data-theme-mode="light"] .theme-icon-light,
+:root[data-theme-mode="dark"] .theme-icon-dark,
+:root:not([data-theme-mode]) .theme-icon-system { display: block; }

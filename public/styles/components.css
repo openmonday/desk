@@ -8,8 +8,8 @@
   max-width: calc(var(--rail) - 2 * var(--s4));
   padding: 10px 14px 10px 12px;
   border-left: 3px solid var(--clay);
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--toast-bg);
+  color: var(--toast-ink);
   font: 400 13px/1.4 var(--sans-text);
   opacity: 0;
   transform: translateY(6px);

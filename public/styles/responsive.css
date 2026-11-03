@@ -44,6 +44,15 @@
   .crumb-step { margin-left: 0; }
 }
 
+/* Keep the live dot and theme control inside very narrow phone headers. */
+@media (max-width: 360px) {
+  .topbar { padding: 0 10px; gap: 10px; }
+  .tabs { gap: 10px; }
+  .tab { font-size: 12.5px; }
+  .topbar-tools { gap: 8px; }
+  .theme-toggle { width: 28px; height: 28px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 1ms !important;

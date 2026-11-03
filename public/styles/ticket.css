@@ -123,7 +123,7 @@
 .action-primary {
   background: var(--clay);
   border-color: var(--clay);
-  color: var(--ink);
+  color: var(--on-clay);
 }
 
 .action-primary:hover { background: var(--clay-strong); border-color: var(--clay-strong); }
