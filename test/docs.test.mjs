@@ -96,3 +96,17 @@ test("a top-level overview folder does not collide with root files", async (t) =
   assert.equal(tree.sections[0].kind, "overview");
   assert.equal(tree.sections[1].firstPath, "overview/index.md");
 });
+
+test("a top-level home folder does not shadow the root Overview section", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "desk-docs-home2-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(path.join(root, "home"), { recursive: true });
+  await writeFile(path.join(root, "README.md"), "# Home\\n");
+  await writeFile(path.join(root, "home", "index.md"), "# Home folder\\n");
+
+  const tree = await scanDocs(root);
+  assert.equal(tree.sections.length, 2);
+  assert.equal(tree.sections[0].kind, "overview");
+  assert.notEqual(tree.sections[0].key, "home");
+  assert.equal(tree.sections[1].key, "home");
+});

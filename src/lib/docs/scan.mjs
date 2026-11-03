@@ -215,8 +215,13 @@ export async function scanDocs(inputRoot) {
 
   if (rootFiles.length) {
     const tree = sortNodes(rootFiles);
+    // Keep a synthetic key that cannot shadow a real top-level `home/` folder.
+    let homeKey = "home";
+    for (let n = 2; sections.some((section) => section.key === homeKey); n += 1) {
+      homeKey = `home-${n}`;
+    }
     sections.unshift({
-      key: "home",
+      key: homeKey,
       kind: "overview",
       title: "Overview",
       path: "",
