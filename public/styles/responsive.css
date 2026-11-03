@@ -15,6 +15,7 @@
   .article-scroll { overflow: visible; padding: 40px var(--s5) var(--s8); }
   .graph-panel { height: auto; max-height: none; border-bottom: 1px solid var(--line); }
   .panel-body { overflow: visible; padding: 38px var(--s5) var(--s4); }
+  body[data-fullscreen="article"] .article-scroll { padding-left: var(--s5); padding-right: var(--s5); }
   .topbar { padding: 0 var(--s4); gap: var(--s5); }
   .tabs { gap: var(--s4); }
   .live span { display: none; }
@@ -35,6 +36,7 @@
   .rail { padding: var(--s4) var(--s2) var(--s3); }
   .work { --pad-r: 18px; }
   .article-scroll { padding: 40px 18px var(--s8); }
+  body[data-fullscreen="article"] .article-scroll { padding-left: 18px; padding-right: 18px; }
   :root { --prose-size: 15.5px; }
   .article h1 { font-size: 26px; }
   .status { gap: var(--s4); }
@@ -51,6 +53,10 @@
   .tab { font-size: 12.5px; }
   .topbar-tools { gap: 8px; }
   .theme-toggle { width: 28px; height: 28px; }
+  .article-tools,
+  .panel-tools-floating { right: 10px; }
+  body[data-fullscreen="article"] .article-tools,
+  body[data-fullscreen="graph"] .panel-tools-floating { right: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

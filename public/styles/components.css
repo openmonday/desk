@@ -61,6 +61,17 @@
   z-index: 4;
 }
 
+/* Wide layouts: the floating controls share the rail header row and sit
+ * directly under the theme button, so the article and graph buttons do not
+ * jump between views. The rail header starts one --s6 below the top bar. */
+@media (min-width: 901px) {
+  .panel-tools-floating,
+  .article-tools {
+    top: var(--s6);
+    right: 34px;
+  }
+}
+
 .icon-btn {
   appearance: none;
   display: inline-grid;
@@ -103,6 +114,18 @@ body[data-fullscreen] .work {
 body[data-fullscreen] .panel-body,
 body[data-fullscreen] .article-scroll { overflow: auto; }
 
+/* Fullscreen text is a centered reading column; the exit control stays in the
+ * same screen position as the article's fullscreen button. */
+body[data-fullscreen="article"] .article-scroll {
+  padding-left: var(--s7);
+  padding-right: var(--s7);
+}
+
+body[data-fullscreen="article"] .article {
+  max-width: var(--measure);
+  margin-inline: auto;
+}
+
 body[data-fullscreen="rail"] .work { display: none; }
 
 body[data-fullscreen="rail"] .rail {
@@ -134,4 +157,13 @@ body[data-fullscreen="article"] .article-panel {
   flex: 1 1 auto;
   height: 100vh;
   height: 100dvh;
+}
+
+@media (min-width: 901px) {
+  body[data-fullscreen="article"] .article-tools,
+  body[data-fullscreen="graph"] .panel-tools-floating,
+  body[data-fullscreen="rail"] .rail-head .panel-tools {
+    top: calc(var(--topbar) + var(--s6));
+    right: 34px;
+  }
 }
