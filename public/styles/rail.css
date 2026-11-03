@@ -255,12 +255,6 @@
   text-overflow: ellipsis;
 }
 
-.doc-folder-count {
-  flex: none;
-  color: var(--faint);
-  font: 400 10px/1 var(--mono);
-}
-
 .doc-chevron {
   flex: none;
   width: 14px;
@@ -284,6 +278,15 @@
 }
 
 .doc-tree .row:hover { background: var(--oat-soft); color: var(--ink); }
+
+.doc-branch {
+  flex: none;
+  width: 1.1em;
+  color: var(--faint);
+  font: 400 18px/1 var(--mono);
+}
+
+.doc-tree .row[aria-current="true"] .doc-branch { color: var(--clay-ink); }
 
 .doc-tree .row[aria-current="true"] {
   border-left-color: transparent;

@@ -113,12 +113,11 @@ function docsNode(node, depth = 0) {
         style: `padding-left:${indent}px`,
       }, [
         el("span", { class: "doc-folder-label" }, [node.title || node.name]),
-        el("span", { class: "doc-folder-count" }, [String(node.count || 0)]),
         svgEl("svg", {
           class: "doc-chevron",
           viewBox: "0 0 16 16",
-          width: "12",
-          height: "12",
+          width: "14",
+          height: "14",
           "aria-hidden": "true",
           focusable: "false",
         }, [svgEl("path", {
@@ -140,6 +139,7 @@ function docsNode(node, depth = 0) {
   }
   const li = row({
     cls: "row-doc",
+    lead: el("span", { class: "doc-branch", "aria-hidden": "true" }, ["└"]),
     label: node.title || node.name,
     title: `${node.title || node.name} — ${node.path}`,
     active: S.doc?.path === node.path,
