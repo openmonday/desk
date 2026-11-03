@@ -3,7 +3,8 @@
 A live local view of a `.desk` engineering workspace, plus the small CLI and
 HTTP API agents use to change it. It can also serve any folder of Markdown as a
 read-only docs library. No dependencies, no build step: Node 18+ and plain HTML,
-CSS, and JavaScript.
+CSS, and JavaScript. Markdown is rendered with vendored marked and highlighted
+with a vendored highlight.js build; everything stays local.
 
 ```bash
 npm start        # serve the sample workspace at http://127.0.0.1:7777
@@ -35,7 +36,9 @@ Labels are display-only and uppercased in CSS; folder names never change on
 disk (the `.desk` convention `arch` displays as Architecture). Tree labels stay
 on one line and ellipsize when long; navigating to a nested document opens its
 folder branch automatically. The active document and its parent folders use
-rounded rows (the document is clay-tinted), and folders use chevrons. Relative
+rounded rows (the document is clay-tinted); files carry a `└` branch mark and
+folders use an SVG chevron. Fenced code blocks are highlighted locally by
+language (language-less blocks fall back to detection when confident). Relative
 Markdown links become in-page links, and local images, PDFs, and media load
 through a path-confined asset route. The URL
 keeps the open document, e.g. `#/docs/guides/install.md`, so it can be
@@ -60,11 +63,14 @@ with `--host 0.0.0.0` on an untrusted network.
 │   ├── desk.mjs            agent CLI
 │   ├── server/             request handler, SSE, static assets, watcher
 │   └── lib/                workspace scanner, ticket writer, docs scanner/reads
-├── public/                 shell, styles, client modules, vendored marked
+├── public/                 shell, styles, client modules, vendored libraries
 ├── tools/shot.mjs          headless screenshot helper
 ├── docs/                   API reference, design brief, reference images
 └── test/                   node:test fixtures and tests
 ```
+
+Third-party notices: marked is MIT-licensed; highlight.js is BSD-3-Clause
+(see `public/highlight.LICENSE.txt`).
 
 See [`docs/API.md`](docs/API.md) for commands, the CLI, the HTTP API, and
 hash routes.

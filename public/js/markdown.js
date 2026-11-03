@@ -61,10 +61,38 @@ function rewriteDocsLinks(root, basePath) {
   }
 }
 
+function highlightCode(root) {
+  const hljs = window.hljs;
+  if (!hljs) return;
+  for (const code of root.querySelectorAll("pre > code")) {
+    const text = code.textContent || "";
+    if (!text.trim()) continue;
+    const language = (code.className.match(/\blanguage-([^\s]+)/) || [])[1] || "";
+    try {
+      let value;
+      if (!language) {
+        const auto = hljs.highlightAuto(text);
+        if (!auto.language || auto.relevance < 2) continue;
+        value = auto.value;
+      } else if (hljs.getLanguage(language)) {
+        value = hljs.highlight(text, { language, ignoreIllegals: true }).value;
+      } else {
+        continue;
+      }
+      if (!value) continue;
+      code.innerHTML = value;
+      code.classList.add("hljs");
+    } catch {
+      // A malformed block should stay readable rather than break the page.
+    }
+  }
+}
+
 function mdToNodes(md, opts = null) {
   const raw = window.marked.parse(md, { gfm: true, breaks: false });
   const holder = document.createElement("div");
   holder.innerHTML = stripDangerous(raw);
+  highlightCode(holder);
   const used = new Set();
   holder.querySelectorAll("h1, h2, h3").forEach((h) => {
     const base = slug(h.textContent) || "section";

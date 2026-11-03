@@ -75,6 +75,51 @@
 }
 
 .prose pre code { background: none; padding: 0; font-size: 12.5px; line-height: 1.6; }
+.prose pre code.hljs { color: var(--ink); }
+
+.hljs-comment,
+.hljs-quote { color: var(--syntax-comment); font-style: italic; }
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag,
+.hljs-name,
+.hljs-template-tag { color: var(--syntax-keyword); }
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string { color: var(--syntax-string); }
+
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-link { color: var(--syntax-number); }
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id,
+.hljs-title.class_,
+.hljs-title.function_ { color: var(--syntax-title); font-weight: 600; }
+
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable { color: var(--syntax-attrs); }
+
+.hljs-params { color: var(--ink-soft); }
+.hljs-meta { color: var(--syntax-meta); }
+.hljs-deletion { color: var(--syntax-deletion); }
+.hljs-addition { color: var(--syntax-addition); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
 
 .prose blockquote {
   margin: 0 0 1.2em;

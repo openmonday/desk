@@ -19,6 +19,17 @@
   --blue: #6a9bcc;
   --on-clay: #141413;
 
+  /* syntax highlighting */
+  --syntax-comment: #77756e;
+  --syntax-keyword: #a9532f;
+  --syntax-string: #5f7148;
+  --syntax-number: #4f7398;
+  --syntax-title: #141413;
+  --syntax-attrs: #8a5a2b;
+  --syntax-meta: #6b6a64;
+  --syntax-deletion: #a9532f;
+  --syntax-addition: #5f7148;
+
   /* overlays and inverted surfaces */
   --toast-bg: var(--ink);
   --toast-ink: var(--paper);
@@ -99,6 +110,16 @@
   --green: #9ab17c;
   --green-ink: #b3c797;
   --blue: #86b3e0;
+
+  --syntax-comment: #918e84;
+  --syntax-keyword: #e3a084;
+  --syntax-string: #b3c797;
+  --syntax-number: #a8c8ec;
+  --syntax-title: #f1efe7;
+  --syntax-attrs: #dbb276;
+  --syntax-meta: #b0aea5;
+  --syntax-deletion: #e3a084;
+  --syntax-addition: #b3c797;
 
   --toast-bg: #2a2823;
   --toast-ink: var(--ink);
