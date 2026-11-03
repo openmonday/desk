@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- desk page shell. Content is fetched from the local server at run time. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>desk</title>
+<link rel="stylesheet" href="/theme.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#/features" aria-label="desk — features">
+    <svg class="mark" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <g stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+        <path d="M12 2.6v6.2M12 15.2v6.2M2.6 12h6.2M15.2 12h6.2M5.4 5.4l4.3 4.3M14.3 14.3l4.3 4.3M18.6 5.4l-4.3 4.3M9.7 14.3l-4.3 4.3"/>
+      </g>
+    </svg>
+    <span class="wordmark">desk</span>
+  </a>
+  <nav aria-label="Workspace sections">
+    <ul class="tabs" role="tablist">
+      <li><button class="tab" role="tab" data-tab="context" aria-selected="false">Context</button></li>
+      <li><button class="tab" role="tab" data-tab="architecture" aria-selected="false">Architecture</button></li>
+      <li><button class="tab" role="tab" data-tab="features" aria-selected="false">Features</button></li>
+    </ul>
+  </nav>
+  <div class="live" id="live" data-state="up" title="Live: watching .desk. Changes made by you or an agent appear here on their own."><i></i><span>Live</span></div>
+</header>
+<main class="viewport">
+  <aside class="rail" id="rail" aria-label="Navigation"></aside>
+  <div class="rail-split" id="rail-split" role="separator" aria-orientation="vertical" aria-label="Resize navigation" aria-valuemin="220" aria-valuemax="560" aria-valuenow="320" tabindex="0" title="Drag to resize the navigation · double-click to reset"></div>
+  <div class="work" id="work" data-panel="off">
+    <section class="graph-panel" id="graph-panel" aria-label="Ticket graph" hidden>
+      <header class="panel-head">
+        <p class="eyebrow">Ticket graph</p>
+        <p class="panel-tally" id="graph-tally"></p>
+        <span class="panel-hint" id="graph-hint" aria-hidden="true">Scroll →</span>
+        <button class="panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-controls="graph-body">Hide</button>
+      </header>
+      <div class="panel-body" id="graph-body"></div>
+    </section>
+    <div class="splitter" id="splitter" role="separator" aria-orientation="horizontal" aria-label="Resize ticket graph panel" aria-valuemin="120" aria-valuemax="700" aria-valuenow="420" tabindex="0" title="Drag to resize the graph panel · double-click to reset" hidden></div>
+    <div class="article-scroll" id="scroll">
+      <article class="article" id="article"></article>
+    </div>
+  </div>
+</main>
+<script src="/marked.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

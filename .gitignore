@@ -1,0 +1,19 @@
+# Runtime and tooling
+node_modules/
+coverage/
+*.log
+
+# Local environment
+.env
+.env.*
+.DS_Store
+
+# Editor and OS files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Temporary output
+tmp/
+.tmp/
