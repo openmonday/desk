@@ -4,7 +4,7 @@ import {
   S, entryForPath, featureIndex, key, num, plural, shortState, tallyText,
   docsMode, docsSection, docsSections,
 } from "./state.js";
-import { cmd, el, glyph, progressLine } from "./dom.js";
+import { cmd, el, glyph, progressLine, svgEl } from "./dom.js";
 import { actions } from "./actions.js";
 import { rail, railBody, railLabel } from "./refs.js";
 
@@ -98,19 +98,39 @@ function revealDocsBranch(path) {
   for (const parent of docsParents(path)) closedDocs.delete(parent);
 }
 
-function docsNode(node) {
+function docsNode(node, depth = 0) {
+  const indent = 10 + depth * 14;
   if (node.type === "dir") {
     const open = !closedDocs.has(node.path);
-    const details = el("details", { class: "doc-details", open: open ? "" : null }, [
+    const branch = Boolean(S.doc?.path?.startsWith(`${node.path}/`));
+    const details = el("details", {
+      class: `doc-details${branch ? " is-branch" : ""}`,
+      open: open ? "" : null,
+    }, [
       el("summary", {
         class: "doc-folder-name",
         title: `${node.title || node.name} — collapse or expand`,
+        style: `padding-left:${indent}px`,
       }, [
-        el("span", { class: "doc-branch doc-chevron", "aria-hidden": "true" }, ["▸"]),
         el("span", { class: "doc-folder-label" }, [node.title || node.name]),
         el("span", { class: "doc-folder-count" }, [String(node.count || 0)]),
+        svgEl("svg", {
+          class: "doc-chevron",
+          viewBox: "0 0 16 16",
+          width: "12",
+          height: "12",
+          "aria-hidden": "true",
+          focusable: "false",
+        }, [svgEl("path", {
+          d: "M6 3.5 10.5 8 6 12.5",
+          fill: "none",
+          stroke: "currentColor",
+          "stroke-width": "1.6",
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round",
+        })]),
       ]),
-      el("ul", { class: "tree doc-tree" }, (node.children || []).map(docsNode)),
+      el("ul", { class: "tree doc-tree" }, (node.children || []).map((child) => docsNode(child, depth + 1))),
     ]);
     details.addEventListener("toggle", () => {
       if (details.open) closedDocs.delete(node.path);
@@ -118,15 +138,16 @@ function docsNode(node) {
     });
     return el("li", { class: "doc-folder" }, [details]);
   }
-  return row({
+  const li = row({
     cls: "row-doc",
-    lead: el("span", { class: "doc-branch", "aria-hidden": "true" }, ["└"]),
     label: node.title || node.name,
     title: `${node.title || node.name} — ${node.path}`,
     active: S.doc?.path === node.path,
     path: node.path,
     onClick: () => actions.open(node.path),
   });
+  li.firstChild.style.paddingLeft = `${indent}px`;
+  return li;
 }
 
 function renderDocsRail() {
@@ -140,7 +161,7 @@ function renderDocsRail() {
   } else {
     revealDocsBranch(S.doc?.path);
     list = section?.tree?.length
-      ? el("ul", { class: "tree doc-tree" }, section.tree.map(docsNode))
+      ? el("ul", { class: "tree doc-tree" }, section.tree.map((node) => docsNode(node)))
       : el("p", { class: "empty" }, ["No Markdown documents in this section."]);
   }
   railBody.append(el("nav", { class: "rail-block", "aria-label": section?.title || "Documents" }, [list]));

@@ -211,18 +211,17 @@
 .diag-hint { margin: 0 0 var(--s2); font-size: 12px; color: var(--faint); }
 .diag-hint code { font-size: 11px; }
 
-/* docs mode: a recursive, monospaced tree in the style of a document TOC */
+/* docs mode: a calm docs sidebar. Groups use a chevron and rounded
+ * backgrounds; the active document and its ancestor groups stay visible. */
 .doc-tree {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-family: var(--mono);
 }
 
 .doc-tree .doc-tree {
-  margin-left: 9px;
-  padding-left: 7px;
-  border-left: 1px solid var(--line);
+  margin: 0;
+  padding: 0;
 }
 
 .doc-folder { margin: 0; }
@@ -231,52 +230,76 @@
   display: flex;
   align-items: center;
   gap: var(--s2);
-  padding: 5px var(--s2) 5px 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
   cursor: pointer;
   list-style: none;
   color: var(--ink-soft);
-  font: 400 12.5px/1.5 var(--mono);
+  font: 400 14px/1.35 var(--sans-text);
   white-space: nowrap;
 }
 
 .doc-folder-name::-webkit-details-marker { display: none; }
 .doc-folder-name:hover { color: var(--ink); background: var(--oat-soft); }
+.doc-folder-name:focus-visible { outline: 2px solid var(--clay); outline-offset: -2px; }
 
-.doc-branch { flex: none; width: 1.3em; color: var(--faint); }
-.doc-chevron {
-  font: 400 11px/1 var(--mono);
-  transform: rotate(0deg);
-  transition: transform 120ms ease;
+.doc-details.is-branch > .doc-folder-name {
+  color: var(--ink);
+  background: var(--oat-soft);
 }
-.doc-details[open] > .doc-folder-name .doc-chevron { transform: rotate(90deg); }
+
 .doc-folder-label {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.doc-folder-count { flex: none; color: var(--faint); font: 400 10px/1 var(--mono); }
 
-/* File rows use the same connector as the reference tree. */
+.doc-folder-count {
+  flex: none;
+  color: var(--faint);
+  font: 400 10px/1 var(--mono);
+}
+
+.doc-chevron {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--faint);
+  transform: rotate(0deg);
+  transition: transform 120ms ease;
+}
+
+.doc-details[open] > .doc-folder-name .doc-chevron { transform: rotate(90deg); }
+
 .doc-tree .row {
-  position: relative;
+  border-left: 0;
+  border-radius: 8px;
   align-items: center;
   gap: var(--s2);
-  padding: 5px var(--s2) 5px 6px;
-  font: 400 12.5px/1.5 var(--mono);
+  padding: 7px 10px;
+  font: 400 14px/1.35 var(--sans-text);
+  color: var(--ink-soft);
   white-space: nowrap;
 }
 
-.doc-tree .row[aria-current="true"] .doc-branch { color: var(--clay); }
-.doc-tree .row .doc-branch { font: 400 15px/1 var(--mono); }
+.doc-tree .row:hover { background: var(--oat-soft); color: var(--ink); }
+
+.doc-tree .row[aria-current="true"] {
+  border-left-color: transparent;
+  border-radius: 8px;
+  background: var(--clay-wash);
+  color: var(--clay-ink);
+  font-weight: 500;
+}
+
 .doc-tree .row .row-label {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.5;
+  line-height: 1.35;
   overflow-wrap: normal;
   text-wrap: normal;
 }
-.row-doc .row-lead { height: auto; }

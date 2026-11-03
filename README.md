@@ -34,8 +34,10 @@ in an **Overview** tab. Folders render as a recursive tree, and
 Labels are display-only and uppercased in CSS; folder names never change on
 disk (the `.desk` convention `arch` displays as Architecture). Tree labels stay
 on one line and ellipsize when long; navigating to a nested document opens its
-folder branch automatically. Relative Markdown links become in-page links, and
-local images, PDFs, and media load through a path-confined asset route. The URL
+folder branch automatically. The active document and its parent folders use
+rounded rows (the document is clay-tinted), and folders use chevrons. Relative
+Markdown links become in-page links, and local images, PDFs, and media load
+through a path-confined asset route. The URL
 keeps the open document, e.g. `#/docs/guides/install.md`, so it can be
 bookmarked.
 
