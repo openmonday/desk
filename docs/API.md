@@ -80,13 +80,19 @@ Reads stay the same: `GET /api/tree`, `GET /api/doc?path=…`, `GET /api/raw?pat
 ## What the page does with a change
 
 `/api/events` fires on every write, including writes made by the CLI. The page
-rescans, redraws the ticket graph, and animates a ticket that just reached
-`done`: the rail dot pulses, the graph node shows a check, and a toast names the
-ticket. No reload, no polling.
+rescans, updates the open document and rail, and redraws the ticket graph when
+it is open. A ticket that just reached `done` is animated: the rail dot pulses,
+the graph node shows a check, and a toast names the ticket. No reload, no
+polling.
 
 ## The graph
 
-The spec view draws every ticket as a node and every `Blocked by:` entry as an
-arrow from blocker to dependent. Layers run top to bottom by dependency depth;
+The graph opens from the network icon in the rail and replaces the article;
+choosing a document switches back to reading. The graph and article are two
+views of the same work area, so they are never shown together. Every view has an
+in-page fullscreen button that fills the browser window; Esc exits.
+
+The graph draws every ticket as a node and every `Blocked by:` entry as an arrow
+from blocker to dependent. Layers run left to right by dependency depth;
 "ready" means no open blockers. Clicking a node opens that ticket and syncs the
-rail to it. Ticket pages offer `Graph`, `Start`, `Mark done`, and `Reopen`.
+rail to it. Ticket pages offer `Start`, `Mark done`, and `Reopen`.

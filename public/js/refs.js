@@ -2,7 +2,12 @@
 const $ = (sel) => document.querySelector(sel);
 
 export const rail = $("#rail");
+export const railBody = $("#rail-body");
+export const railLabel = $("#rail-label");
+export const railTools = $("#rail-tools");
 export const article = $("#article");
+export const articlePanel = $("#article-panel");
+export const articleTools = $("#article-tools");
 export const scroller = $("#scroll");
 export const live = $("#live");
 export const work = $("#work");
@@ -10,6 +15,4 @@ export const viewport = $(".viewport");
 export const railSplit = $("#rail-split");
 export const graphPanel = $("#graph-panel");
 export const graphBody = $("#graph-body");
-export const graphTally = $("#graph-tally");
-export const panelSplit = $("#splitter");
-export const panelToggle = $("#panel-toggle");
+export const graphTools = $("#graph-tools");

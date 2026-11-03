@@ -1,34 +1,97 @@
-/* The resizable graph panel and navigation rail.
+/* The work area's two views: ticket graph and article.
  *
- * The graph sits above the document, split like an IDE editor and terminal.
- * Opening a ticket swaps the document only; the graph keeps its layout and
- * scroll, and simply marks the node you are reading. */
+ * Only one is visible at a time. The graph is opened from the rail; choosing
+ * any document switches back to the article. The rail keeps its resize handle,
+ * and every view has an in-page fullscreen button. */
 
 import { narrow } from "./state.js";
+import { el, svgEl } from "./dom.js";
 import { clamp } from "./graph-layout.js";
 import { actions } from "./actions.js";
 import {
-  graphPanel, panelSplit, panelToggle, railSplit, viewport, work,
+  exitFullscreenExcept, fullscreenButton, initFullscreen,
+} from "./fullscreen.js";
+import {
+  articlePanel, articleTools, graphPanel, graphTools, rail, railSplit,
+  railTools, viewport, work,
 } from "./refs.js";
 
-const PANEL_KEY = "desk.panel";
+let graphToggle = null;
+let graphFs = null;
 
-function readPanel() {
-  try { return JSON.parse(localStorage.getItem(PANEL_KEY) || "{}"); } catch { return {}; }
-}
-
-function writePanel(patch) {
-  try { localStorage.setItem(PANEL_KEY, JSON.stringify({ ...readPanel(), ...patch })); } catch { /* private mode */ }
-}
-
-const panelCollapsed = () => work.dataset.collapsed === "true";
+const graphView = () => work.dataset.view === "graph";
 
 function applyPanelChrome() {
-  const off = work.dataset.panel === "off";
-  panelToggle.hidden = off;
-  panelSplit.hidden = off || panelCollapsed();
-  panelToggle.textContent = panelCollapsed() ? "Show" : "Hide";
-  panelToggle.setAttribute("aria-expanded", String(!panelCollapsed()));
+  const available = work.dataset.panel === "on";
+  const onGraph = available && graphView();
+  if (graphToggle) {
+    graphToggle.hidden = !available;
+    graphToggle.setAttribute("aria-pressed", String(onGraph));
+    graphToggle.setAttribute("aria-expanded", String(onGraph));
+    const text = onGraph ? "Show article" : "Show ticket graph";
+    graphToggle.title = text;
+    graphToggle.setAttribute("aria-label", text);
+  }
+  if (graphFs) graphFs.hidden = !onGraph;
+}
+
+function graphIcon() {
+  return svgEl("svg", {
+    viewBox: "0 0 16 16",
+    width: "14",
+    height: "14",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "1.5",
+    "stroke-linecap": "round",
+    "aria-hidden": "true",
+    focusable: "false",
+  }, [
+    svgEl("path", { d: "M7.3 4.6L4.1 10.6M8.7 4.6l3.2 6M4.9 12.2h6.2" }),
+    svgEl("circle", { cx: "8", cy: "3.2", r: "1.7", fill: "currentColor", stroke: "none" }),
+    svgEl("circle", { cx: "3.4", cy: "12.2", r: "1.7", fill: "currentColor", stroke: "none" }),
+    svgEl("circle", { cx: "12.6", cy: "12.2", r: "1.7", fill: "currentColor", stroke: "none" }),
+  ]);
+}
+
+function showArticle() {
+  exitFullscreenExcept("article");
+  work.dataset.view = "article";
+  graphPanel.hidden = true;
+  articlePanel.hidden = false;
+  applyPanelChrome();
+}
+
+function showGraph() {
+  if (work.dataset.panel !== "on") return;
+  exitFullscreenExcept("graph");
+  work.dataset.view = "graph";
+  graphPanel.hidden = false;
+  articlePanel.hidden = true;
+  applyPanelChrome();
+  actions.renderGraph(true);
+}
+
+function toggleGraphView() {
+  if (graphView()) showArticle();
+  else showGraph();
+}
+
+function initTools() {
+  if (graphToggle) return;
+  graphToggle = el("button", {
+    type: "button",
+    class: "icon-btn",
+    "aria-controls": "graph-panel",
+    "aria-pressed": "false",
+  }, [graphIcon()]);
+  graphToggle.addEventListener("click", toggleGraphView);
+
+  railTools.append(graphToggle, fullscreenButton("rail", "navigation"));
+  graphFs = fullscreenButton("graph", "ticket graph");
+  graphTools.append(graphFs);
+  articleTools.append(fullscreenButton("article", "article"));
+  initFullscreen();
 }
 
 let reflowTimer = null;
@@ -36,17 +99,8 @@ let reflowTimer = null;
 function reflowGraph() {
   clearTimeout(reflowTimer);
   reflowTimer = setTimeout(() => {
-    if (work.dataset.panel === "on") actions.renderGraph(true);
+    if (work.dataset.panel === "on" && graphView()) actions.renderGraph(true);
   }, 90);
-}
-
-function setPanelHeight(h) {
-  const max = Math.max(160, work.clientHeight - 44);
-  const px = Math.round(clamp(h, 120, max));
-  work.style.setProperty("--panel-h", `${px}px`);
-  panelSplit.setAttribute("aria-valuenow", String(px));
-  writePanel({ h: px });
-  reflowGraph();
 }
 
 const RAIL_KEY = "desk.rail";
@@ -107,66 +161,22 @@ function initRailSplit() {
 }
 
 function initPanel() {
-  const saved = readPanel();
-  if (Number.isFinite(saved.h)) {
-    const max = Math.max(160, work.clientHeight - 44);
-    const h = Math.round(narrow() ? saved.h : clamp(saved.h, 120, max));
-    work.style.setProperty("--panel-h", `${h}px`);
-    panelSplit.setAttribute("aria-valuenow", String(h));
-  }
-  if (saved.collapsed) work.dataset.collapsed = "true";
+  initTools();
+  work.dataset.view = "article";
+  graphPanel.hidden = true;
+  articlePanel.hidden = false;
   applyPanelChrome();
-
-  panelToggle.addEventListener("click", () => {
-    const next = !panelCollapsed();
-    work.dataset.collapsed = String(next);
-    writePanel({ collapsed: next });
-    applyPanelChrome();
-    if (!next) actions.renderGraph(true);
-  });
-
-  let drag = null;
-  panelSplit.addEventListener("pointerdown", (ev) => {
-    if (panelCollapsed()) return;
-    drag = ev.pointerId;
-    panelSplit.setPointerCapture(ev.pointerId);
-    panelSplit.classList.add("is-active");
-    document.body.classList.add("is-resizing");
-    ev.preventDefault();
-  });
-  panelSplit.addEventListener("pointermove", (ev) => {
-    if (drag !== ev.pointerId) return;
-    setPanelHeight(ev.clientY - work.getBoundingClientRect().top);
-  });
-  const end = (ev) => {
-    if (drag !== ev.pointerId) return;
-    drag = null;
-    panelSplit.classList.remove("is-active");
-    document.body.classList.remove("is-resizing");
-    reflowGraph();
-  };
-  panelSplit.addEventListener("pointerup", end);
-  panelSplit.addEventListener("pointercancel", end);
-  panelSplit.addEventListener("dblclick", () => setPanelHeight(Math.round(window.innerHeight * 0.48)));
-  panelSplit.addEventListener("keydown", (ev) => {
-    if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown") return;
-    ev.preventDefault();
-    const h = graphPanel.getBoundingClientRect().height || 380;
-    setPanelHeight(h + (ev.key === "ArrowDown" ? 24 : -24));
-  });
 
   let timer = null;
   window.addEventListener("resize", () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      if (!narrow()) {
-        const h = parseFloat(work.style.getPropertyValue("--panel-h"));
-        if (h > work.clientHeight - 44) setPanelHeight(work.clientHeight - 44);
-      }
       applyPanelChrome();
-      if (work.dataset.panel === "on") actions.renderGraph(true);
+      if (work.dataset.panel === "on" && graphView()) actions.renderGraph(true);
     }, 180);
   });
 }
 
-export { applyPanelChrome, initPanel, initRailSplit };
+export {
+  applyPanelChrome, initPanel, initRailSplit, showArticle,
+};

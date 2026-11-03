@@ -1,6 +1,14 @@
 /* ---------- rail ---------- */
 
-.rail-block > .eyebrow { margin: 0 0 var(--s3) var(--s2); }
+.rail-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin: 0 0 var(--s3);
+}
+
+.rail-head .eyebrow { margin: 0; }
+.rail-head .panel-tools { margin-left: auto; }
 
 .features,
 .tree {

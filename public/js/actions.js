@@ -11,4 +11,5 @@ export const actions = {
   renderGraph() {},
   refreshTree() {},
   scheduleRefresh() {},
+  showArticle() {},
 };

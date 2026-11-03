@@ -12,8 +12,9 @@ npm test         # run the scanner and ticket-writer tests
 
 The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and its
 tickets. Changes made by an agent through the CLI or HTTP API appear live over
-server-sent events. The shared ticket dependency graph is the centre of the
-feature view.
+server-sent events. The shared ticket dependency graph opens from the rail and
+replaces the article; close it to return to reading. Every view can fill the
+browser window with in-page fullscreen.
 
 ## Layout
 

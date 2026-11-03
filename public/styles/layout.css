@@ -65,6 +65,17 @@
   --pad-r: var(--s8);
 }
 
+.article-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.article-panel[hidden] { display: none; }
+
 .article-scroll {
   flex: 1 1 auto;
   overflow-y: auto;

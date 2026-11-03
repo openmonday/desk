@@ -12,11 +12,9 @@
   .rail-split { display: none; }
 
   .work { display: block; --pad-r: var(--s5); }
-  .article-scroll { overflow: visible; padding: var(--s6) var(--s5) var(--s8); }
+  .article-scroll { overflow: visible; padding: 40px var(--s5) var(--s8); }
   .graph-panel { height: auto; max-height: none; border-bottom: 1px solid var(--line); }
-  .panel-head { padding: 8px var(--s4); }
-  .panel-body { overflow: visible; padding: var(--s3) var(--s5) var(--s4); }
-  .splitter { display: none !important; }
+  .panel-body { overflow: visible; padding: 38px var(--s5) var(--s4); }
   .topbar { padding: 0 var(--s4); gap: var(--s5); }
   .tabs { gap: var(--s4); }
   .live span { display: none; }
@@ -25,7 +23,7 @@
 }
 
 @media (max-width: 640px) {
-  .graph-scroll, .panel-hint { display: none; }
+  .graph-scroll { display: none; }
   .graph-list { display: block; }
 }
 
@@ -36,7 +34,7 @@
   .tab { font-size: 13px; }
   .rail { padding: var(--s4) var(--s2) var(--s3); }
   .work { --pad-r: 18px; }
-  .article-scroll { padding: var(--s5) 18px var(--s8); }
+  .article-scroll { padding: 40px 18px var(--s8); }
   :root { --prose-size: 15.5px; }
   .article h1 { font-size: 26px; }
   .status { gap: var(--s4); }

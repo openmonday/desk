@@ -38,3 +38,100 @@
 
 .empty code { font: 400 0.84em/1 var(--mono); background: var(--oat); padding: 2px 5px; }
 .rail .empty { margin: 0 var(--s2); font-size: 13.5px; line-height: 1.55; }
+
+/* ---------- panel tools ---------- */
+
+.panel-tools {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.panel-tools-floating {
+  position: absolute;
+  top: 10px;
+  right: var(--s4);
+  z-index: 4;
+}
+
+.article-tools {
+  position: absolute;
+  top: 8px;
+  right: var(--s4);
+  z-index: 4;
+}
+
+.icon-btn {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--faint);
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.icon-btn:hover { color: var(--ink); border-color: var(--ink); background: var(--oat-soft); }
+.icon-btn[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-soft); background: var(--oat-soft); }
+.icon-btn[hidden] { display: none; }
+.icon-btn svg { display: block; }
+
+/* in-page fullscreen: fill the browser viewport, no OS window mode */
+
+body[data-fullscreen] { overflow: hidden; }
+
+body[data-fullscreen] .topbar { display: none; }
+
+body[data-fullscreen] .viewport {
+  display: block;
+  height: 100vh;
+  height: 100dvh;
+}
+
+body[data-fullscreen] .rail-split { display: none; }
+
+body[data-fullscreen] .work {
+  height: 100vh;
+  height: 100dvh;
+}
+
+body[data-fullscreen] .panel-body,
+body[data-fullscreen] .article-scroll { overflow: auto; }
+
+body[data-fullscreen="rail"] .work { display: none; }
+
+body[data-fullscreen="rail"] .rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  padding: var(--s6) var(--s5) var(--s7);
+  overflow-y: auto;
+}
+
+body[data-fullscreen="rail"] .rail-head { width: 100%; }
+body[data-fullscreen="rail"] #rail-body { width: min(100%, 720px); }
+body[data-fullscreen="rail"] .rail-head .eyebrow { width: min(100%, 720px); margin: 0 auto; }
+body[data-fullscreen="rail"] .rail-head .panel-tools {
+  position: fixed;
+  top: var(--s3);
+  right: var(--s4);
+  z-index: 6;
+}
+
+body[data-fullscreen="graph"] .rail,
+body[data-fullscreen="article"] .rail { display: none; }
+
+body[data-fullscreen="graph"] .graph-panel,
+body[data-fullscreen="article"] .article-panel {
+  flex: 1 1 auto;
+  height: 100vh;
+  height: 100dvh;
+}

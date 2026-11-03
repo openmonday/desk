@@ -4,12 +4,15 @@ import { S, entryForPath, narrow } from "./state.js";
 import { api } from "./api.js";
 import { writeHash } from "./hash.js";
 import { actions } from "./actions.js";
-import { article, scroller } from "./refs.js";
+import { noteNavigation } from "./fullscreen.js";
+import { articlePanel, scroller } from "./refs.js";
 
 async function loadEntry(entry, opts = {}) {
   if (!entry) {
     S.doc = null;
     S.mdError = null;
+    noteNavigation();
+    actions.showArticle();
     actions.render();
     return;
   }
@@ -27,6 +30,11 @@ async function loadEntry(entry, opts = {}) {
   }
   S.doc = { ...entry, md: payload.md, mtime: payload.mtime };
   S.mdError = null;
+  // Live refreshes keep the current view; navigation returns to the article.
+  if (!opts.keepScroll) {
+    noteNavigation();
+    actions.showArticle();
+  }
   actions.render();
   if (opts.keepScroll) {
     scroller.style.scrollBehavior = "auto";
@@ -37,7 +45,7 @@ async function loadEntry(entry, opts = {}) {
     // Single column: the page scrolls, not the article pane. Opening an entry
     // from the rail, graph or list brings the document into view.
     if (narrow()) {
-      const top = Math.max(0, window.scrollY + article.getBoundingClientRect().top - 64);
+      const top = Math.max(0, window.scrollY + articlePanel.getBoundingClientRect().top - 64);
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       window.scrollTo({ top, behavior });
     }

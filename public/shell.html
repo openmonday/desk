@@ -28,21 +28,24 @@
   <div class="live" id="live" data-state="up" title="Live: watching .desk. Changes made by you or an agent appear here on their own."><i></i><span>Live</span></div>
 </header>
 <main class="viewport">
-  <aside class="rail" id="rail" aria-label="Navigation"></aside>
+  <aside class="rail" id="rail" aria-label="Navigation">
+    <div class="rail-head">
+      <p class="eyebrow" id="rail-label"></p>
+      <div class="panel-tools" id="rail-tools"></div>
+    </div>
+    <div id="rail-body"></div>
+  </aside>
   <div class="rail-split" id="rail-split" role="separator" aria-orientation="vertical" aria-label="Resize navigation" aria-valuemin="220" aria-valuemax="560" aria-valuenow="320" tabindex="0" title="Drag to resize the navigation · double-click to reset"></div>
   <div class="work" id="work" data-panel="off">
     <section class="graph-panel" id="graph-panel" aria-label="Ticket graph" hidden>
-      <header class="panel-head">
-        <p class="eyebrow">Ticket graph</p>
-        <p class="panel-tally" id="graph-tally"></p>
-        <span class="panel-hint" id="graph-hint" aria-hidden="true">Scroll →</span>
-        <button class="panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-controls="graph-body">Hide</button>
-      </header>
+      <div class="panel-tools panel-tools-floating" id="graph-tools"></div>
       <div class="panel-body" id="graph-body"></div>
     </section>
-    <div class="splitter" id="splitter" role="separator" aria-orientation="horizontal" aria-label="Resize ticket graph panel" aria-valuemin="120" aria-valuemax="700" aria-valuenow="420" tabindex="0" title="Drag to resize the graph panel · double-click to reset" hidden></div>
-    <div class="article-scroll" id="scroll">
-      <article class="article" id="article"></article>
+    <div class="article-panel" id="article-panel">
+      <div class="panel-tools article-tools" id="article-tools"></div>
+      <div class="article-scroll" id="scroll">
+        <article class="article" id="article"></article>
+      </div>
     </div>
   </div>
 </main>

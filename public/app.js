@@ -12,7 +12,7 @@ import { refreshTree } from "./js/data.js";
 import { render, renderTabs } from "./js/render.js";
 import { renderRail } from "./js/rail.js";
 import { renderGraph } from "./js/graph.js";
-import { initPanel, initRailSplit } from "./js/panel.js";
+import { initPanel, initRailSplit, showArticle } from "./js/panel.js";
 
 Object.assign(actions, {
   open,
@@ -22,6 +22,7 @@ Object.assign(actions, {
   renderGraph,
   refreshTree,
   scheduleRefresh,
+  showArticle,
 });
 
 function bindTabs() {

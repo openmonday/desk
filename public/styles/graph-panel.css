@@ -1,64 +1,17 @@
 /* ---------- graph panel ----------
- * A split pane: the graph sits above the document like a pinned terminal.
- * Drag the divider, double-click it to reset, or hide the panel entirely. */
+ * One of the two work views. It fills the work area when selected; the rail
+ * icon switches back to the article. */
 
 .graph-panel {
-  flex: 0 0 auto;
+  position: relative;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  height: var(--panel-h, clamp(300px, 48vh, 460px));
   min-height: 0;
   background: var(--paper);
 }
 
 .graph-panel[hidden] { display: none; }
-
-.panel-head {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  padding: 8px var(--pad-r) 8px var(--s7);
-  border-bottom: 1px solid var(--line);
-  background: var(--oat-soft);
-}
-
-.panel-head .eyebrow { margin: 0; }
-
-.panel-tally {
-  margin: 0;
-  min-width: 0;
-  flex: 0 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font: 400 13px/1.4 var(--sans-text);
-  color: var(--ink-soft);
-}
-
-.panel-hint {
-  margin-left: auto;
-  font: 400 10.5px/1 var(--mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--faint);
-  visibility: hidden;
-}
-
-.graph-panel[data-overflow="true"][data-at-end="false"] .panel-hint { visibility: visible; }
-
-.panel-toggle {
-  appearance: none;
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  background: transparent;
-  padding: 5px 10px;
-  font: 500 11.5px/1 var(--sans-text);
-  color: var(--ink-soft);
-  cursor: pointer;
-}
-
-.panel-toggle:hover { border-color: var(--ink); color: var(--ink); }
 
 .panel-body {
   flex: 1 1 auto;
@@ -70,54 +23,3 @@
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
 }
-
-.work[data-collapsed="true"] .graph-panel { height: auto; border-bottom: 1px solid var(--line); }
-.work[data-collapsed="true"] .panel-body { display: none; }
-.work[data-collapsed="true"] .splitter { display: none; }
-
-.work[data-panel="on"] .article-scroll { padding-top: var(--s6); }
-
-.splitter {
-  flex: none;
-  height: 9px;
-  margin-top: -1px;
-  position: relative;
-  z-index: 5;
-  cursor: row-resize;
-  touch-action: none;
-}
-
-.splitter::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 4px;
-  height: 1px;
-  background: var(--line);
-  transition: background 120ms ease, top 120ms ease, height 120ms ease;
-}
-
-.splitter:hover::before,
-.splitter.is-active::before { top: 3px; height: 2px; background: var(--clay); }
-
-.splitter::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 2px;
-  width: 30px;
-  height: 3px;
-  margin-left: -15px;
-  border-radius: 2px;
-  background: var(--line-strong);
-  opacity: 0;
-  transition: opacity 120ms ease, background 120ms ease;
-}
-
-.splitter:hover::after,
-.splitter.is-active::after { opacity: 1; background: var(--clay); }
-.splitter[hidden] { display: none; }
-
-.is-resizing { cursor: row-resize; user-select: none; }
-.is-resizing .article-scroll { pointer-events: none; }

@@ -5,7 +5,7 @@ import {
 } from "./state.js";
 import { cmd, el, glyph, progressLine } from "./dom.js";
 import { actions } from "./actions.js";
-import { rail } from "./refs.js";
+import { rail, railBody, railLabel } from "./refs.js";
 
 function row({ label, lead, sub, active, path, onClick, cls = "" }) {
   const b = el("button", {
@@ -156,15 +156,15 @@ function revealActive() {
 }
 
 function renderRail() {
-  rail.textContent = "";
   const label = S.tab === "context" ? "Context" : S.tab === "architecture" ? "Architecture" : "Features";
+  railLabel.textContent = label;
+  railBody.textContent = "";
   const list = docList();
-  rail.append(el("nav", { class: "rail-block", "aria-label": label }, [
-    el("p", { class: "eyebrow" }, [label]),
+  railBody.append(el("nav", { class: "rail-block", "aria-label": label }, [
     list || emptyListHint(),
   ]));
   const diag = diagnosticBlock();
-  if (diag) rail.append(diag);
+  if (diag) railBody.append(diag);
   requestAnimationFrame(revealActive);
 }
 

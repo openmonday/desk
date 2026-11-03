@@ -1,11 +1,11 @@
 /* Ticket graph rendering, interaction, and the graph panel contents. */
 
 import {
-  S, featureIndex, num, shortState, tallyText, KIND_LABEL,
+  S, featureIndex, num, shortState, KIND_LABEL,
 } from "./state.js";
 import { cmd, el, glyph, svgEl } from "./dom.js";
 import { actions } from "./actions.js";
-import { graphBody, graphPanel, graphTally, work } from "./refs.js";
+import { articlePanel, graphBody, graphPanel, work } from "./refs.js";
 import { applyPanelChrome } from "./panel.js";
 import { layoutGraph } from "./graph-layout.js";
 
@@ -217,18 +217,24 @@ function updateGraphActive() {
 function renderGraph(force = false) {
   const f = S.doc && (S.doc.kind === "spec" || S.doc.kind === "ticket") ? S.doc.feature : null;
   if (!f) {
-    graphPanel.hidden = true;
     work.dataset.panel = "off";
+    work.dataset.view = "article";
+    graphPanel.hidden = true;
+    articlePanel.hidden = false;
     S.graphSig = "";
     applyPanelChrome();
     return;
   }
-  // Coming back from a non-graph tab may mean the window was resized while
-  // the panel was hidden, so rebuild once even when the data is unchanged.
   const wasOn = work.dataset.panel === "on";
-  graphPanel.hidden = false;
+  const graphView = work.dataset.view === "graph";
   work.dataset.panel = "on";
+  graphPanel.hidden = !graphView;
+  articlePanel.hidden = graphView;
   applyPanelChrome();
+  if (!graphView) {
+    S.graphSig = "";
+    return;
+  }
 
   const sig = graphSignature(f);
   if (!force && wasOn && sig === S.graphSig) {
@@ -236,7 +242,6 @@ function renderGraph(force = false) {
     return;
   }
   S.graphSig = sig;
-  graphTally.textContent = tallyText(f);
   const before = graphBody.querySelector(".graph-scroll");
   const left = before ? before.scrollLeft : 0;
   const top = graphBody.scrollTop;
