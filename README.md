@@ -32,10 +32,12 @@ Every top-level folder becomes a tab and section; root-level Markdown files go
 in an **Overview** tab. Folders render as a recursive tree, and
 `README.md` / `index.md` sort before other files (numbers sort naturally).
 Labels are display-only and uppercased in CSS; folder names never change on
-disk (the `.desk` convention `arch` displays as Architecture). Relative
-Markdown links become in-page links, and local images, PDFs, and media load
-through a path-confined asset route. The URL keeps the open document, e.g.
-`#/docs/guides/install.md`, so it can be bookmarked.
+disk (the `.desk` convention `arch` displays as Architecture). Tree labels stay
+on one line and ellipsize when long; navigating to a nested document opens its
+folder branch automatically. Relative Markdown links become in-page links, and
+local images, PDFs, and media load through a path-confined asset route. The URL
+keeps the open document, e.g. `#/docs/guides/install.md`, so it can be
+bookmarked.
 
 If a top-level `features/` folder contains feature folders (`spec.md` and/or
 `tickets/`), that section keeps the feature view: spec, numbered tickets,

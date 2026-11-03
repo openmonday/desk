@@ -8,11 +8,12 @@ import { cmd, el, glyph, progressLine } from "./dom.js";
 import { actions } from "./actions.js";
 import { rail, railBody, railLabel } from "./refs.js";
 
-function row({ label, lead, sub, active, path, onClick, cls = "" }) {
+function row({ label, lead, sub, active, path, onClick, cls = "", title }) {
   const b = el("button", {
     type: "button",
     class: `row ${cls}`.trim(),
     "aria-current": active ? "true" : "false",
+    title: title || label,
     onclick: onClick,
   }, [
     lead || null,
@@ -75,24 +76,53 @@ function featureGroup(f) {
   return el("li", { class: `feature${isOpen ? " is-open" : ""}` }, kids);
 }
 
+// Folders are open by default. A collapsed folder is remembered for the life
+// of the page, but navigating into a nested document reopens its whole branch.
+const closedDocs = new Set();
+let lastDocsActive = null;
+
+function docsParents(path) {
+  const parts = String(path || "").split("/").slice(0, -1).filter(Boolean);
+  const out = [];
+  let current = "";
+  for (const part of parts) {
+    current = current ? `${current}/${part}` : part;
+    out.push(current);
+  }
+  return out;
+}
+
+function revealDocsBranch(path) {
+  if (!path || path === lastDocsActive) return;
+  lastDocsActive = path;
+  for (const parent of docsParents(path)) closedDocs.delete(parent);
+}
+
 function docsNode(node) {
   if (node.type === "dir") {
-    return el("li", { class: "doc-folder" }, [
-      el("details", { class: "doc-details", open: "" }, [
-        el("summary", { class: "doc-folder-name", title: "Collapse or expand this folder" }, [
-          el("span", { class: "doc-branch doc-chevron", "aria-hidden": "true" }, ["▸"]),
-          el("span", { class: "doc-folder-label" }, [node.title || node.name]),
-          el("span", { class: "doc-folder-count" }, [String(node.count || 0)]),
-        ]),
-        el("ul", { class: "tree doc-tree" }, (node.children || []).map(docsNode)),
+    const open = !closedDocs.has(node.path);
+    const details = el("details", { class: "doc-details", open: open ? "" : null }, [
+      el("summary", {
+        class: "doc-folder-name",
+        title: `${node.title || node.name} — collapse or expand`,
+      }, [
+        el("span", { class: "doc-branch doc-chevron", "aria-hidden": "true" }, ["▸"]),
+        el("span", { class: "doc-folder-label" }, [node.title || node.name]),
+        el("span", { class: "doc-folder-count" }, [String(node.count || 0)]),
       ]),
+      el("ul", { class: "tree doc-tree" }, (node.children || []).map(docsNode)),
     ]);
+    details.addEventListener("toggle", () => {
+      if (details.open) closedDocs.delete(node.path);
+      else closedDocs.add(node.path);
+    });
+    return el("li", { class: "doc-folder" }, [details]);
   }
   return row({
     cls: "row-doc",
     lead: el("span", { class: "doc-branch", "aria-hidden": "true" }, ["└"]),
     label: node.title || node.name,
-    sub: node.name,
+    title: `${node.title || node.name} — ${node.path}`,
     active: S.doc?.path === node.path,
     path: node.path,
     onClick: () => actions.open(node.path),
@@ -108,6 +138,7 @@ function renderDocsRail() {
     list = el("ul", { class: "features" }, (section.features || []).map(featureGroup));
     if (!list.children.length) list = el("p", { class: "empty" }, ["No features in this section."]);
   } else {
+    revealDocsBranch(S.doc?.path);
     list = section?.tree?.length
       ? el("ul", { class: "tree doc-tree" }, section.tree.map(docsNode))
       : el("p", { class: "empty" }, ["No Markdown documents in this section."]);
