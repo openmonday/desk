@@ -11,7 +11,7 @@ everything stays local.
 npm start        # serve the sample workspace at http://127.0.0.1:7777
 npm run check    # scan once, print diagnostics, exit 1 on errors
 npm test         # run the test suite
-npm link         # install the `desk` command globally from this checkout
+./scripts/setup-cli.sh  # link, verify, and install the `desk` command
 ```
 
 ## Open something
@@ -24,6 +24,10 @@ desk .desk/features                     # the ticket graph
 desk .desk/AGENTS.md                    # any other Markdown document
 desk .desk/features/demo/spec.md        # that document in the browser
 ```
+
+On startup, desk lists every Markdown file it detected in the target and marks
+the document it opened. The list uses the same `●` / `○` treatment as the
+skills manager: filled means opened, hollow means available.
 
 `desk` decides the mode from the path. The workspace root (the folder that
 contains `.desk/`), folders under `.desk/`, and recognized records
@@ -110,6 +114,7 @@ them with `--host 0.0.0.0` on an untrusted network.
 │   ├── server/             request handler, SSE, static assets, watcher
 │   └── lib/                workspace scanner, docs scanner and reads
 ├── public/                 shell, styles, client modules, vendored libraries
+├── scripts/setup-cli.sh    link and verify the global `desk` command
 ├── tools/shot.mjs          headless screenshot helper
 ├── docs/                   API reference, design brief, reference images
 └── test/                   node:test fixtures and tests

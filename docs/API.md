@@ -11,7 +11,8 @@ src/
 ├── server/          request handling, SSE, static assets, watcher
 └── lib/             workspace scanner, docs scanner, settings, reads
 public/              shell, styles, client modules, vendored marked, highlight.js, KaTeX
-test/                scanner, docs, target, and server tests
+scripts/             setup-cli.sh: link and verify the global `desk` command
+test/                scanner, docs, report, target, and server tests
 tools/shot.mjs       headless screenshot helper
 ```
 

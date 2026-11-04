@@ -10,11 +10,13 @@ import { scanDocs } from "./lib/docs/scan.mjs";
 import { parseArgs } from "./server/args.mjs";
 import { createBroadcaster } from "./server/events.mjs";
 import { createRequestHandler } from "./server/http.mjs";
-import { report, reportDocs } from "./server/report.mjs";
+import { formatFileList, report, reportDocs } from "./server/report.mjs";
 import { watchWorkspace } from "./server/watcher.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.resolve(HERE, "..", "public");
+
+const count = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
@@ -38,7 +40,7 @@ async function main() {
       const tree = await scanDocs(root);
       const r = reportDocs(tree);
       console.log(`desk  ${root}`);
-      console.log(`  ${r.sections} sections · ${r.docs} documents`);
+      console.log(`  ${count(r.sections, "section")} · ${count(r.docs, "document")}`);
       if (r.diagnostics) {
         console.log(`  ${r.diagnostics} diagnostics:`);
         for (const d of tree.diagnostics) console.log(`    ${d.severity}  ${d.path}: ${d.message}`);
@@ -50,7 +52,7 @@ async function main() {
     const tree = await scanWorkspace(root);
     const r = report(tree);
     console.log(`desk  ${root}`);
-    console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
+    console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.arch, "arch record")}`);
     if (r.diagnostics) {
       console.log(`  ${r.diagnostics} diagnostics:`);
       for (const d of tree.diagnostics) console.log(`    ${d.severity}  ${d.path}: ${d.message}`);
@@ -99,14 +101,20 @@ async function main() {
       const r = reportDocs(tree);
       console.log(`desk  ${url}  (live)`);
       console.log(`  ${root}`);
-      console.log(`  ${r.sections} sections · ${r.docs} documents`);
+      console.log();
+      console.log(formatFileList(tree, opts.hash));
+      console.log();
+      console.log(`  ${count(r.sections, "section")} · ${count(r.docs, "document")}`);
       if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check --docs ${root}`);
     } else {
       const tree = await scanWorkspace(root);
       const r = report(tree);
       console.log(`desk  ${url}  (live)`);
       console.log(`  ${root}`);
-      console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
+      console.log();
+      console.log(formatFileList(tree, opts.hash));
+      console.log();
+      console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.arch, "arch record")}`);
       if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check`);
     }
   }
