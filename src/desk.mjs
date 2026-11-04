@@ -10,15 +10,20 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { resolveTarget } from "./cli/target.mjs";
+import {
+  SECTIONS, configPath, hideSection, readNav, resetNav, setDefault, setOrder,
+  unhideSection, writeNav,
+} from "./lib/config.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 const HELP = `Usage:
   desk [path] [options]
 
-Open a Markdown file or folder in the live page. A path inside .desk, or a
-folder that contains .desk, opens the workspace view. Anything else opens as a
-Markdown library. With a file, the browser opens that document.
+Open a Markdown file or folder in the live page. Folders under .desk, the
+workspace root, and recognized workspace records open the workspace view. Any
+other Markdown file opens as a library from its own folder. With a file, the
+browser opens that document.
 
 Options:
   --port <n>     Port to listen on (default 7777, falls forward)
@@ -26,7 +31,17 @@ Options:
   --open         Open the browser (default when path is a file)
   --no-open      Keep the browser closed
   --quiet        Suppress the startup report
-  -h, --help     Show this help`;
+  -h, --help     Show this help
+
+Settings (workspace tabs; global, stored once per user; reload open pages to apply):
+  desk config                    show current settings
+  desk config order <id...>      reorder the top tabs
+  desk config default <id>       tab to open when no document is given
+  desk config hide <id>          hide a top tab
+  desk config unhide <id>        show a hidden tab
+  desk config reset              restore the defaults
+
+  Sections: ${SECTIONS.join(", ")}`;
 
 const VALUED = new Set(["port", "host"]);
 
@@ -54,16 +69,68 @@ function parse(argv) {
       pos.push(arg);
     }
   }
-  if (pos.length > 1) throw new Error(`expected one path, got ${pos.length}`);
-  return { flags, target: pos[0] };
+  return { flags, pos };
+}
+
+function printConfig(nav) {
+  const width = 8;
+  const row = (label, value) => `${label.padEnd(width)}  ${value}`;
+  console.log(row("Config", configPath()));
+  console.log(row("Order", nav.order.join(", ")));
+  console.log(row("Default", nav.default || "auto"));
+  console.log(row("Hidden", nav.hidden.length ? nav.hidden.join(", ") : "none"));
+}
+
+async function runConfig(args) {
+  const [sub, ...rest] = args;
+  if (!sub) {
+    printConfig(await readNav());
+    return;
+  }
+
+  if (sub === "reset") {
+    if (rest.length) throw new Error("config reset takes no arguments");
+    const file = await resetNav();
+    process.stdout.write(`desk: reset ${file}\n`);
+    return;
+  }
+
+  const nav = await readNav();
+  let next;
+  if (sub === "order") {
+    if (!rest.length) throw new Error(`config order needs one or more sections: ${SECTIONS.join(", ")}`);
+    next = setOrder(nav, rest);
+  } else if (sub === "default") {
+    if (rest.length !== 1) throw new Error("config default needs one section");
+    next = setDefault(nav, rest[0]);
+  } else if (sub === "hide") {
+    if (rest.length !== 1) throw new Error("config hide needs one section");
+    next = hideSection(nav, rest[0]);
+  } else if (sub === "unhide") {
+    if (rest.length !== 1) throw new Error("config unhide needs one section");
+    next = unhideSection(nav, rest[0]);
+  } else {
+    throw new Error(`unknown config command "${sub}"`);
+  }
+
+  await writeNav(next);
+  printConfig(next);
 }
 
 async function main() {
-  const { flags, target } = parse(process.argv.slice(2));
+  const { flags, pos } = parse(process.argv.slice(2));
   if (flags.help) {
     process.stdout.write(`${HELP}\n`);
     return;
   }
+
+  const [command, ...configArgs] = pos;
+  if (command === "config") {
+    await runConfig(configArgs);
+    return;
+  }
+  if (pos.length > 1) throw new Error(`expected one path, got ${pos.length}`);
+  const target = command;
 
   const resolved = await resolveTarget(target ?? ".");
   const args = [path.join(HERE, "serve.mjs")];

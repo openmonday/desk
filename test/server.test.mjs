@@ -8,12 +8,14 @@ import { createRequestHandler } from "../src/server/http.mjs";
 import { makeWorkspace } from "./helpers.mjs";
 
 async function listen(t, workspace, publicDir) {
+  const nav = { order: ["features", "context", "architecture"], hidden: ["architecture"], default: "features" };
   const handler = createRequestHandler({
     mode: "desk",
     workspace,
     docsRoot: null,
     publicDir,
     clients: new Set(),
+    getNav: async () => nav,
   });
   const server = http.createServer(handler);
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -33,7 +35,11 @@ test("the viewer serves reads and refuses writes", async (t) => {
 
   const tree = await fetch(`${base}/api/tree`);
   assert.equal(tree.status, 200);
-  assert.equal((await tree.json()).mode, "desk");
+  const treeBody = await tree.json();
+  assert.equal(treeBody.mode, "desk");
+  assert.deepEqual(treeBody.nav, {
+    order: ["features", "context", "architecture"], hidden: ["architecture"], default: "features",
+  });
 
   const doc = await fetch(`${base}/api/doc?path=features/demo/spec.md`);
   assert.equal(doc.status, 200);

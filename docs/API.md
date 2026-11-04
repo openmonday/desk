@@ -9,7 +9,7 @@ src/
 ├── desk.mjs         CLI: open a path
 ├── cli/             target detection and hash routes
 ├── server/          request handling, SSE, static assets, watcher
-└── lib/             workspace scanner, docs scanner and reads
+└── lib/             workspace scanner, docs scanner, settings, reads
 public/              shell, styles, client modules, vendored marked
 test/                scanner, docs, target, and server tests
 tools/shot.mjs       headless screenshot helper
@@ -23,6 +23,8 @@ No dependencies, no build step. Node 18+.
 npm link                                # once, makes `desk` global
 desk                                    # current folder
 desk .desk                              # workspace view
+desk .desk/features                     # the ticket graph
+desk .desk/AGENTS.md                    # any other Markdown document
 desk .desk/features/demo/spec.md        # open that document
 desk ~/notes                            # Markdown library
 desk ~/notes/guides/install.md          # open that document
@@ -32,12 +34,17 @@ The target decides the mode:
 
 | Target | Mode |
 | --- | --- |
-| the workspace root, or a path under `.desk/` | workspace |
-| anything else | Markdown library |
+| the workspace root, or a folder under `.desk/` | workspace |
+| `CONTEXT.md`, `arch/*.md`, a spec, or a ticket under `.desk/` | workspace |
+| any other Markdown file | library from its own folder |
+| a non-Markdown file | error |
 
-A Markdown file outside `.desk/` opens from its own folder (`desk notes/today.md`
-serves `notes/`). Workspace files open at their record, feature, or ticket
-route. With a file the browser opens automatically. Options: `--no-open`,
+A Markdown file opens from its own folder (`desk notes/today.md` serves
+`notes/`). Workspace records open at their record, feature, or ticket route; a
+workspace folder opens its section (`.desk/features` → graph, `.desk/arch` →
+architecture, `.desk/features/<slug>` → spec). Other Markdown under `.desk/`,
+such as `.desk/AGENTS.md`, opens as a library of that folder rather than being
+refused. With a file the browser opens automatically. Options: `--no-open`,
 `--port <n>`, `--host <addr>`, `--quiet`.
 
 For development without the global link:
@@ -49,6 +56,27 @@ npm test                                # run the test suite
 node src/serve.mjs --docs ~/notes --open
 ```
 
+## Settings
+
+Workspace top-tab order, visibility, and the landing tab are global settings,
+changed through `desk config` (Markdown libraries keep their folder tabs):
+
+```bash
+desk config                              # show settings and the file path
+desk config order features context architecture
+desk config default features
+desk config hide architecture
+desk config unhide architecture
+desk config reset
+```
+
+`order` sets the tab order, `default` picks the tab that opens when no document
+is named, and `hide` removes a tab from the top bar (its routes still work).
+Sections are `context`, `architecture`, and `features`. The file lives at
+`~/.config/desk/config.json`; `XDG_CONFIG_HOME` moves it and `DESK_CONFIG`
+points at another file. A long-running server reads the file per request, so a
+browser reload applies the change.
+
 ## Hash routes
 
 The open document is in the URL fragment, so views can be bookmarked and shared
@@ -57,7 +85,9 @@ with yourself.
 | Route | Document |
 | --- | --- |
 | `#/context` | `.desk/CONTEXT.md` |
+| `#/architecture` | the first architecture record |
 | `#/architecture/<slug>` | `.desk/arch/<slug>.md` |
+| `#/features` | the ticket graph |
 | `#/features/<slug>` | feature spec |
 | `#/features/<slug>/<n>` | ticket `<n>` of that feature |
 | `#/docs/<path>` | a document in a Markdown library |
@@ -112,12 +142,12 @@ render failure: it still shows what it can.
 
 ## The graph
 
-The graph opens from the network icon in the rail and replaces the article;
-choosing a document switches back to reading. The graph and article are two
-views of the same work area, so they are never shown together. Every view has an
+Opening the Features tab, or `.desk/features`, shows the ticket graph instead of
+a file. Clicking a node opens that ticket and syncs the rail; choosing a feature
+or the graph icon switches back to reading. The graph and article are two views
+of the same work area, so they are never shown together. Every view has an
 in-page fullscreen button that fills the browser window; Esc exits.
 
 The graph draws every ticket as a node and every `Blocked by:` entry as an arrow
 from blocker to dependent. Layers run left to right by dependency depth;
-"ready" means no open blockers. Clicking a node opens that ticket and syncs the
-rail to it.
+"ready" means no open blockers.

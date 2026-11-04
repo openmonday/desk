@@ -1,21 +1,10 @@
 /* Render the whole page in the same order as the original client. */
 
-import { S, docTitle, docsMode, docsSections } from "./state.js";
+import { S, docTitle, docsMode, tabDefs, configuredDefault } from "./state.js";
 import { renderArticle } from "./article.js";
 import { renderGraph } from "./graph.js";
 import { renderRail } from "./rail.js";
 import { brand, tabs } from "./refs.js";
-
-const DESK_TABS = [
-  ["context", "Context"],
-  ["architecture", "Architecture"],
-  ["features", "Features"],
-];
-
-function tabDefs() {
-  if (!docsMode()) return DESK_TABS.map(([key, label]) => ({ key, label }));
-  return docsSections().map((section) => ({ key: section.key, label: section.title }));
-}
 
 function renderTabs() {
   const defs = tabDefs();
@@ -40,8 +29,10 @@ function renderTabs() {
     nav.setAttribute("aria-label", navigatingDocs ? "Document sections" : "Workspace sections");
   }
   if (brand) {
-    brand.href = navigatingDocs ? "#/docs" : "#/features";
-    brand.setAttribute("aria-label", navigatingDocs ? "desk — docs" : "desk — features");
+    const homeKey = navigatingDocs ? null : configuredDefault() || defs[0]?.key || "features";
+    const homeLabel = defs.find((d) => d.key === homeKey)?.label || "workspace";
+    brand.href = navigatingDocs ? "#/docs" : `#/${homeKey}`;
+    brand.setAttribute("aria-label", navigatingDocs ? "desk — docs" : `desk — ${homeLabel}`);
   }
 
   // With many sections the tab strip scrolls; keep the selected tab in view.

@@ -2,6 +2,7 @@
 import { readDoc, scanWorkspace } from "../lib/scan.mjs";
 import { scanDocs } from "../lib/docs/scan.mjs";
 import { readDocsAsset, readDocsDoc } from "../lib/docs/read.mjs";
+import { readNav } from "../lib/config.mjs";
 import { attachEventStream } from "./events.mjs";
 import { serveStatic } from "./static.mjs";
 
@@ -10,7 +11,7 @@ function json(res, code, body) {
   res.end(JSON.stringify(body));
 }
 
-export function createRequestHandler({ mode = "desk", workspace, docsRoot, publicDir, clients }) {
+export function createRequestHandler({ mode = "desk", workspace, docsRoot, publicDir, clients, getNav = readNav }) {
   const docs = mode === "docs";
   const scan = docs ? () => scanDocs(docsRoot) : () => scanWorkspace(workspace);
   const read = docs ? (rel) => readDocsDoc(docsRoot, rel) : (rel) => readDoc(workspace, rel);
@@ -39,7 +40,8 @@ export function createRequestHandler({ mode = "desk", workspace, docsRoot, publi
 
     if (route === "/api/tree") {
       try {
-        return json(res, 200, await scan());
+        const tree = await scan();
+        return json(res, 200, docs ? tree : { ...tree, nav: await getNav() });
       } catch (err) {
         return json(res, 500, { ok: false, error: String(err?.message || err) });
       }

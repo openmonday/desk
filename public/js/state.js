@@ -29,6 +29,26 @@ function docsSection(key) {
   return docsSections().find((s) => s.key === key) || null;
 }
 
+const WORKSPACE_TABS = ["context", "architecture", "features"];
+const TAB_LABELS = { context: "Context", architecture: "Architecture", features: "Features" };
+
+/** Top tabs in configured order, hidden ones left out. */
+function tabDefs() {
+  if (docsMode()) return docsSections().map((section) => ({ key: section.key, label: section.title }));
+  const nav = S.tree?.nav;
+  const order = Array.isArray(nav?.order) && nav.order.length ? nav.order : WORKSPACE_TABS;
+  const hidden = new Set(nav?.hidden || []);
+  return order
+    .filter((id) => TAB_LABELS[id] && !hidden.has(id))
+    .map((id) => ({ key: id, label: TAB_LABELS[id] }));
+}
+
+/** The configured landing tab, or null when the default is automatic. */
+function configuredDefault() {
+  const preferred = S.tree?.nav?.default;
+  return preferred && tabDefs().some((tab) => tab.key === preferred) ? preferred : null;
+}
+
 function findDocsFile(nodes, path) {
   for (const node of nodes || []) {
     if (node.type === "file" && node.path === path) return node;
@@ -256,7 +276,7 @@ function docTitle() {
 export {
   S, num, key, plural, narrow, featureBySlug, entryForPath,
   docsMode, docsSections, docsSection, docsEntryByTab, defaultDocsEntry,
-  docsEntryForFeature, docsFeatureByPath,
+  docsEntryForFeature, docsFeatureByPath, tabDefs, configuredDefault,
   KIND_LABEL, featureIndex, stateOf, shortState, tally, tallyText,
   treeSignature, docTitle,
 };

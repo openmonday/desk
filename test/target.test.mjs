@@ -16,6 +16,7 @@ async function makeTree(t) {
   const write = (rel, text = "# Doc\n") => writeFile(path.join(root, rel), text);
   await write(".desk/CONTEXT.md");
   await write(".desk/AGENTS.md");
+  await write(".desk/AGENTS.txt");
   await write(".desk/arch/one.md");
   await write(".desk/features/demo/spec.md");
   await write(".desk/features/demo/tickets/02-cache.md");
@@ -26,7 +27,7 @@ async function makeTree(t) {
   return root;
 }
 
-test("a workspace root, .desk, or anything inside it is workspace mode", async (t) => {
+test("workspace roots and folders under .desk open in workspace mode", async (t) => {
   const root = await makeTree(t);
 
   assert.deepEqual(
@@ -35,6 +36,10 @@ test("a workspace root, .desk, or anything inside it is workspace mode", async (
   );
   assert.equal((await resolveTarget(".desk", root)).root, root);
   assert.equal((await resolveTarget(".desk/features/demo", root)).mode, "desk");
+  assert.equal((await resolveTarget(".desk/features", root)).route, "#/features");
+  assert.equal((await resolveTarget(".desk/features/demo", root)).route, "#/features/demo");
+  assert.equal((await resolveTarget(".desk/features/demo/tickets", root)).route, "#/features/demo");
+  assert.equal((await resolveTarget(".desk/arch", root)).route, "#/architecture");
 });
 
 test("workspace files open at the route the page uses", async (t) => {
@@ -60,6 +65,15 @@ test("a file outside .desk opens as a library from its own folder", async (t) =>
   assert.equal((await resolveTarget("docs", root)).mode, "docs");
 });
 
+test("other Markdown under .desk opens as a library from its own folder", async (t) => {
+  const root = await makeTree(t);
+
+  assert.deepEqual(
+    await resolveTarget(".desk/AGENTS.md", root),
+    { mode: "docs", root: path.join(root, ".desk"), dataDir: null, route: "#/docs/AGENTS.md", file: true },
+  );
+});
+
 test("library routes encode path segments", async (t) => {
   const root = await makeTree(t);
   assert.equal((await resolveTarget("docs/a b.md", root)).route, "#/docs/a%20b.md");
@@ -70,5 +84,5 @@ test("unsupported targets fail with a readable message", async (t) => {
 
   await assert.rejects(resolveTarget("missing.md", root), /no such file or folder/);
   await assert.rejects(resolveTarget("README.txt", root), /not a Markdown file/);
-  await assert.rejects(resolveTarget(".desk/AGENTS.md", root), /cannot open/);
+  await assert.rejects(resolveTarget(".desk/AGENTS.txt", root), /not a Markdown file/);
 });

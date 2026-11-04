@@ -19,23 +19,46 @@ npm link         # install the `desk` command globally from this checkout
 desk                                    # current folder
 desk ~/notes                            # a Markdown library
 desk .desk                              # a workspace
+desk .desk/features                     # the ticket graph
+desk .desk/AGENTS.md                    # any other Markdown document
 desk .desk/features/demo/spec.md        # that document in the browser
 ```
 
 `desk` decides the mode from the path. The workspace root (the folder that
-contains `.desk/`) and anything under `.desk/` open in the workspace view;
-everything else opens as a Markdown library. A Markdown file outside `.desk/`
-opens from its own folder, so `desk notes/today.md` shows the `notes/` tree at
-that document. With a file the browser opens automatically; pass `--no-open` to
-keep it closed. `--port`,
-`--host`, and `--quiet` work as expected.
+contains `.desk/`), folders under `.desk/`, and recognized records
+(`CONTEXT.md`, `arch/*.md`, specs, tickets) open in the workspace view.
+Everything else opens as a Markdown library, and a file opens from its own
+folder, so `desk notes/today.md` shows the `notes/` tree at that document. That
+also means a plain file like `.desk/AGENTS.md` opens as a document instead of
+being refused. With a file the browser opens automatically; pass `--no-open` to
+keep it closed. `--port`, `--host`, and `--quiet` work as expected.
 
 The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and its
-tickets. Edits made by you or an agent appear live over server-sent events. The
-shared ticket dependency graph opens from the rail and replaces the article;
-close it to return to reading. Every view can fill the browser window with
-in-page fullscreen. The round button at the top right cycles auto, light, and
-dark; auto follows the operating system.
+tickets. Opening the **Features** section, or `.desk/features`, lands on the
+ticket graph; clicking a node opens the ticket, and the spec is a click away.
+Edits made by you or an agent appear live over server-sent events. Every view
+can fill the browser window with in-page fullscreen. The round button at the
+top right cycles auto, light, and dark; auto follows the operating system.
+
+## Settings
+
+Settings for the `.desk` workspace's top tabs are global (stored once per user,
+not per project) and changed with `desk config`:
+
+```bash
+desk config                              # show settings and the file path
+desk config order features context architecture
+desk config default features
+desk config hide architecture
+desk config unhide architecture
+desk config reset
+```
+
+`order` sets the top-tab order, `default` picks the tab that opens when you name
+no document, and `hide` removes a tab from the top bar (the path still works).
+The sections are `context`, `architecture`, and `features`. Reload an open page
+to apply a change. Set `DESK_CONFIG` to use another file, or `XDG_CONFIG_HOME`
+to move the default `~/.config/desk/config.json`.
 
 ## Markdown libraries
 

@@ -1,9 +1,8 @@
 /* Resolve `desk <path>` into a server mode, a root, and an initial hash route.
  *
- * A target is part of a `.desk` workspace only when it is the workspace root
- * (the folder that contains `.desk/`) or when it lives under a `.desk/` folder.
- * Everything else is a Markdown library. A file in a library opens from its own
- * folder, so `desk notes/today.md` shows the `notes/` tree.
+ * The workspace view is for the workspace root, folders under `.desk/`, and the
+ * Markdown files that map to a workspace record. Any other Markdown file opens
+ * as a library from its own folder, even when it lives under `.desk/`.
  */
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -32,6 +31,16 @@ export function deskRoute(dataDir, file) {
   const ticket = rel.match(/^features\/([^/]+)\/tickets\/(\d+)[^/]*$/);
   if (ticket) return `#/features/${ticket[1]}/${Number(ticket[2])}`;
 
+  return null;
+}
+
+/** The hash route the page should open for a folder inside a `.desk` workspace. */
+export function deskDirRoute(dataDir, dir) {
+  const rel = toPosix(path.relative(dataDir, dir));
+  if (rel === "features") return "#/features";
+  if (rel === "arch") return "#/architecture";
+  const feature = rel.match(/^features\/([^/]+)(?:\/tickets)?$/);
+  if (feature) return `#/features/${feature[1]}`;
   return null;
 }
 
@@ -67,7 +76,10 @@ export async function resolveTarget(input = ".", cwd = process.cwd()) {
   if (stat.isDirectory()) {
     const dataDir = await findDataDir(abs, true);
     if (dataDir) {
-      return { mode: "desk", root: path.dirname(dataDir), dataDir, route: null, file: false };
+      return {
+        mode: "desk", root: path.dirname(dataDir), dataDir,
+        route: deskDirRoute(dataDir, abs), file: false,
+      };
     }
     return { mode: "docs", root: abs, dataDir: null, route: null, file: false };
   }
@@ -77,13 +89,10 @@ export async function resolveTarget(input = ".", cwd = process.cwd()) {
   const dataDir = await findDataDir(path.dirname(abs), false);
   if (dataDir) {
     const route = deskRoute(dataDir, abs);
-    if (!route) {
-      throw fail(
-        `cannot open ${input}: the workspace page shows CONTEXT.md, arch/*.md, ` +
-        "feature specs, and tickets",
-      );
+    if (route) {
+      return { mode: "desk", root: path.dirname(dataDir), dataDir, route, file: true };
     }
-    return { mode: "desk", root: path.dirname(dataDir), dataDir, route, file: true };
+    // Not a workspace record: fall through and open it as plain Markdown.
   }
 
   if (!DOC_RE.test(abs)) throw fail(`not a Markdown file: ${input}`);

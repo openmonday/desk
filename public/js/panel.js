@@ -4,10 +4,11 @@
  * any document switches back to the article. The rail keeps its resize handle,
  * and every view has an in-page fullscreen button. */
 
-import { narrow } from "./state.js";
+import { S, narrow } from "./state.js";
 import { el, svgEl } from "./dom.js";
 import { clamp } from "./graph-layout.js";
 import { actions } from "./actions.js";
+import { writeHash, writeTabHash } from "./hash.js";
 import {
   exitFullscreenExcept, fullscreenButton, initFullscreen,
 } from "./fullscreen.js";
@@ -73,8 +74,13 @@ function showGraph() {
 }
 
 function toggleGraphView() {
-  if (graphView()) showArticle();
-  else showGraph();
+  if (graphView()) {
+    showArticle();
+    if (S.doc) writeHash(S.doc);
+    return;
+  }
+  showGraph();
+  if (S.tab === "features") writeTabHash("features");
 }
 
 function initTools() {
@@ -178,5 +184,5 @@ function initPanel() {
 }
 
 export {
-  applyPanelChrome, initPanel, initRailSplit, showArticle,
+  applyPanelChrome, initPanel, initRailSplit, showArticle, showGraph,
 };

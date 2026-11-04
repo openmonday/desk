@@ -77,21 +77,12 @@ function writeTabHash(tab) {
   history.replaceState(null, "", `#/${tab}`);
 }
 
-function firstSpec() {
-  const f = (S.tree?.features || []).find((x) => x.specPath);
-  return f ? entryForPath(f.specPath) : null;
-}
-
 function defaultEntry() {
   const t = S.tree;
   if (!t) return null;
   if (t.mode === "docs") return defaultDocsEntry();
-  const spec = firstSpec();
-  if (spec) return spec;
-  const a = (t.architecture || [])[0];
-  if (a) return entryForPath(a.path);
-  if (t.context?.exists) return entryForPath(t.context.path);
-  return null;
+  // Follow the selected tab, so a hidden section never wins by accident.
+  return entryForTab(S.tab);
 }
 
 function entryForTab(tab, preferredFeature) {

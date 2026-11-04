@@ -140,8 +140,8 @@ function graphBlock(feature) {
     graphPanel.dataset.atEnd = "true";
     return el("div", { class: "graph graph-empty" }, [
       el("p", {}, [
-        "No tickets yet. Run ", cmd("/to-tickets"), ", or add one with ",
-        cmd(`desk add ${feature.slug} --title "…"`), ".",
+        "No tickets yet. Add Markdown files under ",
+        cmd(`features/${feature.slug}/tickets/`), ".",
       ]),
     ]);
   }
