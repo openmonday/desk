@@ -1,37 +1,58 @@
 #!/usr/bin/env node
-/* desk — open a Markdown file or folder in the live page.
+/* desk — open a Markdown file or folder in the live page, and manage the
+ * servers started by earlier invocations.
  *
  * The page decides what it is looking at: a `.desk` workspace when the target
  * is the workspace root or lives under `.desk/`, otherwise a Markdown library.
  * With a file target, the matching document opens in the browser. The viewer
  * is read-only: edit the Markdown and the page follows.
  */
+import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { parseArgv, routeArgv, validateOptions } from "./cli/args.mjs";
 import { resolveTarget } from "./cli/target.mjs";
 import {
   SECTIONS, configPath, hideSection, readNav, resetNav, setDefault, setOrder,
   unhideSection, writeNav,
 } from "./lib/config.mjs";
+import { listServers, stopServer } from "./lib/servers.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 const HELP = `Usage:
-  desk [path] [options]
+  desk [open] [path] [options]
+  desk list [--json]
+  desk kill (--all | <pid>...) [--force]
+  desk config [command]
+  desk help [command]
 
 Open a Markdown file or folder in the live page. Folders under .desk, the
 workspace root, and recognized workspace records open the workspace view. Any
 other Markdown file opens as a library from its own folder. With a file, the
 browser opens that document.
 
-Options:
-  --port <n>     Port to listen on (default 7777, falls forward)
-  --host <addr>  Bind address (default 127.0.0.1)
-  --open         Open the browser (default when path is a file)
-  --no-open      Keep the browser closed
-  --quiet        Suppress the startup report
-  -h, --help     Show this help
+Commands:
+  open [path]        Open a path (the default command)
+  list               List running desk servers
+  kill               Stop running desk servers by PID
+  config             Show or change workspace settings
+  help [command]     Show this help, or help for one command
+
+Open options:
+  --port <n>         Port to listen on (default 7777, falls forward)
+  --host <addr>      Bind address (default 127.0.0.1)
+  --open             Open the browser (default when path is a file)
+  --no-open          Keep the browser closed
+  --quiet            Suppress the startup report
+  -h, --help         Show this help
+
+A command name is always a command. To open a folder with the same name, use
+the open command or the option terminator:
+
+  desk open list
+  desk -- list
 
 Settings (workspace tabs; global, stored once per user; reload open pages to apply):
   desk config                    show current settings
@@ -43,33 +64,43 @@ Settings (workspace tabs; global, stored once per user; reload open pages to app
 
   Sections: ${SECTIONS.join(", ")}`;
 
-const VALUED = new Set(["port", "host"]);
+const COMMAND_HELP = {
+  open: HELP,
+  list: `Usage:
+  desk list [--json]
 
-function parse(argv) {
-  const flags = {};
-  const pos = [];
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-    if (arg === "-h" || arg === "--help" || arg === "help") {
-      flags.help = true;
-    } else if (arg === "--open") {
-      flags.open = true;
-    } else if (arg === "--no-open") {
-      flags.open = false;
-    } else if (arg === "--quiet") {
-      flags.quiet = true;
-    } else if (arg.startsWith("--")) {
-      const eq = arg.indexOf("=");
-      const key = arg.slice(2, eq === -1 ? undefined : eq);
-      if (!VALUED.has(key)) throw new Error(`unknown option "${arg}"`);
-      const value = eq === -1 ? argv[++i] : arg.slice(eq + 1);
-      if (value == null || value === "") throw new Error(`--${key} requires a value`);
-      flags[key] = value;
-    } else {
-      pos.push(arg);
-    }
-  }
-  return { flags, pos };
+List every running desk server owned by the current user.
+
+Options:
+  --json         Print machine-readable JSON
+  -h, --help     Show this help`,
+  kill: `Usage:
+  desk kill (--all | <pid>...) [--force]
+
+Stop running desk servers. Pass one or more PIDs from \`desk list\`, or use
+--all to stop every server. SIGTERM is sent by default.
+
+Options:
+  --all          Stop every running desk server
+  --force        Send SIGKILL instead of SIGTERM
+  -h, --help     Show this help`,
+  config: `Usage:
+  desk config                    show current settings
+  desk config order <id...>      reorder the top tabs
+  desk config default <id>       tab to open when no document is given
+  desk config hide <id>          hide a top tab
+  desk config unhide <id>        show a hidden tab
+  desk config reset              restore the defaults
+
+Sections: ${SECTIONS.join(", ")}`,
+  help: `Usage:
+  desk help [command]
+
+Show general help, or help for one command: open, list, kill, or config.`,
+};
+
+function printHelp(topic) {
+  process.stdout.write(`${COMMAND_HELP[topic] || HELP}\n`);
 }
 
 function printConfig(nav) {
@@ -117,32 +148,127 @@ async function runConfig(args) {
   printConfig(next);
 }
 
-async function main() {
-  const { flags, pos } = parse(process.argv.slice(2));
-  if (flags.help) {
-    process.stdout.write(`${HELP}\n`);
+function displayPath(value) {
+  const home = os.homedir();
+  if (value === home) return "~";
+  if (value.startsWith(`${home}${path.sep}`)) return `~${value.slice(home.length)}`;
+  return value;
+}
+
+function formatTable(headers, rows) {
+  const widths = headers.map((header, i) => Math.max(
+    header.length,
+    ...rows.map((row) => row[i].length),
+  ));
+  return [headers, ...rows]
+    .map((row) => row.map((cell, i) => (i === row.length - 1 ? cell : cell.padEnd(widths[i]))).join("  "))
+    .join("\n");
+}
+
+async function runList(options) {
+  const servers = await listServers();
+
+  if (options.json) {
+    process.stdout.write(`${JSON.stringify(servers, null, 2)}\n`);
+    return;
+  }
+  if (!servers.length) {
+    process.stdout.write("desk: no running servers\n");
     return;
   }
 
-  const [command, ...configArgs] = pos;
-  if (command === "config") {
-    await runConfig(configArgs);
+  const rows = servers.map((server) => [
+    String(server.pid),
+    String(server.port),
+    server.mode,
+    server.url,
+    displayPath(server.root),
+  ]);
+  console.log(formatTable(["PID", "PORT", "MODE", "URL", "TARGET"], rows));
+}
+
+function parsePid(value) {
+  const pid = Number(value);
+  if (!/^\d+$/.test(value) || !Number.isSafeInteger(pid) || pid <= 0) {
+    throw new Error(`invalid PID "${value}"`);
+  }
+  return pid;
+}
+
+async function runKill(options, args) {
+  if (options.all && args.length) throw new Error("kill accepts either --all or one or more PIDs, not both");
+  if (!options.all && !args.length) throw new Error("kill needs one or more PIDs, or --all");
+
+  const servers = await listServers();
+  let targets;
+  if (options.all) {
+    targets = servers;
+  } else {
+    const pids = [...new Set(args.map(parsePid))];
+    const byPid = new Map(servers.map((server) => [server.pid, server]));
+    const missing = pids.filter((pid) => !byPid.has(pid));
+    if (missing.length) {
+      throw new Error(`no running desk server with PID ${missing.join(", ")}; run "desk list"`);
+    }
+    targets = pids.map((pid) => byPid.get(pid));
+  }
+
+  if (!targets.length) {
+    process.stdout.write("desk: no running servers\n");
     return;
   }
-  if (pos.length > 1) throw new Error(`expected one path, got ${pos.length}`);
-  const target = command;
+
+  for (const server of targets) {
+    await stopServer(server, { force: Boolean(options.force) });
+    process.stdout.write(`desk: stopped ${server.pid} (${server.url})\n`);
+  }
+}
+
+async function runOpen(options, args) {
+  if (args.length > 1) throw new Error(`expected one path, got ${args.length}`);
+  const target = args[0];
 
   const resolved = await resolveTarget(target ?? ".");
-  const args = [path.join(HERE, "serve.mjs")];
-  args.push(resolved.mode === "desk" ? "--root" : "--docs", resolved.root);
-  if (resolved.route) args.push("--hash", resolved.route);
-  if (flags.port) args.push("--port", String(flags.port));
-  if (flags.host) args.push("--host", flags.host);
-  if (flags.quiet) args.push("--quiet");
-  if (flags.open ?? resolved.file) args.push("--open");
+  const childArgs = [path.join(HERE, "serve.mjs")];
+  childArgs.push(resolved.mode === "desk" ? "--root" : "--docs", resolved.root);
+  if (resolved.route) childArgs.push("--hash", resolved.route);
+  if (options.port) childArgs.push("--port", String(options.port));
+  if (options.host) childArgs.push("--host", options.host);
+  if (options.quiet) childArgs.push("--quiet");
+  if (options.open ?? resolved.file) childArgs.push("--open");
 
-  const child = spawn(process.execPath, args, { stdio: "inherit" });
+  const child = spawn(process.execPath, childArgs, { stdio: "inherit" });
   child.on("exit", (code, signal) => process.exit(signal ? 130 : code ?? 0));
+}
+
+async function main() {
+  const { options, positionals } = parseArgv(process.argv.slice(2));
+  const route = routeArgv(positionals);
+
+  if (options.help) {
+    printHelp(route.explicit ? route.command : null);
+    return;
+  }
+  if (route.command === "help") {
+    validateOptions("help", options);
+    if (route.args.length > 1) throw new Error("help takes at most one command");
+    const topic = route.args[0];
+    if (topic && !COMMAND_HELP[topic]) throw new Error(`unknown command "${topic}"`);
+    printHelp(topic);
+    return;
+  }
+
+  validateOptions(route.command, options);
+
+  if (route.command === "list") {
+    await runList(options);
+  } else if (route.command === "kill") {
+    await runKill(options, route.args);
+  } else if (route.command === "config") {
+    await runConfig(route.args);
+  } else {
+    await runOpen(options, route.args);
+  }
 }
 
 main().catch((err) => {

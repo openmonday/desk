@@ -23,7 +23,13 @@ desk .desk                              # a workspace
 desk .desk/features                     # the ticket graph
 desk .desk/AGENTS.md                    # any other Markdown document
 desk .desk/features/demo/spec.md        # that document in the browser
+desk open list                           # a folder literally named "list"
+desk -- list                             # same, using the option terminator
 ```
+
+The first word is a command. `open` is the default, so a bare path does not
+need it. A command name always wins over a folder with the same name; use
+`desk open <path>` or put `--` before the path to open the folder itself.
 
 On startup, desk lists every Markdown file it detected in the target and marks
 the document it opened. The list uses the same `●` / `○` treatment as the
@@ -44,6 +50,26 @@ ticket graph; clicking a node opens the ticket, and the spec is a click away.
 Edits made by you or an agent appear live over server-sent events. Every view
 can fill the browser window with in-page fullscreen. The round button at the
 top right cycles auto, light, and dark; auto follows the operating system.
+
+## Running servers
+
+Every server records itself after it starts listening, then removes the record
+when it exits. `desk list` reads those records, removes stale entries, and
+prints the PID, port, mode, URL, and target. `desk kill` stops the servers you
+name by PID:
+
+```bash
+desk list                                # human-readable table
+desk list --json                         # machine-readable records
+desk kill 48213                          # stop one server with SIGTERM
+desk kill 48213 48214                    # stop several servers
+desk kill --all                          # stop every running desk server
+desk kill --force 48213                  # SIGKILL instead of SIGTERM
+```
+
+Records live under `$XDG_STATE_HOME/desk/servers` (by default
+`~/.local/state/desk/servers`). `DESK_STATE_DIR` overrides the state directory.
+Only servers started by the current user are visible.
 
 ## Settings
 
@@ -109,10 +135,10 @@ them with `--host 0.0.0.0` on an untrusted network.
 ├── .desk/                  sample workspace: glossary, architecture, features
 ├── src/                    server and library code
 │   ├── serve.mjs           HTTP entry: options, workspace, lifecycle
-│   ├── desk.mjs            viewer CLI
-│   ├── cli/                target detection and hash routes
+│   ├── desk.mjs            viewer CLI and server commands
+│   ├── cli/                argument grammar, target detection and hash routes
 │   ├── server/             request handler, SSE, static assets, watcher
-│   └── lib/                workspace scanner, docs scanner and reads
+│   └── lib/                scanners, settings, reads, running-server registry
 ├── public/                 shell, styles, client modules, vendored libraries
 ├── scripts/setup-cli.sh    link and verify the global `desk` command
 ├── tools/shot.mjs          headless screenshot helper

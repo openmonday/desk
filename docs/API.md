@@ -6,10 +6,10 @@ the files in any editor; the page follows.
 ```text
 src/
 ├── serve.mjs        HTTP server: reads and live events
-├── desk.mjs         CLI: open a path
-├── cli/             target detection and hash routes
+├── desk.mjs         CLI: open a path, list and stop servers
+├── cli/             argument grammar, target detection, hash routes
 ├── server/          request handling, SSE, static assets, watcher
-└── lib/             workspace scanner, docs scanner, settings, reads
+└── lib/             scanners, settings, reads, running-server registry
 public/              shell, styles, client modules, vendored marked, highlight.js, KaTeX
 scripts/             setup-cli.sh: link and verify the global `desk` command
 test/                scanner, docs, report, target, and server tests
@@ -17,6 +17,29 @@ tools/shot.mjs       headless screenshot helper
 ```
 
 No dependencies, no build step. Node 18+.
+
+## Commands
+
+```text
+desk [open] [path] [options]
+desk list [--json]
+desk kill (--all | <pid>...) [--force]
+desk config [command]
+desk help [command]
+```
+
+`open` is the default command, so `desk notes` and `desk open notes` are the
+same. The first positional token is a command only when it is not escaped by
+`--`. A folder literally named `list` therefore opens with `desk open list` or
+`desk -- list`; `desk list` always lists servers.
+
+The CLI follows these conventions:
+
+- Commands are lowercase verbs: `open`, `list`, `kill`, `config`, `help`.
+- Options use kebab-case long names: `--port`, `--no-open`, `--json`.
+- Boolean options never take a value; use `--no-<option>` for a negation.
+- Value options accept `--name value` or `--name=value`.
+- `--` ends option parsing, and `-h` / `--help` prints help.
 
 ## Open a path
 
@@ -56,6 +79,27 @@ npm run check                           # scan once, print diagnostics, exit 1 o
 npm test                                # run the test suite
 node src/serve.mjs --docs ~/notes --open
 ```
+
+## Running servers
+
+Each listening server writes a record under
+`$XDG_STATE_HOME/desk/servers/<pid>.json` (default
+`~/.local/state/desk/servers`), and removes it on exit. `DESK_STATE_DIR`
+overrides the directory. Records are advisory; the HTTP server never depends on
+them.
+
+```bash
+desk list                               # PID, PORT, MODE, URL, TARGET
+desk list --json                        # the full records
+desk kill 48213                         # stop by PID with SIGTERM
+desk kill 48213 48214                   # stop several servers
+desk kill --all                         # stop every visible server
+desk kill --force 48213                 # SIGKILL instead of SIGTERM
+```
+
+`list` prunes records whose PID is no longer alive. `kill` accepts only PIDs
+shown by `list`; validate every PID before sending any signal, and refuse to
+mix `--all` with PIDs.
 
 ## Settings
 

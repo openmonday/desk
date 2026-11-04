@@ -11,6 +11,7 @@ import { parseArgs } from "./server/args.mjs";
 import { createBroadcaster } from "./server/events.mjs";
 import { createRequestHandler } from "./server/http.mjs";
 import { formatFileList, report, reportDocs } from "./server/report.mjs";
+import { registerServer, unregisterServerSync } from "./lib/servers.mjs";
 import { watchWorkspace } from "./server/watcher.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -95,6 +96,20 @@ async function main() {
   const urlBase = `http://${opts.host === "0.0.0.0" ? "localhost" : opts.host}:${port}`;
   const url = `${urlBase}${opts.hash || ""}`;
 
+  try {
+    await registerServer({
+      pid: process.pid,
+      port,
+      host: opts.host,
+      mode,
+      root,
+      url,
+      startedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    if (!opts.quiet) console.error(`desk page: cannot record running server — ${err.message}`);
+  }
+
   if (!opts.quiet) {
     if (mode === "docs") {
       const tree = await scanDocs(root);
@@ -124,7 +139,11 @@ async function main() {
     import("node:child_process").then(({ exec }) => exec(`${cmd} ${url}`));
   }
 
+  const forget = () => unregisterServerSync(process.pid);
+  process.once("exit", forget);
+
   const shutdown = () => {
+    forget();
     watcher?.close();
     for (const res of clients) { try { res.end(); } catch { /* closed */ } }
     server.close(() => process.exit(0));
