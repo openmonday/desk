@@ -3,8 +3,9 @@
 A live, read-only view of a `.desk` engineering workspace or any folder of
 Markdown. You write Markdown; the page follows. No dependencies, no build step:
 Node 18+ and plain HTML, CSS, and JavaScript. Markdown is rendered with vendored
-marked and highlighted with a vendored highlight.js build; everything stays
-local.
+marked, highlighted with a vendored highlight.js build, and LaTeX math is
+rendered with vendored KaTeX that loads only when a document contains math;
+everything stays local.
 
 ```bash
 npm start        # serve the sample workspace at http://127.0.0.1:7777
@@ -84,6 +85,11 @@ through a path-confined asset route. The URL
 keeps the open document, e.g. `#/docs/guides/install.md`, so it can be
 bookmarked.
 
+LaTeX math works in every Markdown view. Use `$...$` or `\(...\)` for inline
+math and `$$...$$` or `\[...\]` on their own lines for display math.
+Formulas inside code spans and fenced blocks stay literal, and KaTeX loads
+lazily on the first document that needs it.
+
 If a top-level `features/` folder contains feature folders (`spec.md` and/or
 `tickets/`), that section keeps the feature view: spec, numbered tickets, and
 the dependency graph. Every other section stays a plain, read-only document
@@ -110,7 +116,8 @@ them with `--host 0.0.0.0` on an untrusted network.
 ```
 
 Third-party notices: marked is MIT-licensed; highlight.js is BSD-3-Clause
-(see `public/highlight.LICENSE.txt`).
+(see `public/highlight.LICENSE.txt`); KaTeX is MIT-licensed (see
+`public/katex.LICENSE.txt`).
 
 See [`docs/API.md`](docs/API.md) for the command, modes, read-only HTTP API,
 and hash routes.

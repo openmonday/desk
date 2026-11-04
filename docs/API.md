@@ -10,7 +10,7 @@ src/
 ├── cli/             target detection and hash routes
 ├── server/          request handling, SSE, static assets, watcher
 └── lib/             workspace scanner, docs scanner, settings, reads
-public/              shell, styles, client modules, vendored marked
+public/              shell, styles, client modules, vendored marked, highlight.js, KaTeX
 test/                scanner, docs, target, and server tests
 tools/shot.mjs       headless screenshot helper
 ```
@@ -132,6 +132,11 @@ skipped, and a file opens from the folder you named, not from a parent.
 If a top-level `features/` folder contains feature folders (`spec.md` and/or
 `tickets/`), that section keeps the feature view: spec, numbered tickets, and
 the dependency graph. Every other section stays a plain document tree.
+
+LaTeX math is rendered locally with KaTeX. `$...$` and `\(...\)` are inline;
+`$$...$$` and `\[...\]` are display, including multiline blocks. Code spans and
+fenced blocks are left literal. The KaTeX bundle and fonts load only for a
+document that contains a math delimiter.
 
 ## Diagnostics
 

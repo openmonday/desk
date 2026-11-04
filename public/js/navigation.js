@@ -13,7 +13,7 @@ async function loadEntry(entry, opts = {}) {
     S.mdError = null;
     noteNavigation();
     actions.showArticle();
-    actions.render();
+    await actions.render();
     return;
   }
   const top = scroller.scrollTop;
@@ -35,7 +35,7 @@ async function loadEntry(entry, opts = {}) {
     noteNavigation();
     actions.showArticle();
   }
-  actions.render();
+  await actions.render();
   if (opts.keepScroll) {
     scroller.style.scrollBehavior = "auto";
     scroller.scrollTop = top;

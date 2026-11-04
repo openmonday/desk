@@ -77,7 +77,7 @@ async function boot() {
     writeTabHash("features");
   } else if (entry) writeHash(entry);
   else {
-    render();
+    await render();
     writeTabHash(S.tab);
   }
   connectEvents();

@@ -51,7 +51,7 @@ function scheduleRefresh() {
     if (!S.doc) {
       const entry = readHash()?.entry || defaultEntry();
       if (entry) await actions.loadEntry(entry, { silent: true });
-      else actions.render();
+      else await actions.render();
       return;
     }
     const entry = entryForPath(S.doc.path);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import http from "node:http";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -49,4 +49,20 @@ test("the viewer serves reads and refuses writes", async (t) => {
     const res = await fetch(`${base}/api/tickets`, { method });
     assert.equal(res.status, 405, `${method} must be read-only`);
   }
+});
+
+test("the viewer serves vendored KaTeX fonts", async (t) => {
+  const w = await makeWorkspace();
+  t.after(w.cleanup);
+  const publicDir = await realpath(await mkdtemp(path.join(os.tmpdir(), "desk-public-")));
+  t.after(() => rm(publicDir, { recursive: true, force: true }));
+  await mkdir(path.join(publicDir, "katex", "fonts"), { recursive: true });
+  const body = Buffer.from("wOF2\0\0\0\0", "binary");
+  await writeFile(path.join(publicDir, "katex", "fonts", "KaTeX_Main-Regular.woff2"), body);
+
+  const base = await listen(t, w.ws, publicDir);
+  const res = await fetch(`${base}/katex/fonts/KaTeX_Main-Regular.woff2`);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-type"), "font/woff2");
+  assert.deepEqual(Buffer.from(await res.arrayBuffer()), body);
 });

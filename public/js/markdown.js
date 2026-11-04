@@ -1,6 +1,7 @@
 /* Markdown parsing and sanitizing for the article body. */
 
 import { encodeDocPath, isDocPath, resolveDocPath } from "./docs-path.js";
+import { ensureMath, hasMath } from "./math.js";
 
 const slug = (s) =>
   s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
@@ -88,7 +89,14 @@ function highlightCode(root) {
   }
 }
 
-function mdToNodes(md, opts = null) {
+async function mdToNodes(md, opts = null) {
+  if (hasMath(md)) {
+    try {
+      await ensureMath();
+    } catch {
+      // KaTeX is an enhancement; if it cannot load, keep the source text.
+    }
+  }
   const raw = window.marked.parse(md, { gfm: true, breaks: false });
   const holder = document.createElement("div");
   holder.innerHTML = stripDangerous(raw);

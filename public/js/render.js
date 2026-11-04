@@ -48,9 +48,13 @@ function renderTabs() {
   }
 }
 
-function render() {
+let renderSeq = 0;
+
+async function render() {
+  const seq = ++renderSeq;
   document.title = S.doc ? `${docTitle()} · desk` : "desk";
-  renderArticle();
+  const applied = await renderArticle();
+  if (!applied || seq !== renderSeq) return;
   renderGraph();
   renderRail();
   renderTabs();

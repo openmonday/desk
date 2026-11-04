@@ -169,21 +169,25 @@ function articleMarkdown() {
   return md.replace(/^[ \t]*(Status|Blocked by):.*$/gim, "").replace(/\n{3,}/g, "\n\n").trimStart();
 }
 
-function renderArticle() {
-  article.textContent = "";
+let articleSeq = 0;
+
+async function renderArticle() {
+  const seq = ++articleSeq;
   S.mdError = null;
   article.dataset.kind = S.doc?.kind || "empty";
 
   if (!S.tree || S.tree.ok === false || !S.doc) {
+    article.textContent = "";
     article.append(...emptyArticle());
-    return;
+    return true;
   }
 
   let nodes;
   try {
     const basePath = S.tree?.mode === "docs" && ["doc", "spec", "ticket"].includes(S.doc.kind) ? S.doc.path : null;
-    nodes = mdToNodes(articleMarkdown(), basePath ? { basePath } : null);
+    nodes = await mdToNodes(articleMarkdown(), basePath ? { basePath } : null);
   } catch (err) {
+    if (seq !== articleSeq) return false;
     S.mdError = String(err?.message || err);
     nodes = document.createElement("div");
     nodes.append(
@@ -192,6 +196,9 @@ function renderArticle() {
     );
   }
 
+  if (seq !== articleSeq) return false;
+
+  article.textContent = "";
   const heading = nodes.querySelector("h1");
   if (heading) heading.remove();
 
@@ -207,6 +214,7 @@ function renderArticle() {
   const body = el("div", { class: "prose" });
   body.append(...nodes.childNodes);
   article.append(body);
+  return true;
 }
 
 export { renderArticle };
