@@ -104,27 +104,3 @@
   font: 400 14px/1.5 var(--sans-text);
 }
 
-.actions { display: flex; flex-wrap: wrap; gap: var(--s2); padding-top: 2px; }
-
-.action {
-  appearance: none;
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  background: transparent;
-  padding: 9px 16px;
-  font: 500 13.5px/1 var(--sans-text);
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
-}
-
-.action-secondary:hover { border-color: var(--ink); }
-
-.action-primary {
-  background: var(--clay);
-  border-color: var(--clay);
-  color: var(--on-clay);
-}
-
-.action-primary:hover { background: var(--clay-strong); border-color: var(--clay-strong); }
-.action:disabled { opacity: 0.55; cursor: progress; }

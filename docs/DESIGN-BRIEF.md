@@ -75,8 +75,8 @@ upstream template, not this copy.
   a rail-dot pulse, a node check + ring, and a toast.
 - Spec view draws a ticket dependency graph; clicking a node opens the ticket and
   syncs the rail (active row + scroll into view).
-- `desk.mjs` and the HTTP write API (`POST/PATCH/DELETE /api/tickets`) behave as
-  documented. CLI output is JSON; keep it.
+- `desk.mjs` behaves as documented. The viewer is read-only; ticket status
+  changes are ordinary Markdown edits and appear over SSE.
 
 ## The brief
 

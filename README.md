@@ -1,32 +1,49 @@
 # desk
 
-A live local view of a `.desk` engineering workspace, plus the small CLI and
-HTTP API agents use to change it. It can also serve any folder of Markdown as a
-read-only docs library. No dependencies, no build step: Node 18+ and plain HTML,
-CSS, and JavaScript. Markdown is rendered with vendored marked and highlighted
-with a vendored highlight.js build; everything stays local.
+A live, read-only view of a `.desk` engineering workspace or any folder of
+Markdown. You write Markdown; the page follows. No dependencies, no build step:
+Node 18+ and plain HTML, CSS, and JavaScript. Markdown is rendered with vendored
+marked and highlighted with a vendored highlight.js build; everything stays
+local.
 
 ```bash
 npm start        # serve the sample workspace at http://127.0.0.1:7777
 npm run check    # scan once, print diagnostics, exit 1 on errors
-npm test         # run the scanner and ticket-writer tests
+npm test         # run the test suite
+npm link         # install the `desk` command globally from this checkout
 ```
 
-The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and its
-tickets. Changes made by an agent through the CLI or HTTP API appear live over
-server-sent events. The shared ticket dependency graph opens from the rail and
-replaces the article; close it to return to reading. Every view can fill the
-browser window with in-page fullscreen. The round button at the top right cycles
-auto, light, and dark; auto follows the operating system.
-
-## Docs mode
-
-Point the same page at any folder of Markdown files:
+## Open something
 
 ```bash
-node src/serve.mjs --docs ~/notes --open
-node src/desk.mjs docs ~/notes --open       # same thing through the CLI
-node src/desk.mjs check --docs ~/notes      # diagnostics for the docs tree
+desk                                    # current folder
+desk ~/notes                            # a Markdown library
+desk .desk                              # a workspace
+desk .desk/features/demo/spec.md        # that document in the browser
+```
+
+`desk` decides the mode from the path. The workspace root (the folder that
+contains `.desk/`) and anything under `.desk/` open in the workspace view;
+everything else opens as a Markdown library. A Markdown file outside `.desk/`
+opens from its own folder, so `desk notes/today.md` shows the `notes/` tree at
+that document. With a file the browser opens automatically; pass `--no-open` to
+keep it closed. `--port`,
+`--host`, and `--quiet` work as expected.
+
+The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and its
+tickets. Edits made by you or an agent appear live over server-sent events. The
+shared ticket dependency graph opens from the rail and replaces the article;
+close it to return to reading. Every view can fill the browser window with
+in-page fullscreen. The round button at the top right cycles auto, light, and
+dark; auto follows the operating system.
+
+## Markdown libraries
+
+Any folder of Markdown opens the same way:
+
+```bash
+desk ~/notes
+desk ~/notes/guides/install.md
 ```
 
 Every top-level folder becomes a tab and section; root-level Markdown files go
@@ -45,13 +62,12 @@ keeps the open document, e.g. `#/docs/guides/install.md`, so it can be
 bookmarked.
 
 If a top-level `features/` folder contains feature folders (`spec.md` and/or
-`tickets/`), that section keeps the feature view: spec, numbered tickets,
-dependency graph, and ticket actions. Every other section stays a plain,
-read-only document tree. With `--docs`, `.desk` ticket writes are only available
-for that detected Features section.
+`tickets/`), that section keeps the feature view: spec, numbered tickets, and
+the dependency graph. Every other section stays a plain, read-only document
+tree.
 
-Docs mode still binds to `127.0.0.1` and has no authentication. Do not expose it
-with `--host 0.0.0.0` on an untrusted network.
+Both modes still bind to `127.0.0.1` and have no authentication. Do not expose
+them with `--host 0.0.0.0` on an untrusted network.
 
 ## Layout
 
@@ -60,9 +76,10 @@ with `--host 0.0.0.0` on an untrusted network.
 ├── .desk/                  sample workspace: glossary, architecture, features
 ├── src/                    server and library code
 │   ├── serve.mjs           HTTP entry: options, workspace, lifecycle
-│   ├── desk.mjs            agent CLI
+│   ├── desk.mjs            viewer CLI
+│   ├── cli/                target detection and hash routes
 │   ├── server/             request handler, SSE, static assets, watcher
-│   └── lib/                workspace scanner, ticket writer, docs scanner/reads
+│   └── lib/                workspace scanner, docs scanner and reads
 ├── public/                 shell, styles, client modules, vendored libraries
 ├── tools/shot.mjs          headless screenshot helper
 ├── docs/                   API reference, design brief, reference images
@@ -72,5 +89,5 @@ with `--host 0.0.0.0` on an untrusted network.
 Third-party notices: marked is MIT-licensed; highlight.js is BSD-3-Clause
 (see `public/highlight.LICENSE.txt`).
 
-See [`docs/API.md`](docs/API.md) for commands, the CLI, the HTTP API, and
-hash routes.
+See [`docs/API.md`](docs/API.md) for the command, modes, read-only HTTP API,
+and hash routes.

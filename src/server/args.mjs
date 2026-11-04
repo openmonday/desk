@@ -1,13 +1,14 @@
-/* Command-line options for the desk page server. */
+/* Command-line options for the local viewer server. */
 
 export function usage() {
-  console.log(`desk page — live view of .desk
+  console.log(`desk page — live Markdown viewer
 
   node src/serve.mjs [options]
 
-  --root <dir>    project directory containing .desk (default: walk up from cwd)
-  --docs <dir>    serve a folder as a Markdown docs library (feature tickets stay interactive)
-  --port <n>      port to listen on (default: 7777, falls back to the next free one)
+  --root <dir>    .desk workspace root (default: walk up from cwd)
+  --docs <dir>    serve a folder as a Markdown library
+  --hash <route>  initial hash route, e.g. "#/features/demo/2"
+  --port <n>      port to listen on (default: 7777, falls forward)
   --host <addr>   bind address (default: 127.0.0.1)
   --open          open the page in the default browser
   --check         scan once, print a report, exit 1 on errors
@@ -16,11 +17,12 @@ export function usage() {
 }
 
 export function parseArgs(argv) {
-  const opts = { root: null, docs: null, port: 7777, host: "127.0.0.1", open: false, check: false, quiet: false };
+  const opts = { root: null, docs: null, hash: "", port: 7777, host: "127.0.0.1", open: false, check: false, quiet: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--root") opts.root = argv[++i];
     else if (a === "--docs") opts.docs = argv[++i];
+    else if (a === "--hash") opts.hash = argv[++i];
     else if (a === "--port") opts.port = Number(argv[++i]);
     else if (a === "--host") opts.host = argv[++i];
     else if (a === "--open") opts.open = true;

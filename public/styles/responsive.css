@@ -63,8 +63,6 @@
   :root { --prose-size: 15.5px; }
   .article h1 { font-size: 26px; }
   .status { gap: var(--s4); }
-  .actions { width: 100%; }
-  .action { flex: 1; }
   .rel { grid-template-columns: 1fr; gap: 2px; }
   .crumb-step { margin-left: 0; }
 }

@@ -1,12 +1,10 @@
-/* The article: empty states, ticket/spec headers, actions, and markdown body. */
+/* The article: empty states, ticket/spec headers, and markdown body. */
 
 import {
   S, featureIndex, key, num, plural, tally, KIND_LABEL,
 } from "./state.js";
 import { cmd, el, glyph } from "./dom.js";
-import { actions } from "./actions.js";
 import { article } from "./refs.js";
-import { toast } from "./live.js";
 import { mdToNodes } from "./markdown.js";
 import { encodeDocPath } from "./docs-path.js";
 
@@ -17,7 +15,7 @@ function emptyArticle() {
   }
   if (S.tree?.mode === "docs") {
     if (!(S.tree.sections || []).length) {
-      return page("No Markdown documents found", "Put .md files in this folder, or point desk at another folder with ", cmd("desk docs <dir>"), ".");
+      return page("No Markdown documents found", "Put .md files in this folder, or point desk at another folder with ", cmd("desk <dir>"), ".");
     }
     return page("Nothing to read here", "This section has no Markdown documents.");
   }
@@ -31,27 +29,6 @@ function emptyArticle() {
     return page("This feature has no spec", "Run ", cmd("/to-spec"), " to write one, then ", cmd("/to-tickets"), " to split it into tickets.");
   }
   return page("No features yet", "Run ", cmd("/to-spec"), " to write a spec, then ", cmd("/to-tickets"), " to split it into tickets.");
-}
-
-async function act(feature, n, body, button) {
-  const group = button?.closest(".actions");
-  const label = button?.textContent;
-  group?.querySelectorAll("button").forEach((b) => { b.disabled = true; });
-  if (button) button.textContent = "Saving…";
-  try {
-    const res = await fetch("/api/tickets", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ feature, n, ...body }),
-    });
-    const out = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(out.error || `request failed (${res.status})`);
-    actions.scheduleRefresh();
-  } catch (err) {
-    group?.querySelectorAll("button").forEach((b) => { b.disabled = false; });
-    if (button) button.textContent = label;
-    toast(`Could not save · ${String(err?.message || err)}`);
-  }
 }
 
 const featureHref = (f) => S.tree?.mode === "docs"
@@ -111,16 +88,6 @@ function ticketHeader(doc) {
     ]),
   ]);
 
-  const feature = f.slug;
-  const button = (label, cls, body) => el("button", {
-    type: "button", class: `action ${cls}`,
-    onclick: (ev) => act(feature, tk.n, body, ev.currentTarget),
-  }, [label]);
-  const buttons = [];
-  if (st.kind === "done") buttons.push(button("Reopen", "action-secondary", { status: "pending" }));
-  else if (st.kind === "active") buttons.push(button("Mark done", "action-primary", { action: "complete" }));
-  else buttons.push(button("Start", "action-primary", { status: "in-progress" }), button("Mark done", "action-secondary", { action: "complete" }));
-
   const relations = [];
   if (st.blockers.length) {
     relations.push(el("div", { class: "rel" }, [
@@ -146,7 +113,6 @@ function ticketHeader(doc) {
       el("p", { class: "status-say" }, stateSentence(st, tk, f)),
       relations.length ? el("dl", { class: "rels" }, relations) : null,
     ]),
-    el("div", { class: "actions" }, buttons),
   ]);
 
   return [crumbs, el("h1", {}, [tk.title]), status];

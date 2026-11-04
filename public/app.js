@@ -1,7 +1,7 @@
 /* desk page client entry.
  *
  * The UI is split into focused modules under `js/`. This file wires the shared
- * action registry and starts the page; all reads and writes still go through the
+ * action registry and starts the page; all reads go through the
  * same API and hash routes as before. */
 import { actions } from "./js/actions.js";
 import { S, defaultDocsEntry, docsMode, docsSections } from "./js/state.js";

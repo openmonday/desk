@@ -1,10 +1,7 @@
 #!/usr/bin/env node
-/* desk page server — a live local view of a `.desk` workspace.
- *
- * Reads are plain JSON. Writes are deliberately small and explicit, so an agent
- * can drive tickets with curl or with `desk.mjs` without knowing the markdown
- * layout. Every change broadcasts over SSE, which is what makes the page move
- * while an agent works. */
+/* desk page server — a live, read-only view of a `.desk` workspace or a folder
+ * of Markdown. Reads are plain JSON; edits to the files broadcast over SSE,
+ * which is what makes the page move while an agent or editor writes. */
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,7 +26,7 @@ async function main() {
       : await findWorkspace(process.cwd());
 
   if (!docsRoot && !workspace) {
-    console.error("desk page: no .desk directory found. Run /setup-desk first, or pass --root or --docs.");
+    console.error("desk: no .desk directory found. Run /setup-desk first, or pass --root or --docs.");
     process.exit(1);
   }
 
@@ -40,7 +37,7 @@ async function main() {
     if (mode === "docs") {
       const tree = await scanDocs(root);
       const r = reportDocs(tree);
-      console.log(`desk docs  ${root}`);
+      console.log(`desk  ${root}`);
       console.log(`  ${r.sections} sections · ${r.docs} documents`);
       if (r.diagnostics) {
         console.log(`  ${r.diagnostics} diagnostics:`);
@@ -52,7 +49,7 @@ async function main() {
     }
     const tree = await scanWorkspace(root);
     const r = report(tree);
-    console.log(`desk page  ${root}`);
+    console.log(`desk  ${root}`);
     console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
     if (r.diagnostics) {
       console.log(`  ${r.diagnostics} diagnostics:`);
@@ -66,7 +63,7 @@ async function main() {
   const clients = new Set();
   const broadcast = createBroadcaster(clients);
   const watcher = watchWorkspace(root, broadcast);
-  const handler = createRequestHandler({ mode, workspace, docsRoot, publicDir: PUBLIC, clients, broadcast });
+  const handler = createRequestHandler({ mode, workspace, docsRoot, publicDir: PUBLIC, clients });
 
   const server = http.createServer(handler);
   const listen = (port, attempts = 8) =>
@@ -94,19 +91,20 @@ async function main() {
   }
 
   const urlBase = `http://${opts.host === "0.0.0.0" ? "localhost" : opts.host}:${port}`;
+  const url = `${urlBase}${opts.hash || ""}`;
 
   if (!opts.quiet) {
     if (mode === "docs") {
       const tree = await scanDocs(root);
       const r = reportDocs(tree);
-      console.log(`desk docs  ${urlBase}  (live)`);
+      console.log(`desk  ${url}  (live)`);
       console.log(`  ${root}`);
       console.log(`  ${r.sections} sections · ${r.docs} documents`);
       if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check --docs ${root}`);
     } else {
       const tree = await scanWorkspace(root);
       const r = report(tree);
-      console.log(`desk page  ${urlBase}  (live)`);
+      console.log(`desk  ${url}  (live)`);
       console.log(`  ${root}`);
       console.log(`  ${r.features} features · ${r.tickets} tickets (${r.done} done) · ${r.arch} arch records`);
       if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check`);
@@ -115,7 +113,7 @@ async function main() {
 
   if (opts.open) {
     const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-    import("node:child_process").then(({ exec }) => exec(`${cmd} ${urlBase}`));
+    import("node:child_process").then(({ exec }) => exec(`${cmd} ${url}`));
   }
 
   const shutdown = () => {
