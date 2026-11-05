@@ -62,11 +62,9 @@ async function boot() {
   }
   else {
     const preferred = configuredDefault();
-    if (preferred) S.tab = preferred;
-    else if (!(S.tree?.features || []).some((f) => f.specPath) && (S.tree?.architecture || []).length) S.tab = "architecture";
-    else if (!(S.tree?.features || []).length && !(S.tree?.architecture || []).length && !S.tree?.context?.exists) S.tab = "features";
+    S.tab = preferred || "overview";
     const visible = tabDefs().map((tab) => tab.key);
-    if (!visible.includes(S.tab)) S.tab = visible[0] || "features";
+    if (!visible.includes(S.tab)) S.tab = visible[0] || "overview";
   }
   const entry = loc ? (loc.entry || entryForTab(loc.tab)) : defaultEntry();
   if (!loc && docsMode() && entry) S.tab = entry.tab;

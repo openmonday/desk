@@ -45,6 +45,7 @@ test("scanDocs builds sections and a recursive tree", async (t) => {
 
   const context = tree.sections.find((s) => s.key === "context");
   assert.deepEqual(context.tree.map((n) => [n.type, n.name]), [["file", "overview.md"], ["dir", "deep"]]);
+  assert.equal(context.tree[1].title, "deep");
   assert.equal(context.tree[1].children[0].title, "Terms");
 
   const features = tree.sections.find((s) => s.key === "features");

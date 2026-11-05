@@ -44,11 +44,17 @@ also means a plain file like `.desk/AGENTS.md` opens as a document instead of
 being refused. With a file the browser opens automatically; pass `--no-open` to
 keep it closed. `--port`, `--host`, and `--quiet` work as expected.
 
-The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and its
-tickets. Opening the **Features** section, or `.desk/features`, lands on the
-ticket graph; clicking a node opens the ticket, and the spec is a click away.
-Edits made by you or an agent appear live over server-sent events. Every view
-can fill the browser window with in-page fullscreen. The round button at the
+By default, workspaces open on **Overview**, a Markdown file tree rooted at `.desk/`:
+`arch/`, `features/`, `CONTEXT.md`, `AGENTS.md`, and anything else Markdown.
+The **Context**, **Architecture**, and **Features** tabs keep their focused
+views. **Architecture** shows the `arch/` folder as its tree root rather than
+the library root; **Features** does the same for `features/` while keeping the
+feature progress, spec, and numbered ticket rows under each feature folder.
+The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and
+its tickets. Opening the **Features** section, or `.desk/features`, lands on
+the ticket graph; clicking a node opens the ticket, and the spec is a click
+away. Edits made by you or an agent appear live over server-sent events.
+Every view can fill the browser window with in-page fullscreen. The round button at the
 top right cycles auto, light, and dark; auto follows the operating system.
 
 ## Running servers
@@ -87,7 +93,8 @@ desk config reset
 
 `order` sets the top-tab order, `default` picks the tab that opens when you name
 no document, and `hide` removes a tab from the top bar (the path still works).
-The sections are `context`, `architecture`, and `features`. Reload an open page
+**Overview** is always the first workspace tab and is not configurable; the
+sections are `context`, `architecture`, and `features`. Reload an open page
 to apply a change. Set `DESK_CONFIG` to use another file, or `XDG_CONFIG_HOME`
 to move the default `~/.config/desk/config.json`.
 
@@ -101,17 +108,27 @@ desk ~/notes/guides/install.md
 ```
 
 Every top-level folder becomes a tab and section; root-level Markdown files go
-in an **Overview** tab. Folders render as a recursive tree, and
-`README.md` / `index.md` sort before other files (numbers sort naturally).
+in an **Overview** tab. **Overview** shows the whole library tree rooted at the
+folder you opened: root files first, then every top-level folder and its
+contents. Any other tab treats its folder as the tree root, the way an IDE
+opens a subfolder: **Questions** starts at `questions/`, and **Architecture**
+starts at `arch/`. The parent folder is not shown.
+Tabs still jump to a section and its first document. Folders render as nested
+nodes, and `README.md` / `index.md` sort before other files (numbers sort
+naturally).
 Labels are display-only and uppercased in CSS; folder names never change on
-disk (the `.desk` convention `arch` displays as Architecture). Tree labels stay
-on one line and ellipsize when long; navigating to a nested document opens its
-folder branch automatically. The active document and its parent folders use
-rounded rows (the document is clay-tinted); files carry a `└` branch mark and
-folders use an SVG chevron. Fenced code blocks are highlighted locally by
-language (language-less blocks fall back to detection when confident). Relative
-Markdown links become in-page links, and local images, PDFs, and media load
-through a path-confined asset route. The URL
+disk. Folders show their real names, so `arch` stays `arch/` instead of becoming
+Architecture. Hairline connectors join each folder to its contents, and the
+line leading to the open document, like the folder icons along that branch, is
+clay. Tree labels stay on one line and ellipsize when long; navigating to a
+nested document opens its folder branch automatically. Folder rows use mono
+type with a trailing `/` and a document count; a collapsed folder ends in `/ …`.
+Files are plain titles; the open document gets a clay label wash, and every
+file title underlines on hover. The rail heading shows the current section
+name. Fenced code blocks are
+highlighted locally by language (language-less blocks fall back to detection
+when confident). Relative Markdown links become in-page links, and local
+images, PDFs, and media load through a path-confined asset route. The URL
 keeps the open document, e.g. `#/docs/guides/install.md`, so it can be
 bookmarked.
 

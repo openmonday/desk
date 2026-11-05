@@ -40,7 +40,7 @@ function ticketRow(f, tk) {
     path: tk.path,
     onClick: () => actions.open(tk.path),
   });
-  li.firstChild.title = `${shortState(st)} · Status: ${tk.statusRaw}`;
+  li.firstChild.title = `${tk.title} — ${shortState(st)} · Status: ${tk.statusRaw}`;
   return li;
 }
 
@@ -51,9 +51,11 @@ function featureGroup(f) {
     type: "button",
     class: "feature-row",
     "aria-expanded": String(isOpen),
+    title: `${f.title} — ${tallyText(f)}`,
     onclick: () => (f.specPath ? actions.open(f.specPath) : actions.loadEntry(null)),
   }, [
-    el("span", { class: "feature-title" }, [f.title]),
+    folderIcon(),
+    el("span", { class: "feature-title" }, [f.title, el("span", { class: "feature-slash" }, ["/"])]),
     el("span", { class: "feature-count", title: tallyText(f) }, [total ? `${f.progress.done}/${total}` : "—"]),
   ]);
   const kids = [head];
@@ -71,9 +73,36 @@ function featureGroup(f) {
       }));
     }
     for (const tk of f.tickets || []) list.push(ticketRow(f, tk));
-    kids.push(el("ul", { class: "tree" }, list));
+    kids.push(el("ul", { class: "tree doc-tree feature-docs" }, list));
   }
   return el("li", { class: `feature${isOpen ? " is-open" : ""}` }, kids);
+}
+
+// Keep the feature/ticket view, but put it under a `features/` tree root so
+// the rail reads like the rest of the filesystem.
+function featureRoot(features, path = "features") {
+  if (!(features || []).length) return null;
+  const count = features.reduce((n, f) => n + (f.specPath ? 1 : 0) + (f.tickets || []).length, 0);
+  const open = !closedDocs.has(path);
+  const details = el("details", {
+    class: `doc-details${onDocsPath({ path }) ? " is-branch" : ""}`,
+    open: open ? "" : null,
+  }, [
+    el("summary", {
+      class: "doc-folder-name",
+      title: `${path} — ${plural(count, "document")}, collapse or expand`,
+    }, [
+      folderIcon(),
+      el("span", { class: "doc-folder-label" }, [path]),
+      el("span", { class: "doc-count" }, [String(count)]),
+    ]),
+    el("ul", { class: "features doc-tree feature-list" }, features.map(featureGroup)),
+  ]);
+  details.addEventListener("toggle", () => {
+    if (details.open) closedDocs.delete(path);
+    else closedDocs.add(path);
+  });
+  return el("ul", { class: "tree doc-tree feature-tree" }, [el("li", { class: "doc-folder" }, [details])]);
 }
 
 // Folders are open by default. A collapsed folder is remembered for the life
@@ -95,41 +124,141 @@ function docsParents(path) {
 function revealDocsBranch(path) {
   if (!path || path === lastDocsActive) return;
   lastDocsActive = path;
+  closedDocs.delete(""); // the library root is an ancestor of every document
   for (const parent of docsParents(path)) closedDocs.delete(parent);
 }
 
-function docsNode(node, depth = 0) {
-  const indent = 10 + depth * 14;
+function docsCount(node) {
+  if (node.type === "file") return 1;
+  return (node.children || []).reduce((n, c) => n + docsCount(c), 0);
+}
+
+function onDocsPath(node) {
+  const p = S.doc?.path;
+  if (!p) return false;
+  if (node.path === "") return true; // the library root
+  return p === node.path || p.startsWith(`${node.path}/`);
+}
+
+// The Overview tree: root files first, then every top-level folder. Other
+// tabs show their own section root instead, the way an IDE opens a subfolder.
+function docsRoot() {
+  const sections = docsSections();
+  const children = [];
+  for (const section of sections) {
+    if (section.kind !== "overview") continue;
+    children.push(...(section.tree || []));
+    break;
+  }
+  for (const section of sections) {
+    if (section.kind === "overview" || !section.path) continue;
+    const kids = section.tree || [];
+    if (!kids.length) continue;
+    children.push({
+      type: "dir",
+      name: section.path,
+      title: section.path,
+      path: section.path,
+      count: kids.reduce((n, child) => n + docsCount(child), 0),
+      children: kids,
+    });
+  }
+  if (!children.length) return null;
+  return {
+    type: "dir",
+    name: S.tree?.name || "Documents",
+    title: S.tree?.name || "Documents",
+    path: "",
+    count: children.reduce((n, child) => n + docsCount(child), 0),
+    children,
+  };
+}
+
+function sectionRoot(section) {
+  const children = section?.tree || [];
+  if (!children.length || !section?.path) return null;
+  return {
+    type: "dir",
+    name: section.path,
+    title: section.path,
+    path: section.path,
+    count: children.reduce((n, child) => n + docsCount(child), 0),
+    children,
+  };
+}
+
+function findDirNode(nodes, path) {
+  for (const node of nodes || []) {
+    if (node.type !== "dir") continue;
+    if (node.path === path) return node;
+    const hit = findDirNode(node.children, path);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function dirRoot(path, fallbackChildren = []) {
+  const node = findDirNode(S.tree?.files?.children, path);
+  const children = node?.children || fallbackChildren;
+  if (!children.length) return null;
+  return {
+    type: "dir",
+    name: path.split("/").pop(),
+    title: path.split("/").pop(),
+    path,
+    count: children.reduce((n, child) => n + docsCount(child), 0),
+    children,
+  };
+}
+
+const openDoc = (path) => actions.open(path);
+
+// Hairline connectors join each folder to its children. The child that leads
+// to the open document, and the siblings the line passes on the way, turn clay.
+function docsList(nodes, openPath = openDoc) {
+  const lead = nodes.findIndex(onDocsPath);
+  return el("ul", { class: "tree doc-tree" }, nodes.map((child, i) => {
+    const li = docsNode(child, openPath);
+    if (i === lead) li.classList.add("on-path");
+    else if (i < lead) li.classList.add("through-path");
+    return li;
+  }));
+}
+
+function folderIcon() {
+  return svgEl("svg", {
+    class: "doc-icon",
+    viewBox: "0 0 16 16",
+    width: "15",
+    height: "15",
+    "aria-hidden": "true",
+    focusable: "false",
+  }, [svgEl("path", {
+    d: "M1.75 4.25c0-.7.55-1.25 1.25-1.25h3.1l1.5 1.6h5.4c.7 0 1.25.55 1.25 1.25v6.4c0 .7-.55 1.25-1.25 1.25H3c-.7 0-1.25-.55-1.25-1.25z",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "1.3",
+    "stroke-linejoin": "round",
+  })]);
+}
+
+function docsNode(node, openPath = openDoc) {
   if (node.type === "dir") {
     const open = !closedDocs.has(node.path);
-    const branch = Boolean(S.doc?.path?.startsWith(`${node.path}/`));
+    const count = docsCount(node);
     const details = el("details", {
-      class: `doc-details${branch ? " is-branch" : ""}`,
+      class: `doc-details${onDocsPath(node) ? " is-branch" : ""}`,
       open: open ? "" : null,
     }, [
       el("summary", {
         class: "doc-folder-name",
-        title: `${node.title || node.name} — collapse or expand`,
-        style: `padding-left:${indent}px`,
+        title: `${node.title || node.name} — ${plural(count, "document")}, collapse or expand`,
       }, [
+        folderIcon(),
         el("span", { class: "doc-folder-label" }, [node.title || node.name]),
-        svgEl("svg", {
-          class: "doc-chevron",
-          viewBox: "0 0 16 16",
-          width: "14",
-          height: "14",
-          "aria-hidden": "true",
-          focusable: "false",
-        }, [svgEl("path", {
-          d: "M6 3.5 10.5 8 6 12.5",
-          fill: "none",
-          stroke: "currentColor",
-          "stroke-width": "1.6",
-          "stroke-linecap": "round",
-          "stroke-linejoin": "round",
-        })]),
+        el("span", { class: "doc-count" }, [String(count)]),
       ]),
-      el("ul", { class: "tree doc-tree" }, (node.children || []).map((child) => docsNode(child, depth + 1))),
+      docsList(node.children || [], openPath),
     ]);
     details.addEventListener("toggle", () => {
       if (details.open) closedDocs.delete(node.path);
@@ -137,31 +266,29 @@ function docsNode(node, depth = 0) {
     });
     return el("li", { class: "doc-folder" }, [details]);
   }
-  const li = row({
+  return row({
     cls: "row-doc",
-    lead: el("span", { class: "doc-branch", "aria-hidden": "true" }, ["└"]),
     label: node.title || node.name,
     title: `${node.title || node.name} — ${node.path}`,
     active: S.doc?.path === node.path,
     path: node.path,
-    onClick: () => actions.open(node.path),
+    onClick: () => openPath(node.path),
   });
-  li.firstChild.style.paddingLeft = `${indent}px`;
-  return li;
 }
 
 function renderDocsRail() {
   const section = docsSection(S.tab) || docsSections()[0] || null;
-  railLabel.textContent = section?.kind === "features" ? section.title : "Tree";
+  railLabel.textContent = section?.title || "Documents";
   railBody.textContent = "";
+  revealDocsBranch(S.doc?.path);
   let list;
   if (section?.kind === "features") {
-    list = el("ul", { class: "features" }, (section.features || []).map(featureGroup));
-    if (!list.children.length) list = el("p", { class: "empty" }, ["No features in this section."]);
+    list = featureRoot(section.features, section.path || "features");
+    if (!list) list = el("p", { class: "empty" }, ["No features in this section."]);
   } else {
-    revealDocsBranch(S.doc?.path);
-    list = section?.tree?.length
-      ? el("ul", { class: "tree doc-tree" }, section.tree.map((node) => docsNode(node)))
+    const root = section?.kind === "overview" ? docsRoot() : sectionRoot(section);
+    list = root
+      ? el("ul", { class: "tree doc-tree" }, [docsNode(root)])
       : el("p", { class: "empty" }, ["No Markdown documents in this section."]);
   }
   railBody.append(el("nav", { class: "rail-block", "aria-label": section?.title || "Documents" }, [list]));
@@ -183,20 +310,23 @@ function docList() {
     })]);
   }
   if (S.tab === "architecture") {
-    if (!(t.architecture || []).length) return null;
-    return el("ul", { class: "tree" }, t.architecture.map((r) => row({
-      label: r.title,
-      active: S.doc?.path === r.path,
+    const fallback = (t.architecture || []).map((r) => ({
+      type: "file",
+      name: r.path.split("/").pop(),
       path: r.path,
-      onClick: () => actions.open(r.path),
-    })));
+      title: r.title,
+    }));
+    const root = dirRoot("arch", fallback);
+    return root ? el("ul", { class: "tree doc-tree" }, [docsNode(root)]) : null;
   }
-  if (!(t.features || []).length) return null;
-  return el("ul", { class: "features" }, t.features.map(featureGroup));
+  return featureRoot(t.features, "features");
 }
 
 
 function emptyListHint() {
+  if (S.tab === "overview") {
+    return el("p", { class: "empty" }, ["No Markdown files in this workspace yet."]);
+  }
   if (S.tab === "context") {
     return el("p", { class: "empty" }, ["No glossary yet. Run ", cmd("/setup-desk"), " to create ", cmd("CONTEXT.md"), "."]);
   }
@@ -257,10 +387,21 @@ function revealActive() {
 
 function renderRail() {
   if (docsMode()) return renderDocsRail();
-  const label = S.tab === "context" ? "Context" : S.tab === "architecture" ? "Architecture" : "Features";
+  const label = S.tab === "overview"
+    ? "Overview"
+    : S.tab === "context" ? "Context" : S.tab === "architecture" ? "Architecture" : "Features";
   railLabel.textContent = label;
   railBody.textContent = "";
-  const list = docList();
+  revealDocsBranch(S.doc?.path);
+  let list;
+  if (S.tab === "overview") {
+    const root = S.tree?.files;
+    list = root?.children?.length
+      ? el("ul", { class: "tree doc-tree" }, [docsNode(root, (path) => actions.open(path, { tab: "overview" }))])
+      : null;
+  } else {
+    list = docList();
+  }
   railBody.append(el("nav", { class: "rail-block", "aria-label": label }, [
     list || emptyListHint(),
   ]));

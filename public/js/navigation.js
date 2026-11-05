@@ -8,6 +8,9 @@ import { noteNavigation } from "./fullscreen.js";
 import { articlePanel, scroller } from "./refs.js";
 
 async function loadEntry(entry, opts = {}) {
+  // A rail can point at a document outside the selected section. Follow the
+  // document so the tab bar and rail heading stay in sync.
+  if (entry?.tab && entry.tab !== S.tab) S.tab = entry.tab;
   if (!entry) {
     S.doc = null;
     S.mdError = null;
@@ -55,6 +58,10 @@ async function loadEntry(entry, opts = {}) {
   if (!opts.silent) writeHash(entry);
 }
 
-const open = (path) => loadEntry(entryForPath(path));
+const open = (path, opts = {}) => {
+  const entry = entryForPath(path);
+  if (!entry) return loadEntry(null, opts);
+  return loadEntry(opts.tab ? { ...entry, tab: opts.tab } : entry, opts);
+};
 
 export { loadEntry, open };

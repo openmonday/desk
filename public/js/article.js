@@ -19,6 +19,9 @@ function emptyArticle() {
     }
     return page("Nothing to read here", "This section has no Markdown documents.");
   }
+  if (S.tab === "overview") {
+    return page("No Markdown files yet", "Put Markdown files in ", cmd(".desk/"), " or run ", cmd("/setup-desk"), " to create the workspace records.");
+  }
   if (S.tab === "context") {
     return page("No glossary yet", "Run ", cmd("/setup-desk"), " to create ", cmd("CONTEXT.md"), " with the project's domain terms.");
   }

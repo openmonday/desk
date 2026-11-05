@@ -30,7 +30,9 @@ function docsSection(key) {
 }
 
 const WORKSPACE_TABS = ["context", "architecture", "features"];
-const TAB_LABELS = { context: "Context", architecture: "Architecture", features: "Features" };
+const TAB_LABELS = {
+  overview: "Overview", context: "Context", architecture: "Architecture", features: "Features",
+};
 
 /** Top tabs in configured order, hidden ones left out. */
 function tabDefs() {
@@ -38,9 +40,10 @@ function tabDefs() {
   const nav = S.tree?.nav;
   const order = Array.isArray(nav?.order) && nav.order.length ? nav.order : WORKSPACE_TABS;
   const hidden = new Set(nav?.hidden || []);
-  return order
+  const sections = order
     .filter((id) => TAB_LABELS[id] && !hidden.has(id))
     .map((id) => ({ key: id, label: TAB_LABELS[id] }));
+  return [{ key: "overview", label: TAB_LABELS.overview }, ...sections];
 }
 
 /** The configured landing tab, or null when the default is automatic. */
@@ -49,11 +52,22 @@ function configuredDefault() {
   return preferred && tabDefs().some((tab) => tab.key === preferred) ? preferred : null;
 }
 
-function findDocsFile(nodes, path) {
+function findTreeFile(nodes, path) {
   for (const node of nodes || []) {
     if (node.type === "file" && node.path === path) return node;
     if (node.type === "dir") {
-      const hit = findDocsFile(node.children, path);
+      const hit = findTreeFile(node.children, path);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+function firstTreeFile(nodes) {
+  for (const node of nodes || []) {
+    if (node.type === "file") return node;
+    if (node.type === "dir") {
+      const hit = firstTreeFile(node.children);
       if (hit) return hit;
     }
   }
@@ -101,7 +115,7 @@ function docsFeatureByPath(path) {
 
 function docsEntryByPath(path) {
   for (const section of docsSections()) {
-    const file = findDocsFile(section.tree, path);
+    const file = findTreeFile(section.tree, path);
     if (file) return docsEntryForFile(section, file);
   }
   return null;
@@ -123,6 +137,16 @@ function defaultDocsEntry() {
   const first = overview || docsSections()[0];
   if (!first) return null;
   return first.kind === "features" ? docsEntryByTab(first.key) : docsEntryByPath(first.firstPath);
+}
+
+function overviewEntryForPath(path) {
+  const entry = entryForPath(path);
+  return entry ? { ...entry, tab: "overview" } : null;
+}
+
+function firstOverviewEntry() {
+  const file = firstTreeFile(S.tree?.files?.children);
+  return file ? overviewEntryForPath(file.path) : null;
 }
 
 function entryForPath(path) {
@@ -154,6 +178,17 @@ function entryForPath(path) {
     if (f.specPath === path) return { kind: "spec", path, title: f.title, tab: "features", feature: f };
     const tk = (f.tickets || []).find((x) => x.path === path);
     if (tk) return { kind: "ticket", path, title: tk.title, tab: "features", feature: f, ticket: tk };
+  }
+  const file = findTreeFile(t.files?.children, path);
+  if (file) {
+    return {
+      kind: "doc",
+      path,
+      title: file.title || file.name,
+      tab: "overview",
+      section: { key: "overview", title: "Overview", kind: "overview" },
+      file,
+    };
   }
   return null;
 }
@@ -255,12 +290,15 @@ function treeSignature(tree) {
       s.key, s.kind, s.firstPath, docsPaths(s.tree), docsFeatureSignature(s),
     ]));
   }
-  return JSON.stringify((tree.features || []).map((f) => [
-    f.slug,
-    f.progress.done,
-    f.progress.total,
-    (f.tickets || []).map((t) => [t.n, t.status, t.statusRaw, t.title, t.blockedBy.join(",")]),
-  ]));
+  return JSON.stringify({
+    features: (tree.features || []).map((f) => [
+      f.slug,
+      f.progress.done,
+      f.progress.total,
+      (f.tickets || []).map((t) => [t.n, t.status, t.statusRaw, t.title, t.blockedBy.join(",")]),
+    ]),
+    files: docsPaths(tree.files ? [tree.files] : []),
+  });
 }
 
 /* ---------- rail ---------- */
@@ -276,7 +314,7 @@ function docTitle() {
 export {
   S, num, key, plural, narrow, featureBySlug, entryForPath,
   docsMode, docsSections, docsSection, docsEntryByTab, defaultDocsEntry,
-  docsEntryForFeature, docsFeatureByPath, tabDefs, configuredDefault,
-  KIND_LABEL, featureIndex, stateOf, shortState, tally, tallyText,
-  treeSignature, docTitle,
+  docsEntryForFeature, docsFeatureByPath, firstOverviewEntry, tabDefs,
+  configuredDefault, KIND_LABEL, featureIndex, stateOf, shortState, tally,
+  tallyText, treeSignature, docTitle,
 };

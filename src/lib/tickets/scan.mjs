@@ -3,6 +3,7 @@ import path from "node:path";
 import { firstH1, headings, titleCase } from "../markdown.mjs";
 import { listDir, listSubdirs, readIfExists } from "../workspace.mjs";
 import { detectCycles, parseTicket } from "./parse.mjs";
+import { scanWorkspaceFiles } from "../workspace-files.mjs";
 
 const SPEC_SECTIONS = ["Problem Statement", "Solution", "Implementation Decisions", "Testing Decisions", "Out of Scope"];
 const numKey = (n) => String(Number(n));
@@ -113,9 +114,10 @@ export async function scanWorkspace(assist) {
   }
 
   const features = await scanFeatures(assist, diagnostics);
+  const files = await scanWorkspaceFiles(assist);
 
   const severityRank = { error: 0, warn: 1 };
   diagnostics.sort((a, b) => (severityRank[a.severity] ?? 2) - (severityRank[b.severity] ?? 2));
 
-  return { ok: true, mode: "desk", root: assist, context, architecture, features, diagnostics };
+  return { ok: true, mode: "desk", root: assist, context, architecture, features, files, diagnostics };
 }

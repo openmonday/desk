@@ -55,6 +55,8 @@ the open command or the option terminator:
   desk -- list
 
 Settings (workspace tabs; global, stored once per user; reload open pages to apply):
+Overview is always the first workspace tab. These settings apply to
+context, architecture, and features.
   desk config                    show current settings
   desk config order <id...>      reorder the top tabs
   desk config default <id>       tab to open when no document is given
@@ -92,6 +94,7 @@ Options:
   desk config unhide <id>        show a hidden tab
   desk config reset              restore the defaults
 
+Overview is always the first workspace tab.
 Sections: ${SECTIONS.join(", ")}`,
   help: `Usage:
   desk help [command]

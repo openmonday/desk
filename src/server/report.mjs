@@ -32,6 +32,11 @@ function docsPaths(tree) {
 }
 
 function deskPaths(tree) {
+  if (tree.files?.children) {
+    const paths = [];
+    walkDocs(tree.files.children, paths);
+    return paths;
+  }
   const paths = [];
   if (tree.context?.exists) paths.push(tree.context.path);
   for (const arch of tree.architecture || []) paths.push(arch.path);
@@ -55,6 +60,9 @@ function activePath(tree, hash) {
     return match ? match[1].split("/").map(decodeSegment).join("/") : null;
   }
 
+  if (route.startsWith("#/overview/")) {
+    return route.slice("#/overview/".length).split("/").map(decodeSegment).join("/");
+  }
   if (route === "#/context") return "CONTEXT.md";
   let match = route.match(/^#\/architecture\/([^/]+)$/);
   if (match) return `arch/${decodeSegment(match[1])}.md`;

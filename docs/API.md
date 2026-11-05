@@ -66,10 +66,11 @@ The target decides the mode:
 A Markdown file opens from its own folder (`desk notes/today.md` serves
 `notes/`). Workspace records open at their record, feature, or ticket route; a
 workspace folder opens its section (`.desk/features` → graph, `.desk/arch` →
-architecture, `.desk/features/<slug>` → spec). Other Markdown under `.desk/`,
-such as `.desk/AGENTS.md`, opens as a library of that folder rather than being
-refused. With a file the browser opens automatically. Options: `--no-open`,
-`--port <n>`, `--host <addr>`, `--quiet`.
+architecture, `.desk/features/<slug>` → spec), and the workspace root opens on
+its Overview file tree. Other Markdown under `.desk/`, such as
+`.desk/AGENTS.md`, opens as a library of that folder rather than being refused.
+With a file the browser opens automatically. Options: `--no-open`, `--port
+<n>`, `--host <addr>`, `--quiet`.
 
 For development without the global link:
 
@@ -117,7 +118,8 @@ desk config reset
 
 `order` sets the tab order, `default` picks the tab that opens when no document
 is named, and `hide` removes a tab from the top bar (its routes still work).
-Sections are `context`, `architecture`, and `features`. The file lives at
+**Overview** is always the first workspace tab; the configurable sections are
+`context`, `architecture`, and `features`. The file lives at
 `~/.config/desk/config.json`; `XDG_CONFIG_HOME` moves it and `DESK_CONFIG`
 points at another file. A long-running server reads the file per request, so a
 browser reload applies the change.
@@ -129,6 +131,8 @@ with yourself.
 
 | Route | Document |
 | --- | --- |
+| `#/overview` | the first Markdown file in `.desk/` |
+| `#/overview/<path>` | any Markdown file under `.desk/` |
 | `#/context` | `.desk/CONTEXT.md` |
 | `#/architecture` | the first architecture record |
 | `#/architecture/<slug>` | `.desk/arch/<slug>.md` |
@@ -147,6 +151,10 @@ curl -s 'localhost:7777/api/doc?path=features/demo/spec.md'
 curl -s 'localhost:7777/api/raw?path=features/demo/spec.md'
 curl -s 'localhost:7777/api/events'          # SSE
 ```
+
+In workspace mode, `/api/tree` also includes `files`, the `.desk/` Markdown
+tree used by the Overview tab. Directories have `name`, `path`, `title`,
+`count`, and `children`; files have `name`, `path`, `title`, and `mtime`.
 
 Library mode also serves local images, PDFs, and media through a confined
 asset route:
@@ -177,6 +185,11 @@ skipped, and a file opens from the folder you named, not from a parent.
 If a top-level `features/` folder contains feature folders (`spec.md` and/or
 `tickets/`), that section keeps the feature view: spec, numbered tickets, and
 the dependency graph. Every other section stays a plain document tree.
+
+The rail roots the Overview at the library folder and every other section at
+its own folder, so Questions starts at `questions/` and Architecture at `arch/`
+instead of showing the parent library. The Features view keeps its progress,
+spec, and ticket rows under a `features/` root.
 
 LaTeX math is rendered locally with KaTeX. `$...$` and `\(...\)` are inline;
 `$$...$$` and `\[...\]` are display, including multiline blocks. Code spans and

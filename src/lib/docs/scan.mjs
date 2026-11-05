@@ -131,7 +131,7 @@ async function scanDir(root, rel, depth, state) {
         type: "dir",
         name: entry.name,
         path: childRel,
-        title: titleCase(entry.name),
+        title: entry.name,
         count: children.reduce((n, child) => n + countFiles(child), 0),
         children,
       });

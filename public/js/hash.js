@@ -2,7 +2,7 @@
 
 import {
   S, entryForPath, featureBySlug, key, defaultDocsEntry, docsEntryByTab,
-  docsSection,
+  docsSection, firstOverviewEntry,
 } from "./state.js";
 import { decodeDocPath, encodeDocPath } from "./docs-path.js";
 
@@ -37,6 +37,11 @@ function readHash() {
   if (!raw) return null;
   const parts = raw.split("/").filter(Boolean);
   const tab = parts[0];
+  if (tab === "overview") {
+    const encoded = raw.slice("overview".length).replace(/^\//, "");
+    const entry = encoded ? entryForPath(decodeDocPath(encoded)) : firstOverviewEntry();
+    return { tab, entry: entry ? { ...entry, tab: "overview" } : firstOverviewEntry() };
+  }
   if (tab === "context") return { tab, entry: entryForPath(S.tree?.context?.path) };
   if (tab === "architecture") {
     const rec = (S.tree?.architecture || []).find((a) => a.slug === parts[1]);
@@ -58,6 +63,10 @@ function writeHash(entry) {
   if (!entry) return writeTabHash(S.tab);
   if (S.tree?.mode === "docs") {
     history.replaceState(null, "", `#/docs/${encodeDocPath(entry.path)}`);
+    return;
+  }
+  if (entry.tab === "overview") {
+    history.replaceState(null, "", `#/overview/${encodeDocPath(entry.path)}`);
     return;
   }
   let h = `#/${entry.tab}`;
@@ -87,6 +96,7 @@ function defaultEntry() {
 
 function entryForTab(tab, preferredFeature) {
   if (S.tree?.mode === "docs") return docsEntryByTab(tab);
+  if (tab === "overview") return firstOverviewEntry();
   if (tab === "context") return entryForPath(S.tree?.context?.path);
   if (tab === "architecture") return entryForPath((S.tree?.architecture || [])[0]?.path);
   const f = featureBySlug(preferredFeature) || (S.tree?.features || []).find((x) => x.specPath);

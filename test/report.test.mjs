@@ -19,6 +19,18 @@ const docsTree = {
 
 const deskTree = {
   mode: "desk",
+  files: {
+    type: "dir",
+    children: [
+      { type: "file", path: "AGENTS.md" },
+      { type: "file", path: "CONTEXT.md" },
+      { type: "dir", children: [{ type: "file", path: "arch/one.md" }] },
+      { type: "dir", children: [
+        { type: "file", path: "features/demo/spec.md" },
+        { type: "dir", children: [{ type: "file", path: "features/demo/tickets/01-do-it.md" }] },
+      ] },
+    ],
+  },
   context: { exists: true, path: "CONTEXT.md" },
   architecture: [{ path: "arch/one.md" }],
   features: [{
@@ -37,14 +49,21 @@ test("detectedFiles lists every docs file and marks the opened document", () => 
   ]);
 });
 
-test("detectedFiles lists workspace records and resolves ticket routes", () => {
+test("detectedFiles lists workspace files and resolves ticket routes", () => {
   const files = detectedFiles(deskTree, "#/features/demo/1");
   assert.deepEqual(files, [
+    { path: "AGENTS.md", opened: false },
     { path: "arch/one.md", opened: false },
     { path: "CONTEXT.md", opened: false },
     { path: "features/demo/spec.md", opened: false },
     { path: "features/demo/tickets/01-do-it.md", opened: true },
   ]);
+});
+
+test("detectedFiles resolves overview file routes", () => {
+  const files = detectedFiles(deskTree, "#/overview/arch/one.md");
+  assert.equal(files.find((file) => file.path === "arch/one.md").opened, true);
+  assert.equal(files.filter((file) => file.opened).length, 1);
 });
 
 test("formatFileList uses the skm-style installed/opened list", () => {

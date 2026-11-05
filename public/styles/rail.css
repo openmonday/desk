@@ -211,17 +211,59 @@
 .diag-hint { margin: 0 0 var(--s2); font-size: 12px; color: var(--faint); }
 .diag-hint code { font-size: 11px; }
 
-/* docs mode: a calm docs sidebar. Groups use a chevron and rounded
- * backgrounds; the active document and its ancestor groups stay visible. */
+/* docs mode: a real tree. Hairline connectors join each folder to its
+ * children; the line leading to the open document turns clay. Every row is
+ * --doc-row tall so the elbows meet each row at its centre. */
 .doc-tree {
+  --doc-row: 30px;
+  --doc-elbow: calc(var(--doc-row) / 2);
+  --doc-step: 18px;
+  --doc-guide: var(--line-strong);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.doc-tree .doc-tree {
-  margin: 0;
-  padding: 0;
+.doc-tree .doc-tree { margin: 0 0 0 9px; } /* centre of the folder icon */
+
+.doc-tree .doc-tree > li {
+  position: relative;
+  padding-left: var(--doc-step);
+}
+
+/* the guide continues past every child but the last */
+.doc-tree .doc-tree > li:not(:last-child) {
+  background: linear-gradient(var(--doc-guide), var(--doc-guide)) no-repeat 0 0 / 1px 100%;
+}
+
+.doc-tree .doc-tree > li::before,
+.doc-tree .doc-tree > li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  pointer-events: none;
+}
+
+.doc-tree .doc-tree > li::before {
+  top: 0;
+  height: var(--doc-elbow);
+  border-left: 1px solid var(--doc-guide);
+}
+
+.doc-tree .doc-tree > li::after {
+  top: var(--doc-elbow);
+  width: calc(var(--doc-step) - 6px);
+  border-top: 1px solid var(--doc-guide);
+}
+
+.doc-tree .doc-tree > li.on-path::before,
+.doc-tree .doc-tree > li.on-path::after,
+.doc-tree .doc-tree > li.through-path::before { border-left-color: var(--clay); }
+
+.doc-tree .doc-tree > li.on-path::after { border-top-color: var(--clay); }
+
+.doc-tree .doc-tree > li.through-path:not(:last-child) {
+  background-image: linear-gradient(var(--clay), var(--clay));
 }
 
 .doc-folder { margin: 0; }
@@ -229,24 +271,29 @@
 .doc-folder-name {
   display: flex;
   align-items: center;
-  gap: var(--s2);
-  padding: 7px 10px;
-  border-radius: 8px;
+  gap: 7px;
+  height: var(--doc-row);
+  padding: 0 var(--s2) 0 2px;
+  border-radius: 6px;
   cursor: pointer;
   list-style: none;
   color: var(--ink-soft);
-  font: 400 14px/1.35 var(--sans-text);
+  font: 500 12.5px/20px var(--mono);
   white-space: nowrap;
 }
 
 .doc-folder-name::-webkit-details-marker { display: none; }
-.doc-folder-name:hover { color: var(--ink); background: var(--oat-soft); }
+.doc-folder-name:hover { color: var(--ink); }
+.doc-folder-name:hover .doc-folder-label { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
 .doc-folder-name:focus-visible { outline: 2px solid var(--clay); outline-offset: -2px; }
 
-.doc-details.is-branch > .doc-folder-name {
-  color: var(--ink);
-  background: var(--oat-soft);
+.doc-icon {
+  flex: none;
+  color: var(--faint);
 }
+
+.doc-details.is-branch > .doc-folder-name { color: var(--ink); }
+.doc-details.is-branch > .doc-folder-name .doc-icon { color: var(--clay-strong); }
 
 .doc-folder-label {
   flex: 1;
@@ -255,54 +302,84 @@
   text-overflow: ellipsis;
 }
 
-.doc-chevron {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  color: var(--faint);
-  transform: rotate(0deg);
-  transition: transform 120ms ease;
-}
+.doc-folder-label::after { content: "/"; color: var(--faint); }
+.doc-details:not([open]) > .doc-folder-name .doc-folder-label::after { content: "/ …"; }
 
-.doc-details[open] > .doc-folder-name .doc-chevron { transform: rotate(90deg); }
+.doc-count {
+  flex: none;
+  font: 400 10.5px/1 var(--mono);
+  color: var(--faint);
+}
 
 .doc-tree .row {
   border-left: 0;
-  border-radius: 8px;
   align-items: center;
-  gap: var(--s2);
-  padding: 7px 10px;
-  font: 400 14px/1.35 var(--sans-text);
+  height: var(--doc-row);
+  padding: 0 var(--s2) 0 0;
+  font: 400 14px/20px var(--sans-text);
   color: var(--ink-soft);
   white-space: nowrap;
 }
 
-.doc-tree .row:hover { background: var(--oat-soft); color: var(--ink); }
+.doc-tree .row:hover { background: none; color: var(--ink); }
 
-.doc-branch {
-  flex: none;
-  width: 1.1em;
-  color: var(--faint);
-  font: 400 18px/1 var(--mono);
+.doc-tree .row .row-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 1px 6px;
+  border-radius: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  text-wrap: normal;
 }
 
-.doc-tree .row[aria-current="true"] .doc-branch { color: var(--clay-ink); }
+/* file text starts where folder icons do, at every depth */
+.doc-tree > li > .row .row-label { margin-left: -4px; }
+.doc-tree .row:hover .row-label {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
 
 .doc-tree .row[aria-current="true"] {
-  border-left-color: transparent;
-  border-radius: 8px;
-  background: var(--clay-wash);
+  background: none;
   color: var(--clay-ink);
   font-weight: 500;
 }
 
-.doc-tree .row .row-label {
+.doc-tree .row[aria-current="true"] .row-label { background: var(--clay-wash); }
+
+/* features tab: keep the feature/ticket view under a `features/` root, with
+ * the same tree connectors and folder treatment as the document tree. */
+.feature-list .feature + .feature { margin-top: 0; }
+
+.feature-tree .feature-row {
+  height: var(--doc-row);
+  align-items: center;
+  gap: 7px;
+  padding: 0 var(--s2) 0 2px;
+}
+
+.feature-tree .feature-row:hover { background: none; }
+.feature-tree .feature-row:hover .feature-title {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.feature-tree .feature-title {
   flex: 1;
   min-width: 0;
+  font: 500 12.5px/20px var(--mono);
+  letter-spacing: 0;
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.35;
-  overflow-wrap: normal;
-  text-wrap: normal;
 }
+
+.feature-tree .feature-slash { color: var(--faint); }
+.feature-tree .feature.is-open > .feature-row .doc-icon { color: var(--clay-strong); }
+.feature-tree .progress-rail { margin-left: 24px; margin-right: var(--s2); }
