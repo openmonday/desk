@@ -48,6 +48,8 @@ npm link                                # once, makes `desk` global
 desk                                    # current folder
 desk .desk                              # workspace view
 desk .desk/features                     # the ticket graph
+desk .desk/architecture                 # records and the code graph
+desk .desk/architecture/graph.json      # the code graph route
 desk .desk/AGENTS.md                    # any other Markdown document
 desk .desk/features/demo/spec.md        # open that document
 desk ~/notes                            # Markdown library
@@ -60,14 +62,17 @@ The target decides the mode:
 | --- | --- |
 | the workspace root, or a folder under `.desk/` | workspace |
 | `CONTEXT.md`, `architecture/*.md`, a spec, or a ticket under `.desk/` | workspace |
+| `.desk/architecture/graph.json` | workspace, code graph route |
 | any other Markdown file | library from its own folder |
-| a non-Markdown file | error |
+| another non-Markdown file | error |
 
 A Markdown file opens from its own folder (`desk notes/today.md` serves
 `notes/`). Workspace records open at their record, feature, or ticket route; a
-workspace folder opens its section (`.desk/features` → graph, `.desk/arch` →
-architecture, `.desk/features/<slug>` → spec), and the workspace root opens on
-its Overview file tree. Other Markdown under `.desk/`, such as
+workspace folder opens its section (`.desk/features` → graph,
+`.desk/architecture` → records plus the code graph when present,
+`.desk/features/<slug>` → spec), and the workspace root opens on its Overview
+file tree. `desk .desk/architecture/graph.json` resolves to workspace mode and
+the `#/architecture/graph` route instead of a Markdown document. Other Markdown under `.desk/`, such as
 `.desk/AGENTS.md`, opens as a library of that folder rather than being refused.
 With a file the browser opens automatically. Options: `--no-open`, `--port
 <n>`, `--host <addr>`, `--quiet`.
@@ -126,16 +131,17 @@ browser reload applies the change.
 
 ## Hash routes
 
-The open document is in the URL fragment, so views can be bookmarked and shared
-with yourself.
+The open document or code graph is in the URL fragment, so views can be
+bookmarked and shared with yourself.
 
 | Route | Document |
 | --- | --- |
 | `#/overview` | the first Markdown file in `.desk/` |
 | `#/overview/<path>` | any Markdown file under `.desk/` |
 | `#/context` | `.desk/CONTEXT.md` |
-| `#/architecture` | the first architecture record |
-| `#/architecture/<slug>` | `.desk/arch/<slug>.md` |
+| `#/architecture` | the code graph when present, otherwise the first record |
+| `#/architecture/graph` | the architecture code graph |
+| `#/architecture/<slug>` | `.desk/architecture/<slug>.md` |
 | `#/features` | the ticket graph |
 | `#/features/<slug>` | feature spec |
 | `#/features/<slug>/<n>` | ticket `<n>` of that feature |
@@ -149,12 +155,46 @@ The server exposes reads only. `POST`, `PATCH`, and `DELETE` return `405`.
 curl -s 'localhost:7777/api/tree'
 curl -s 'localhost:7777/api/doc?path=features/demo/spec.md'
 curl -s 'localhost:7777/api/raw?path=features/demo/spec.md'
+curl -s 'localhost:7777/api/codegraph'
 curl -s 'localhost:7777/api/events'          # SSE
 ```
 
 In workspace mode, `/api/tree` also includes `files`, the `.desk/` Markdown
 tree used by the Overview tab. Directories have `name`, `path`, `title`,
 `count`, and `children`; files have `name`, `path`, `title`, and `mtime`.
+
+When `architecture/graph.json` is present, `/api/tree` adds a small `graph`
+summary and never the document itself:
+
+```json
+{
+  "graph": {
+    "path": "architecture/graph.json",
+    "root": ".",
+    "symbols": 3138,
+    "edges": 10000,
+    "files": 160,
+    "hierarchies": 3000,
+    "translationUnits": 20,
+    "generator": { "name": "mycel", "version": "0.1.0" },
+    "mtime": 1760000000000,
+    "bytes": 3269780
+  }
+}
+```
+
+`GET /api/codegraph` returns the full document once it passes the top-level
+contract:
+
+```json
+{ "ok": true, "path": "architecture/graph.json", "mtime": 1760000000000, "graph": { "...": "..." } }
+```
+
+The read is confined to the workspace, cheap for repeated requests (parsed once
+per file size and mtime), and refused above 32 MB. A missing graph returns
+`404`; malformed JSON or a missing required array returns `422` with an
+`error`. The raw file is never served by `/api/doc` or `/api/raw`, and it is
+absent from every Markdown tree.
 
 Library mode also serves local images, PDFs, and media through a confined
 asset route:
@@ -169,9 +209,10 @@ traversal, symlink escapes, and files over 8 MB.
 ## Live updates
 
 `/api/events` fires when the watcher sees a file change. The page rescans,
-updates the open document and rail, and redraws the ticket graph when it is
-open. A ticket that just reached `done` is animated: the rail dot pulses, the
-graph node shows a check, and a toast names the ticket. No reload, no polling.
+updates the open document and rail, and redraws the ticket graph or the
+architecture code graph when it is open. A ticket that just reached `done` is
+animated: the rail dot pulses, the graph node shows a check, and a toast names
+the ticket. No reload, no polling.
 
 ## Markdown libraries
 
@@ -201,9 +242,11 @@ document that contains a math delimiter.
 `npm run check` (or `node src/serve.mjs --check --docs <dir>`) scans once,
 prints a summary, and exits 1 when a diagnostic has severity `error`. The page
 also shows diagnostics in the rail. A malformed document is a diagnostic, not a
-render failure: it still shows what it can.
+render failure: it still shows what it can. The same applies to
+`architecture/graph.json`: invalid JSON, a missing required array, or a file
+over 32 MB becomes a diagnostic and the Markdown views remain usable.
 
-## The graph
+## The ticket graph
 
 Opening the Features tab, or `.desk/features`, shows the ticket graph instead of
 a file. Clicking a node opens that ticket and syncs the rail; choosing a feature
@@ -214,3 +257,27 @@ in-page fullscreen button that fills the browser window; Esc exits.
 The graph draws every ticket as a node and every `Blocked by:` entry as an arrow
 from blocker to dependent. Layers run left to right by dependency depth;
 "ready" means no open blockers.
+
+## The architecture code graph
+
+The Architecture tab adds a **Code graph** row when
+`architecture/graph.json` exists; `#/architecture/graph` is the shareable
+route, and `#/architecture` opens the graph rather than the first record.
+`#/architecture/<slug>` still opens that Markdown record, and the record tree
+stays in the rail beside the graph.
+
+The view consumes `symbols`, `edges`, and `files` from the mycel contract. It
+defaults to callable symbols (`function`, `method`, `constructor`,
+`destructor`) and project-internal call edges. Controls filter by name or file,
+scope to a folder or file, allow external or unresolved edges, and reveal
+non-callable kinds. At most 240 symbols and 2,200 edges are drawn at once; the
+count line reports matched, drawn, and hidden totals, so a few-thousand-symbol
+graph stays responsive. Symbol selection is deterministic and, when the limit
+applies, follows the most connected symbols and their neighbours.
+
+Clicking or keyboard-selecting a symbol shows its kind, name, file, span, and
+full in/out edge counts. The layout is deterministic and dependency-free; the
+canvas scrolls, starts centered, zooms between 50% and 250%, and is paired with
+an accessible table of the rendered symbols. External edges draw blue and
+dashed, unresolved edges clay and dashed. The raw `graph.json` never appears in
+the rail, Overview, Architecture record tree, search, or startup file list.

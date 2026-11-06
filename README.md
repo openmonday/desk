@@ -4,8 +4,10 @@ A live, read-only view of a `.desk` engineering workspace or any folder of
 Markdown. You write Markdown; the page follows. No dependencies, no build step:
 Node 18+ and plain HTML, CSS, and JavaScript. Markdown is rendered with vendored
 marked, highlighted with a vendored highlight.js build, and LaTeX math is
-rendered with vendored KaTeX that loads only when a document contains math;
-everything stays local.
+rendered with vendored KaTeX that loads only when a document contains math.
+When a workspace includes mycel's read-only `architecture/graph.json`, desk also
+draws its code graph: files, symbols, and call edges. The graph is a data input,
+never a document. Everything stays local.
 
 ```bash
 npm start        # serve the sample workspace at http://127.0.0.1:7777
@@ -21,6 +23,8 @@ desk                                    # current folder
 desk ~/notes                            # a Markdown library
 desk .desk                              # a workspace
 desk .desk/features                     # the ticket graph
+desk .desk/architecture                 # architecture records and code graph
+desk .desk/architecture/graph.json      # the code graph route
 desk .desk/AGENTS.md                    # any other Markdown document
 desk .desk/features/demo/spec.md        # that document in the browser
 desk open list                           # a folder literally named "list"
@@ -41,21 +45,53 @@ contains `.desk/`), folders under `.desk/`, and recognized records
 Everything else opens as a Markdown library, and a file opens from its own
 folder, so `desk notes/today.md` shows the `notes/` tree at that document. That
 also means a plain file like `.desk/AGENTS.md` opens as a document instead of
-being refused. With a file the browser opens automatically; pass `--no-open` to
-keep it closed. `--port`, `--host`, and `--quiet` work as expected.
+being refused. `architecture/graph.json` is the one non-Markdown target: it
+opens workspace mode at the code-graph route. With a file the browser opens
+automatically; pass `--no-open` to keep it closed. `--port`, `--host`, and
+`--quiet` work as expected.
 
 By default, workspaces open on **Overview**, a Markdown file tree rooted at `.desk/`:
 `architecture/`, `features/`, `CONTEXT.md`, `AGENTS.md`, and anything else Markdown.
 The **Context**, **Architecture**, and **Features** tabs keep their focused
-views. **Architecture** shows the `architecture/` folder as its tree root rather than
-the library root; **Features** does the same for `features/` while keeping the
-feature progress, spec, and numbered ticket rows under each feature folder.
+views. **Architecture** shows the `architecture/` folder as its tree root rather
+than the library root; when `architecture/graph.json` exists it adds a **Code
+graph** row and opens that graph, with the Markdown records one click away.
+**Features** does the same for `features/` while keeping the feature progress,
+spec, and numbered ticket rows under each feature folder.
 The page renders `CONTEXT.md`, `architecture/*.md`, and each feature spec and
 its tickets. Opening the **Features** section, or `.desk/features`, lands on
 the ticket graph; clicking a node opens the ticket, and the spec is a click
 away. Edits made by you or an agent appear live over server-sent events.
 Every view can fill the browser window with in-page fullscreen. The round button at the
 top right cycles auto, light, and dark; auto follows the operating system.
+
+## Code graph
+
+If the workspace contains mycel's document at `.desk/architecture/graph.json`,
+the Architecture tab draws it at `#/architecture/graph`;
+`desk .desk/architecture/graph.json` opens that route directly, and
+`desk .desk/architecture` lands there when a graph exists. Existing record
+routes such as `#/architecture/<slug>` keep working, and `#/architecture`
+opens the graph when present, otherwise the first record. `graph.json` stays
+out of Overview, the Architecture document tree, the rail file counts, search,
+and every Markdown listing; it is a graph source only.
+
+The default view shows callable symbols (functions, methods, constructors, and
+destructors) and project-internal call edges. Search filters by name or file,
+the scope selector narrows to a folder or file, and checkboxes reveal external
+and unresolved edges plus non-callable kinds. The page draws at most 240 symbols
+and 2,200 edges at a time and states how many matched symbols and edges were
+hidden; selection favors the most connected symbols and their neighbours so the
+default picture has structure. Clicking a symbol, or focusing it with Tab and
+pressing Enter, shows its kind, file, span, and in/out edge counts. The canvas
+scrolls, zooms, and uses a deterministic layout; an accessible table lists the
+same rendered symbols. External edges are blue and dashed, unresolved edges are
+clay and dashed.
+
+The server reads the graph once per file version, confines it to the workspace,
+and refuses files over 32 MB. `/api/tree` carries only a small summary; the view
+loads the full document from `/api/codegraph`. A malformed or incomplete graph
+becomes a rail diagnostic while the Markdown views keep working.
 
 ## Running servers
 
@@ -117,7 +153,7 @@ Tabs still jump to a section and its first document. Folders render as nested
 nodes, and `README.md` / `index.md` sort before other files (numbers sort
 naturally).
 Labels are display-only and uppercased in CSS; folder names never change on
-disk. Folders show their real names, so `arch` stays `architecture/` instead of becoming
+disk. Folders show their real names, so `architecture/` does not become
 Architecture. Hairline connectors join each folder to its contents, and the
 line leading to the open document, like the folder icons along that branch, is
 clay. Tree labels stay on one line and ellipsize when long; navigating to a
@@ -149,7 +185,7 @@ them with `--host 0.0.0.0` on an untrusted network.
 
 ```text
 .
-├── .desk/                  sample workspace: glossary, architecture, features
+├── .desk/                  sample workspace: glossary, architecture records, features
 ├── src/                    server and library code
 │   ├── serve.mjs           HTTP entry: options, workspace, lifecycle
 │   ├── desk.mjs            viewer CLI and server commands

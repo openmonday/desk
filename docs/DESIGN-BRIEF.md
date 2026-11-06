@@ -65,8 +65,8 @@ upstream template, not this copy.
 
 - Tabs: Context, Architecture, Features. Rail on the left, article on the right,
   each scrolling independently; single column below 900px.
-- Hash routes: `#/context`, `#/architecture/<slug>`, `#/features/<slug>`,
-  `#/features/<slug>/<n>`.
+- Hash routes: `#/context`, `#/architecture`, `#/architecture/graph`,
+  `#/architecture/<slug>`, `#/features/<slug>`, `#/features/<slug>/<n>`.
 - Markdown rendering of the workspace; ticket `Status:` / `Blocked by:` lines are
   lifted into a meta strip; diagnostics render in the rail.
 - Live SSE updates: any file change (yours, an agent's, the CLI's) rescans,

@@ -58,4 +58,4 @@ An estimate computed in the browser from the open document's word count at rough
 
 ## Hash Route
 
-The shareable URL fragment that identifies the open document: `#/context`, `#/architecture/<slug>`, `#/features/<slug>`, or `#/features/<slug>/<ticket-number>`.
+The shareable URL fragment that identifies the open document or graph: `#/context`, `#/architecture`, `#/architecture/graph`, `#/architecture/<slug>`, `#/features/<slug>`, or `#/features/<slug>/<ticket-number>`.

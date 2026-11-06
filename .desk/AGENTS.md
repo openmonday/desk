@@ -27,8 +27,8 @@ Create files only when there is content to record.
 - `serve.mjs`, `lib/scan.mjs`, and `public/*` are frozen once accepted. Later projects use them through `--root`; they do not fork the shell.
 - Markdown is the document source: every view reads Markdown, and no other generated data files become documents. `.desk/architecture/graph.json` is the one allowed data input: the page reads it as a read-only code graph and never lists it as a document. Do not add a database, other generated data files, or runtime dependencies.
 - Keep all runtime requests on localhost. No CDN, analytics, webfont requests, or embedded fonts.
-- Preserve the data contract in `SKILL.md`: `/api/tree`, `/api/doc`, `/api/raw`, `/api/events`.
-- Diagnostics are data. A malformed document must degrade to a rail diagnostic and still render.
+- Preserve the data contract in `SKILL.md`: `/api/tree`, `/api/doc`, `/api/raw`, `/api/codegraph`, `/api/events`.
+- Diagnostics are data. A malformed document or graph must degrade to a rail diagnostic and still leave the Markdown views usable.
 - Ticket `Status:` values are `pending`, `in-progress`, `done`, or `blocked`. `Blocked by:` lists ticket numbers; use `None` when unblocked.
 - Architecture records follow `update-arch/scripts/ARCH-FORMAT.md`: `type`, `files`, and `since` frontmatter, then `## Feature` (optional for refactors), `## Constraints`, and `## Architecture`.
 
