@@ -37,7 +37,7 @@ skills manager: filled means opened, hollow means available.
 
 `desk` decides the mode from the path. The workspace root (the folder that
 contains `.desk/`), folders under `.desk/`, and recognized records
-(`CONTEXT.md`, `arch/*.md`, specs, tickets) open in the workspace view.
+(`CONTEXT.md`, `architecture/*.md`, specs, tickets) open in the workspace view.
 Everything else opens as a Markdown library, and a file opens from its own
 folder, so `desk notes/today.md` shows the `notes/` tree at that document. That
 also means a plain file like `.desk/AGENTS.md` opens as a document instead of
@@ -45,12 +45,12 @@ being refused. With a file the browser opens automatically; pass `--no-open` to
 keep it closed. `--port`, `--host`, and `--quiet` work as expected.
 
 By default, workspaces open on **Overview**, a Markdown file tree rooted at `.desk/`:
-`arch/`, `features/`, `CONTEXT.md`, `AGENTS.md`, and anything else Markdown.
+`architecture/`, `features/`, `CONTEXT.md`, `AGENTS.md`, and anything else Markdown.
 The **Context**, **Architecture**, and **Features** tabs keep their focused
-views. **Architecture** shows the `arch/` folder as its tree root rather than
+views. **Architecture** shows the `architecture/` folder as its tree root rather than
 the library root; **Features** does the same for `features/` while keeping the
 feature progress, spec, and numbered ticket rows under each feature folder.
-The page renders `CONTEXT.md`, `arch/*.md`, and each feature spec and
+The page renders `CONTEXT.md`, `architecture/*.md`, and each feature spec and
 its tickets. Opening the **Features** section, or `.desk/features`, lands on
 the ticket graph; clicking a node opens the ticket, and the spec is a click
 away. Edits made by you or an agent appear live over server-sent events.
@@ -112,12 +112,12 @@ in an **Overview** tab. **Overview** shows the whole library tree rooted at the
 folder you opened: root files first, then every top-level folder and its
 contents. Any other tab treats its folder as the tree root, the way an IDE
 opens a subfolder: **Questions** starts at `questions/`, and **Architecture**
-starts at `arch/`. The parent folder is not shown.
+starts at `architecture/`. The parent folder is not shown.
 Tabs still jump to a section and its first document. Folders render as nested
 nodes, and `README.md` / `index.md` sort before other files (numbers sort
 naturally).
 Labels are display-only and uppercased in CSS; folder names never change on
-disk. Folders show their real names, so `arch` stays `arch/` instead of becoming
+disk. Folders show their real names, so `arch` stays `architecture/` instead of becoming
 Architecture. Hairline connectors join each folder to its contents, and the
 line leading to the open document, like the folder icons along that branch, is
 clay. Tree labels stay on one line and ellipsize when long; navigating to a

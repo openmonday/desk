@@ -316,7 +316,7 @@ function docList() {
       path: r.path,
       title: r.title,
     }));
-    const root = dirRoot("arch", fallback);
+    const root = dirRoot("architecture", fallback);
     return root ? el("ul", { class: "tree doc-tree" }, [docsNode(root)]) : null;
   }
   return featureRoot(t.features, "features");

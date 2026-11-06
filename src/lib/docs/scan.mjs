@@ -33,7 +33,7 @@ function isIgnored(name) {
 
 /** Display-only titles. Folder names are never changed on disk. */
 function sectionTitle(name) {
-  return name.toLowerCase() === "arch" ? "Architecture" : titleCase(name);
+  return name.toLowerCase() === "architecture" ? "Architecture" : titleCase(name);
 }
 
 /** README/index files first, then other documents, then subfolders. */

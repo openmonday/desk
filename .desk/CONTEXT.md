@@ -8,9 +8,13 @@ The `.desk/` directory at a project root. It holds the glossary, architecture re
 
 `CONTEXT.md`. A lasting list of the project's domain terms. Each term is an H2 heading so the plan page can render it as a section in the TREE.
 
+## Code Graph
+
+`architecture/graph.json`. A read-only document produced by mycel: files, symbols, call edges, and symbol hierarchies. The page draws it as a graph; it is never treated as a Markdown document.
+
 ## Architecture Record
 
-A lasting note under `arch/<slug>.md` describing one finished change: what it built, the rules future changes must keep, and its shape. Records use `type`, `files`, and `since` frontmatter.
+A lasting note under `architecture/<slug>.md` describing one finished change: what it built, the rules future changes must keep, and its shape. Records use `type`, `files`, and `since` frontmatter.
 
 ## Feature
 

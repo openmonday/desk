@@ -101,8 +101,8 @@ export async function scanWorkspace(assist) {
   };
 
   const architecture = [];
-  for (const file of await listDir(path.join(assist, "arch"))) {
-    const rel = `arch/${file}`;
+  for (const file of await listDir(path.join(assist, "architecture"))) {
+    const rel = `architecture/${file}`;
     const md = await readIfExists(path.join(assist, rel));
     if (md == null) continue;
     architecture.push({

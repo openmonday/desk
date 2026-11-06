@@ -53,7 +53,7 @@ async function main() {
     const tree = await scanWorkspace(root);
     const r = report(tree);
     console.log(`desk  ${root}`);
-    console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.arch, "arch record")}`);
+    console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.architecture, "architecture record")}`);
     if (r.diagnostics) {
       console.log(`  ${r.diagnostics} diagnostics:`);
       for (const d of tree.diagnostics) console.log(`    ${d.severity}  ${d.path}: ${d.message}`);
@@ -129,7 +129,7 @@ async function main() {
       console.log();
       console.log(formatFileList(tree, opts.hash));
       console.log();
-      console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.arch, "arch record")}`);
+      console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.architecture, "architecture record")}`);
       if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check`);
     }
   }

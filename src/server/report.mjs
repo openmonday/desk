@@ -7,7 +7,7 @@ export function report(tree) {
   const tickets = tree.features.reduce((n, f) => n + f.tickets.length, 0);
   const done = tree.features.reduce((n, f) => n + f.progress.done, 0);
   const errors = tree.diagnostics.filter((d) => d.severity === "error").length;
-  return { features, tickets, done, arch: tree.architecture.length, errors, diagnostics: tree.diagnostics.length };
+  return { features, tickets, done, architecture: tree.architecture.length, errors, diagnostics: tree.diagnostics.length };
 }
 
 /** The one-line startup and --check summary for docs mode. */
@@ -39,7 +39,7 @@ function deskPaths(tree) {
   }
   const paths = [];
   if (tree.context?.exists) paths.push(tree.context.path);
-  for (const arch of tree.architecture || []) paths.push(arch.path);
+  for (const record of tree.architecture || []) paths.push(record.path);
   for (const feature of tree.features || []) {
     if (feature.specPath) paths.push(feature.specPath);
     for (const ticket of feature.tickets || []) paths.push(ticket.path);
@@ -65,7 +65,7 @@ function activePath(tree, hash) {
   }
   if (route === "#/context") return "CONTEXT.md";
   let match = route.match(/^#\/architecture\/([^/]+)$/);
-  if (match) return `arch/${decodeSegment(match[1])}.md`;
+  if (match) return `architecture/${decodeSegment(match[1])}.md`;
 
   match = route.match(/^#\/features\/([^/]+)$/);
   if (match) {

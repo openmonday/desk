@@ -13,7 +13,7 @@ Turns `.desk/` markdown into the navigation tree the page renders: glossary head
 
 ## Constraints
 
-- Read markdown only from the workspace shapes in `.desk/AGENTS.md`: `CONTEXT.md`, `arch/*.md`, and `features/*/{spec.md,tickets/NN-*.md}`.
+- Read markdown only from the workspace shapes in `.desk/AGENTS.md`: `CONTEXT.md`, `architecture/*.md`, and `features/*/{spec.md,tickets/NN-*.md}`. `architecture/graph.json` is a graph input, not a document.
 - Strip fenced code before parsing headings and ticket metadata: a code sample must not create a section or a status.
 - Normalize ticket status through one alias table: unknown values become `unknown` and produce a warning.
 - Preserve zero-padded ticket numbers in `blockedBy` (`01`, `02`) but compare dependencies numerically.

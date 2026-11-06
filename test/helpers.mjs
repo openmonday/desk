@@ -31,14 +31,14 @@ export async function makeWorkspace() {
   const ws = path.join(root, ".desk");
   const feature = path.join(ws, "features", "demo");
   await mkdir(path.join(feature, "tickets"), { recursive: true });
-  await mkdir(path.join(ws, "arch"), { recursive: true });
+  await mkdir(path.join(ws, "architecture"), { recursive: true });
 
   await writeFile(
     path.join(ws, "CONTEXT.md"),
     "# Context\n\n## Workspace\n\nThe workspace.\n\n## Ticket\n\nA unit of work.\n",
   );
   await writeFile(
-    path.join(ws, "arch", "one.md"),
+    path.join(ws, "architecture", "one.md"),
     "---\ntype: feature\nfiles:\n  - one.mjs\nsince: 2026-01-01\n---\n\n# One\n\n## Constraints\n\nKeep it.\n\n## Architecture\n\nIt works.\n",
   );
   await writeFile(path.join(feature, "spec.md"), SPEC_MD);

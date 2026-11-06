@@ -45,12 +45,12 @@ test("scanWorkspace builds the page model", async (t) => {
   assert.equal(tree.files.path, "");
   assert.deepEqual(tree.files.children.map((n) => [n.type, n.path]), [
     ["file", "CONTEXT.md"],
-    ["dir", "arch"],
+    ["dir", "architecture"],
     ["dir", "features"],
   ]);
-  const arch = tree.files.children.find((n) => n.path === "arch");
-  assert.equal(arch.title, "arch");
-  assert.deepEqual(arch.children.map((n) => n.path), ["arch/one.md"]);
+  const arch = tree.files.children.find((n) => n.path === "architecture");
+  assert.equal(arch.title, "architecture");
+  assert.deepEqual(arch.children.map((n) => n.path), ["architecture/one.md"]);
   const filesFeature = tree.files.children.find((n) => n.path === "features").children[0];
   assert.equal(filesFeature.path, "features/demo");
   assert.deepEqual(filesFeature.children.map((n) => n.path), [

@@ -22,7 +22,7 @@ export function deskRoute(dataDir, file) {
   const rel = toPosix(path.relative(dataDir, file));
   if (rel === "CONTEXT.md") return "#/context";
 
-  const arch = rel.match(/^arch\/([^/]+)$/);
+  const arch = rel.match(/^architecture\/([^/]+)$/);
   if (arch) return `#/architecture/${arch[1].replace(/\.md$/, "")}`;
 
   const spec = rel.match(/^features\/([^/]+)\/spec\.md$/);
@@ -38,7 +38,7 @@ export function deskRoute(dataDir, file) {
 export function deskDirRoute(dataDir, dir) {
   const rel = toPosix(path.relative(dataDir, dir));
   if (rel === "features") return "#/features";
-  if (rel === "arch") return "#/architecture";
+  if (rel === "architecture") return "#/architecture";
   const feature = rel.match(/^features\/([^/]+)(?:\/tickets)?$/);
   if (feature) return `#/features/${feature[1]}`;
   return null;

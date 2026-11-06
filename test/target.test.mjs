@@ -9,7 +9,7 @@ async function makeTree(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "desk-target-"));
   t.after(() => rm(root, { recursive: true, force: true }));
 
-  await mkdir(path.join(root, ".desk", "arch"), { recursive: true });
+  await mkdir(path.join(root, ".desk", "architecture"), { recursive: true });
   await mkdir(path.join(root, ".desk", "features", "demo", "tickets"), { recursive: true });
   await mkdir(path.join(root, "docs"), { recursive: true });
 
@@ -17,7 +17,7 @@ async function makeTree(t) {
   await write(".desk/CONTEXT.md");
   await write(".desk/AGENTS.md");
   await write(".desk/AGENTS.txt");
-  await write(".desk/arch/one.md");
+  await write(".desk/architecture/one.md");
   await write(".desk/features/demo/spec.md");
   await write(".desk/features/demo/tickets/02-cache.md");
   await write("docs/api.md");
@@ -39,14 +39,14 @@ test("workspace roots and folders under .desk open in workspace mode", async (t)
   assert.equal((await resolveTarget(".desk/features", root)).route, "#/features");
   assert.equal((await resolveTarget(".desk/features/demo", root)).route, "#/features/demo");
   assert.equal((await resolveTarget(".desk/features/demo/tickets", root)).route, "#/features/demo");
-  assert.equal((await resolveTarget(".desk/arch", root)).route, "#/architecture");
+  assert.equal((await resolveTarget(".desk/architecture", root)).route, "#/architecture");
 });
 
 test("workspace files open at the route the page uses", async (t) => {
   const root = await makeTree(t);
 
   assert.equal((await resolveTarget(".desk/CONTEXT.md", root)).route, "#/context");
-  assert.equal((await resolveTarget(".desk/arch/one.md", root)).route, "#/architecture/one");
+  assert.equal((await resolveTarget(".desk/architecture/one.md", root)).route, "#/architecture/one");
   assert.equal((await resolveTarget(".desk/features/demo/spec.md", root)).route, "#/features/demo");
 
   const ticket = await resolveTarget(".desk/features/demo/tickets/02-cache.md", root);

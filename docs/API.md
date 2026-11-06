@@ -59,7 +59,7 @@ The target decides the mode:
 | Target | Mode |
 | --- | --- |
 | the workspace root, or a folder under `.desk/` | workspace |
-| `CONTEXT.md`, `arch/*.md`, a spec, or a ticket under `.desk/` | workspace |
+| `CONTEXT.md`, `architecture/*.md`, a spec, or a ticket under `.desk/` | workspace |
 | any other Markdown file | library from its own folder |
 | a non-Markdown file | error |
 
@@ -187,7 +187,7 @@ If a top-level `features/` folder contains feature folders (`spec.md` and/or
 the dependency graph. Every other section stays a plain document tree.
 
 The rail roots the Overview at the library folder and every other section at
-its own folder, so Questions starts at `questions/` and Architecture at `arch/`
+its own folder, so Questions starts at `questions/` and Architecture at `architecture/`
 instead of showing the parent library. The Features view keeps its progress,
 spec, and ticket rows under a `features/` root.
 

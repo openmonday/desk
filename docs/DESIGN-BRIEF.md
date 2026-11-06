@@ -14,7 +14,7 @@ contracts below are fixed.
 
 `desk` is a local web page for an engineering workspace. A project keeps a
 `.desk/` directory containing a glossary (`CONTEXT.md`), architecture records
-(`arch/*.md`), and feature specs with tickets (`features/<slug>/{spec.md,tickets/NN-*.md}`).
+(`architecture/*.md`), and feature specs with tickets (`features/<slug>/{spec.md,tickets/NN-*.md}`).
 The page renders that workspace live, and it is also the control surface an AI
 agent drives: tickets are added, edited, started, and completed by writing those
 files through a small CLI/HTTP API, and the page updates in place over SSE.
@@ -37,7 +37,7 @@ browser is enough for CSS/JS changes, while `serve.mjs` changes need a restart.
 
 ```text
 /Users/openmonday/projects/desk/
-├── .desk/                      sample workspace (5 tickets, 4 arch records) — test data
+├── .desk/                      sample workspace (5 tickets, 4 architecture records) — test data
 ├── src/                        server and library code; edit here
 │   ├── serve.mjs               HTTP server: reads, ticket writes, SSE
 │   ├── desk.mjs                agent CLI (add / update / done / rm / list / check / page)
