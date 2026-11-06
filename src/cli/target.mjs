@@ -20,6 +20,7 @@ export function encodeDocPath(rel) {
 /** The hash route the page should open for a file inside a `.desk` workspace. */
 export function deskRoute(dataDir, file) {
   const rel = toPosix(path.relative(dataDir, file));
+  if (rel === "architecture/graph.json") return "#/architecture/graph";
   if (rel === "CONTEXT.md") return "#/context";
 
   const arch = rel.match(/^architecture\/([^/]+)$/);

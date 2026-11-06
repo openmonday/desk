@@ -64,6 +64,7 @@ function activePath(tree, hash) {
     return route.slice("#/overview/".length).split("/").map(decodeSegment).join("/");
   }
   if (route === "#/context") return "CONTEXT.md";
+  if (route === "#/architecture/graph") return null;
   let match = route.match(/^#\/architecture\/([^/]+)$/);
   if (match) return `architecture/${decodeSegment(match[1])}.md`;
 

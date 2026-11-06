@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "mycel",
+    "version": "0.1.0"
+  },
+  "root": ".",
+  "translationUnits": [
+    {
+      "source": "src/a.c",
+      "flags": [
+        "-I.",
+        "-Iinclude",
+        "-std=gnu11"
+      ],
+      "flagsSource": "heuristic",
+      "diagnostics": []
+    },
+    {
+      "source": "src/b.c",
+      "flags": [
+        "-I.",
+        "-Iinclude",
+        "-std=gnu11"
+      ],
+      "flagsSource": "heuristic",
+      "diagnostics": []
+    }
+  ],
+  "files": [
+    {
+      "id": "src/a.c",
+      "path": "src/a.c",
+      "language": "c"
+    },
+    {
+      "id": "src/b.c",
+      "path": "src/b.c",
+      "language": "c"
+    },
+    {
+      "id": "include/types.h",
+      "path": "include/types.h",
+      "language": "c"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "c:@F@alpha",
+      "name": "alpha",
+      "kind": "function",
+      "linkage": "external",
+      "usr": "c:@F@alpha",
+      "external": false,
+      "anonymous": false,
+      "declarations": [],
+      "definitions": [
+        {
+          "file": "src/a.c",
+          "span": [
+            3,
+            1,
+            8,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c:@F@beta",
+      "name": "beta",
+      "kind": "function",
+      "linkage": "static",
+      "usr": "c:@F@beta",
+      "external": false,
+      "anonymous": false,
+      "declarations": [],
+      "definitions": [
+        {
+          "file": "src/a.c",
+          "span": [
+            10,
+            1,
+            14,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c:@F@gamma",
+      "name": "gamma",
+      "kind": "function",
+      "linkage": "external",
+      "usr": "c:@F@gamma",
+      "external": false,
+      "anonymous": false,
+      "declarations": [],
+      "definitions": [
+        {
+          "file": "src/b.c",
+          "span": [
+            2,
+            1,
+            8,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c:@F@printf",
+      "name": "printf",
+      "kind": "function",
+      "linkage": "external",
+      "usr": "c:@F@printf",
+      "external": true,
+      "anonymous": false,
+      "declarations": [],
+      "definitions": []
+    },
+    {
+      "id": "include/types.h#c:@S@point",
+      "name": "point",
+      "kind": "struct",
+      "linkage": "none",
+      "usr": "c:@S@point",
+      "external": false,
+      "anonymous": false,
+      "declarations": [],
+      "definitions": [
+        {
+          "file": "include/types.h",
+          "span": [
+            4,
+            1,
+            7,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "include/types.h#c:@F@helper",
+      "name": "helper",
+      "kind": "function",
+      "linkage": "static",
+      "usr": "c:@F@helper",
+      "external": false,
+      "anonymous": false,
+      "declarations": [],
+      "definitions": [
+        {
+          "file": "include/types.h",
+          "span": [
+            9,
+            1,
+            12,
+            2
+          ]
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "c:@F@alpha",
+      "kind": "call",
+      "name": "beta",
+      "resolution": "exact",
+      "to": "c:@F@beta",
+      "candidates": [],
+      "truncated": false,
+      "at": {
+        "file": "src/a.c",
+        "span": [
+          5,
+          3,
+          5,
+          9
+        ]
+      }
+    },
+    {
+      "from": "c:@F@alpha",
+      "kind": "call",
+      "name": "helper",
+      "resolution": "exact",
+      "to": "include/types.h#c:@F@helper",
+      "candidates": [],
+      "truncated": false,
+      "at": {
+        "file": "src/a.c",
+        "span": [
+          6,
+          3,
+          6,
+          11
+        ]
+      }
+    },
+    {
+      "from": "c:@F@beta",
+      "kind": "call",
+      "name": "gamma",
+      "resolution": "exact",
+      "to": "c:@F@gamma",
+      "candidates": [],
+      "truncated": false,
+      "at": {
+        "file": "src/a.c",
+        "span": [
+          12,
+          3,
+          12,
+          10
+        ]
+      }
+    },
+    {
+      "from": "c:@F@gamma",
+      "kind": "call",
+      "name": "printf",
+      "resolution": "exact",
+      "to": "c:@F@printf",
+      "candidates": [],
+      "truncated": false,
+      "at": {
+        "file": "src/b.c",
+        "span": [
+          4,
+          3,
+          4,
+          11
+        ]
+      }
+    },
+    {
+      "from": "c:@F@gamma",
+      "kind": "call",
+      "name": "missing",
+      "resolution": "unresolved",
+      "to": null,
+      "candidates": [],
+      "truncated": false,
+      "at": {
+        "file": "src/b.c",
+        "span": [
+          5,
+          3,
+          5,
+          12
+        ]
+      }
+    }
+  ],
+  "hierarchies": [
+    {
+      "kind": "contains",
+      "parent": {
+        "file": "src/a.c"
+      },
+      "child": {
+        "symbol": "c:@F@alpha"
+      }
+    },
+    {
+      "kind": "contains",
+      "parent": {
+        "file": "src/a.c"
+      },
+      "child": {
+        "symbol": "c:@F@beta"
+      }
+    },
+    {
+      "kind": "contains",
+      "parent": {
+        "file": "src/b.c"
+      },
+      "child": {
+        "symbol": "c:@F@gamma"
+      }
+    },
+    {
+      "kind": "contains",
+      "parent": {
+        "file": "include/types.h"
+      },
+      "child": {
+        "symbol": "include/types.h#c:@F@helper"
+      }
+    }
+  ]
+}

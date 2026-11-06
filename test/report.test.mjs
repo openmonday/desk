@@ -73,3 +73,9 @@ test("formatFileList uses the skm-style installed/opened list", () => {
   assert.match(text, /○ README\.md/);
   assert.doesNotMatch(text, /\u001b\[/);
 });
+
+test("the code graph route does not mark a Markdown file as opened", () => {
+  const files = detectedFiles({ ...deskTree, graph: { path: "architecture/graph.json" } }, "#/architecture/graph");
+  assert.equal(files.filter((file) => file.opened).length, 0);
+  assert.ok(!files.some((file) => file.path === "architecture/graph.json"));
+});

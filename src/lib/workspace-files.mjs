@@ -6,6 +6,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { firstH1, titleCase } from "./markdown.mjs";
+import { isCodeGraphPath } from "./codegraph.mjs";
 
 const DOC_RE = /\.md$/i;
 const IGNORED = new Set(["node_modules", "dist", "build", "coverage", ".git"]);
@@ -95,6 +96,8 @@ async function walk(root, rel, depth, state) {
       continue;
     }
     if (!entry.isFile() || !DOC_RE.test(entry.name)) continue;
+    // The graph input is a data file, never a document in the Overview tree.
+    if (isCodeGraphPath(childRel)) continue;
     const file = await readFileNode(root, childRel, state);
     if (file) nodes.push(file);
   }

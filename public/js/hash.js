@@ -1,7 +1,7 @@
 /* Shareable hash routes: read the URL, write the current entry. */
 
 import {
-  S, entryForPath, featureBySlug, key, defaultDocsEntry, docsEntryByTab,
+  S, entryForPath, codeGraphEntry, featureBySlug, key, defaultDocsEntry, docsEntryByTab,
   docsSection, firstOverviewEntry,
 } from "./state.js";
 import { decodeDocPath, encodeDocPath } from "./docs-path.js";
@@ -44,8 +44,14 @@ function readHash() {
   }
   if (tab === "context") return { tab, entry: entryForPath(S.tree?.context?.path) };
   if (tab === "architecture") {
-    const rec = (S.tree?.architecture || []).find((a) => a.slug === parts[1]);
-    return { tab, entry: rec ? entryForPath(rec.path) : null };
+    if (parts[1] === "graph") return { tab, entry: codeGraphEntry() };
+    if (parts[1]) {
+      const rec = (S.tree?.architecture || []).find((a) => a.slug === parts[1]);
+      return { tab, entry: rec ? entryForPath(rec.path) : null };
+    }
+    if (S.tree?.graph) return { tab, entry: codeGraphEntry() };
+    const first = (S.tree?.architecture || [])[0];
+    return { tab, entry: first ? entryForPath(first.path) : null };
   }
   if (tab === "features") {
     const f = featureBySlug(parts[1]);
@@ -67,6 +73,10 @@ function writeHash(entry) {
   }
   if (entry.tab === "overview") {
     history.replaceState(null, "", `#/overview/${encodeDocPath(entry.path)}`);
+    return;
+  }
+  if (entry.kind === "codegraph") {
+    history.replaceState(null, "", "#/architecture/graph");
     return;
   }
   let h = `#/${entry.tab}`;
@@ -98,7 +108,10 @@ function entryForTab(tab, preferredFeature) {
   if (S.tree?.mode === "docs") return docsEntryByTab(tab);
   if (tab === "overview") return firstOverviewEntry();
   if (tab === "context") return entryForPath(S.tree?.context?.path);
-  if (tab === "architecture") return entryForPath((S.tree?.architecture || [])[0]?.path);
+  if (tab === "architecture") {
+    if (S.tree?.graph) return codeGraphEntry();
+    return entryForPath((S.tree?.architecture || [])[0]?.path);
+  }
   const f = featureBySlug(preferredFeature) || (S.tree?.features || []).find((x) => x.specPath);
   return f?.specPath ? entryForPath(f.specPath) : null;
 }

@@ -1,5 +1,5 @@
 /* Shared temporary-workspace fixtures for the node:test suite. */
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -67,4 +67,11 @@ export async function writeTicket(dir, n, title, status, blockedBy, body) {
   const nn = String(n).padStart(2, "0");
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   await writeFile(path.join(dir, `${nn}-${slug}.md`), ticket(n, title, status, blockedBy, body));
+}
+
+/** Copy a graph fixture into the workspace's architecture folder. */
+export async function installGraph(ws, fixture = "graph.json") {
+  const body = await readFile(new URL(`./fixtures/${fixture}`, import.meta.url), "utf8");
+  await mkdir(path.join(ws, "architecture"), { recursive: true });
+  await writeFile(path.join(ws, "architecture", "graph.json"), body);
 }

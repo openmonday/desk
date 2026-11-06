@@ -3,6 +3,7 @@ import { readDoc, scanWorkspace } from "../lib/scan.mjs";
 import { scanDocs } from "../lib/docs/scan.mjs";
 import { readDocsAsset, readDocsDoc } from "../lib/docs/read.mjs";
 import { readNav } from "../lib/config.mjs";
+import { readCodeGraph } from "../lib/codegraph.mjs";
 import { attachEventStream } from "./events.mjs";
 import { serveStatic } from "./static.mjs";
 
@@ -42,6 +43,26 @@ export function createRequestHandler({ mode = "desk", workspace, docsRoot, publi
       try {
         const tree = await scan();
         return json(res, 200, docs ? tree : { ...tree, nav: await getNav() });
+      } catch (err) {
+        return json(res, 500, { ok: false, error: String(err?.message || err) });
+      }
+    }
+
+    if (!docs && route === "/api/codegraph") {
+      try {
+        const result = await readCodeGraph(workspace);
+        if (!result.ok) {
+          return json(res, result.missing ? 404 : 422, {
+            ok: false,
+            error: result.message || "code graph not found",
+          });
+        }
+        return json(res, 200, {
+          ok: true,
+          path: result.path,
+          mtime: result.mtime,
+          graph: result.graph,
+        });
       } catch (err) {
         return json(res, 500, { ok: false, error: String(err?.message || err) });
       }

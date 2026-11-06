@@ -1,7 +1,7 @@
 /* The left rail: features, tickets, and workspace diagnostics. */
 
 import {
-  S, entryForPath, featureIndex, key, num, plural, shortState, tallyText,
+  S, CODE_GRAPH_PATH, entryForPath, featureIndex, key, num, plural, shortState, tallyText,
   docsMode, docsSection, docsSections,
 } from "./state.js";
 import { cmd, el, glyph, progressLine, svgEl } from "./dom.js";
@@ -310,6 +310,21 @@ function docList() {
     })]);
   }
   if (S.tab === "architecture") {
+    const parts = [];
+    if (t.graph) {
+      const symbols = t.graph.symbols ?? 0;
+      const edges = t.graph.edges ?? 0;
+      parts.push(el("ul", { class: "tree cg-entry" }, [row({
+        cls: "row-graph",
+        lead: el("span", { class: "row-lead" }, [el("span", { class: "row-n" }, ["graph"])]),
+        label: "Code graph",
+        sub: `${symbols} · ${edges}`,
+        active: S.doc?.kind === "codegraph",
+        path: CODE_GRAPH_PATH,
+        title: `Code graph — ${symbols} symbols, ${edges} edges`,
+        onClick: () => actions.open(CODE_GRAPH_PATH),
+      })]));
+    }
     const fallback = (t.architecture || []).map((r) => ({
       type: "file",
       name: r.path.split("/").pop(),
@@ -317,7 +332,8 @@ function docList() {
       title: r.title,
     }));
     const root = dirRoot("architecture", fallback);
-    return root ? el("ul", { class: "tree doc-tree" }, [docsNode(root)]) : null;
+    if (root) parts.push(el("ul", { class: "tree doc-tree" }, [docsNode(root)]));
+    return parts.length ? el("div", { class: "arch-rail" }, parts) : null;
   }
   return featureRoot(t.features, "features");
 }

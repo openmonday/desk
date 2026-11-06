@@ -7,6 +7,7 @@ import { cmd, el, glyph } from "./dom.js";
 import { article } from "./refs.js";
 import { mdToNodes } from "./markdown.js";
 import { encodeDocPath } from "./docs-path.js";
+import { renderCodeGraph } from "./codegraph.js";
 
 function emptyArticle() {
   const page = (title, ...kids) => [el("h1", {}, [title]), el("p", { class: "empty" }, kids)];
@@ -182,6 +183,12 @@ async function renderArticle() {
   if (!S.tree || S.tree.ok === false || !S.doc) {
     article.textContent = "";
     article.append(...emptyArticle());
+    return true;
+  }
+
+  if (S.doc.kind === "codegraph") {
+    article.textContent = "";
+    article.append(renderCodeGraph(S.doc.codegraph, { error: S.doc.codegraphError }));
     return true;
   }
 

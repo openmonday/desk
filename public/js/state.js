@@ -1,5 +1,7 @@
 /* Shared page state, ticket-state derivations, and small helpers. */
 
+export const CODE_GRAPH_PATH = "architecture/graph.json";
+
 const S = {
   tab: "features",
   tree: null,
@@ -149,6 +151,16 @@ function firstOverviewEntry() {
   return file ? overviewEntryForPath(file.path) : null;
 }
 
+function codeGraphEntry() {
+  return {
+    kind: "codegraph",
+    path: CODE_GRAPH_PATH,
+    title: "Code graph",
+    tab: "architecture",
+    summary: S.tree?.graph || null,
+  };
+}
+
 function entryForPath(path) {
   const t = S.tree;
   if (!t || !path) return null;
@@ -169,6 +181,7 @@ function entryForPath(path) {
     }
     return docsEntryByPath(path);
   }
+  if (path === CODE_GRAPH_PATH && t.graph) return codeGraphEntry();
   if (t.context?.path === path && t.context?.exists) {
     return { kind: "context", path, title: t.context.title || "Context", tab: "context" };
   }
@@ -298,6 +311,7 @@ function treeSignature(tree) {
       (f.tickets || []).map((t) => [t.n, t.status, t.statusRaw, t.title, t.blockedBy.join(",")]),
     ]),
     files: docsPaths(tree.files ? [tree.files] : []),
+    graph: tree.graph ? [tree.graph.path, tree.graph.symbols, tree.graph.edges, tree.graph.mtime] : null,
   });
 }
 
@@ -312,7 +326,7 @@ function docTitle() {
 }
 
 export {
-  S, num, key, plural, narrow, featureBySlug, entryForPath,
+  S, num, key, plural, narrow, featureBySlug, entryForPath, codeGraphEntry,
   docsMode, docsSections, docsSection, docsEntryByTab, defaultDocsEntry,
   docsEntryForFeature, docsFeatureByPath, firstOverviewEntry, tabDefs,
   configuredDefault, KIND_LABEL, featureIndex, stateOf, shortState, tally,
