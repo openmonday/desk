@@ -320,7 +320,7 @@ function nodeElement(node, point, model, labelAll) {
   const place = `${node.file || "external"}${node.span ? `, ${spanText(node.span)}` : ""}`;
   const label = node.name.length > 28 ? `${node.name.slice(0, 26)}…` : node.name;
   const spoken = `${node.name}, ${node.kind}, ${place}. ${incoming} incoming and ${outgoing} outgoing edges.`;
-  const labelled = view.labels || labelAll || node.degree >= 8 || view.selected === node.id;
+  const labelled = view.labels || labelAll || node.degree >= 16 || view.selected === node.id;
 
   const group = svgEl("g", {
     class: `cg-node cg-node-${node.category}${view.selected === node.id ? " is-selected" : ""}${labelled ? " is-labelled" : ""}`,
@@ -407,7 +407,7 @@ function setSelection(refs, model, id) {
   for (const [nodeId, group] of refs.nodeElements) {
     const on = nodeId === id;
     group.classList.toggle("is-selected", on);
-    group.classList.toggle("is-labelled", view.labels || refs.labelAll || (refs.nodes.get(nodeId)?.degree || 0) >= 8 || on);
+    group.classList.toggle("is-labelled", view.labels || refs.labelAll || (refs.nodes.get(nodeId)?.degree || 0) >= 16 || on);
     group.setAttribute("aria-pressed", String(on));
   }
   refs.detail.replaceChildren(detailBlock(model, node || null));
