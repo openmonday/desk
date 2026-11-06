@@ -16,7 +16,7 @@ files:
   - public/js/hash.js
   - public/js/rail.js
   - public/styles/codegraph.css
-since: ef12e279cc174fdc413d8514ca07ca2bc6f7696d
+since: 20ba6e154c6dad450072f055b4a786db8cf2262c
 ---
 
 # Architecture code graph
