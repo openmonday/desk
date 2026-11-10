@@ -6,7 +6,7 @@
  * reachable. Hidden folders and common generated folders are ignored. */
 import fs from "node:fs/promises";
 import path from "node:path";
-import { firstH1, titleCase } from "../markdown.mjs";
+import { titleCase } from "../markdown.mjs";
 import { scanFeatures } from "../tickets/scan.mjs";
 
 const DOC_RE = /\.(md|markdown)$/i;
@@ -21,10 +21,6 @@ const natural = (a, b) => collator.compare(a, b);
 /** True for a Markdown document. The server and client both use this rule. */
 export function isDocName(name) {
   return DOC_RE.test(name);
-}
-
-function prettyName(name) {
-  return titleCase(name.replace(DOC_RE, ""));
 }
 
 function isIgnored(name) {
@@ -92,12 +88,11 @@ async function readDocMeta(root, rel, state) {
     state.diagnostics.push({ severity: "warn", path: rel, message: "document is larger than 2 MB and was skipped" });
     return null;
   }
-  const md = await fs.readFile(abs, "utf8").catch(() => null);
-  if (md == null) return null;
+  const name = path.basename(rel);
   return {
-    name: path.basename(rel),
+    name,
     path: rel.split(path.sep).join("/"),
-    title: firstH1(md) || prettyName(path.basename(rel)),
+    title: name,
     mtime: st.mtimeMs,
   };
 }

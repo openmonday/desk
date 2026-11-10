@@ -48,6 +48,7 @@ test("scanWorkspace builds the page model", async (t) => {
     ["dir", "architecture"],
     ["dir", "features"],
   ]);
+  assert.equal(tree.files.children[0].title, "CONTEXT.md");
   const arch = tree.files.children.find((n) => n.path === "architecture");
   assert.equal(arch.title, "architecture");
   assert.deepEqual(arch.children.map((n) => n.path), ["architecture/one.md"]);

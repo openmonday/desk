@@ -5,7 +5,6 @@
  * real tree. Only Markdown documents are included, matching the read route. */
 import fs from "node:fs/promises";
 import path from "node:path";
-import { firstH1, titleCase } from "./markdown.mjs";
 import { isCodeGraphPath } from "./codegraph.mjs";
 
 const DOC_RE = /\.md$/i;
@@ -19,10 +18,6 @@ const natural = (a, b) => collator.compare(a, b);
 
 function isIgnored(name) {
   return name.startsWith(".") || IGNORED.has(name);
-}
-
-function prettyName(name) {
-  return titleCase(name.replace(DOC_RE, ""));
 }
 
 /** README/index files first, then other documents, then subfolders. */
@@ -48,14 +43,13 @@ async function readFileNode(root, rel, state) {
   const abs = path.join(root, rel);
   const st = await fs.stat(abs).catch(() => null);
   if (!st?.isFile() || st.size > MAX_DOC_BYTES) return null;
-  const md = await fs.readFile(abs, "utf8").catch(() => null);
-  if (md == null) return null;
   state.count += 1;
+  const name = path.basename(rel);
   return {
     type: "file",
-    name: path.basename(rel),
+    name,
     path: rel.split(path.sep).join("/"),
-    title: firstH1(md) || prettyName(path.basename(rel)),
+    title: name,
     mtime: st.mtimeMs,
   };
 }

@@ -159,9 +159,9 @@ line leading to the open document, like the folder icons along that branch, is
 clay. Tree labels stay on one line and ellipsize when long; navigating to a
 nested document opens its folder branch automatically. Folder rows use mono
 type with a trailing `/` and a document count; a collapsed folder ends in `/ …`.
-Files are plain titles; the open document gets a clay label wash, and every
-file title underlines on hover. The rail heading shows the current section
-name. Fenced code blocks are
+Files show their real filenames, never the Markdown H1; the open document gets
+a clay label wash, and every filename underlines on hover. The rail heading
+shows the current section name. Fenced code blocks are
 highlighted locally by language (language-less blocks fall back to detection
 when confident). Relative Markdown links become in-page links, and local
 images, PDFs, and media load through a path-confined asset route. The URL

@@ -162,6 +162,7 @@ curl -s 'localhost:7777/api/events'          # SSE
 In workspace mode, `/api/tree` also includes `files`, the `.desk/` Markdown
 tree used by the Overview tab. Directories have `name`, `path`, `title`,
 `count`, and `children`; files have `name`, `path`, `title`, and `mtime`.
+For files, `title` is the filename, not the document H1.
 
 When `architecture/graph.json` is present, `/api/tree` adds a small `graph`
 summary and never the document itself:
