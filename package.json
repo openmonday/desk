@@ -1,11 +1,11 @@
 {
-  "name": "desk",
+  "name": "leaf",
   "version": "0.1.0",
   "private": true,
   "description": "A live, read-only view of a .context workspace or a Markdown docs folder.",
   "type": "module",
   "bin": {
-    "desk": "./src/desk.mjs"
+    "leaf": "./src/leaf.mjs"
   },
   "engines": {
     "node": ">=18"

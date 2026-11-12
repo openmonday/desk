@@ -59,7 +59,7 @@ It works.
 `;
 
 export async function makeWorkspace() {
-  const root = await mkdtemp(path.join(os.tmpdir(), "desk-test-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "leaf-test-"));
   const ws = path.join(root, ".context");
   const issue = path.join(ws, "issues", "demo");
   await mkdir(path.join(issue, "tasks"), { recursive: true });

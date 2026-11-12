@@ -1,4 +1,4 @@
-# desk usage and API
+# leaf usage and API
 
 A live, read-only view of a `.context/` workspace or any folder of Markdown.
 Edit the files in any editor; the page follows.
@@ -6,12 +6,12 @@ Edit the files in any editor; the page follows.
 ```text
 src/
 ├── serve.mjs        HTTP server: reads and live events
-├── desk.mjs         CLI: open a path, list and stop servers
+├── leaf.mjs         CLI: open a path, list and stop servers
 ├── cli/             argument grammar, target detection, hash routes
 ├── server/          request handling, SSE, static assets, watcher
 └── lib/             scanners, settings, reads, running-server registry
 public/              shell, styles, client modules, vendored marked, highlight.js, KaTeX
-scripts/             setup-cli.sh: link and verify the global `desk` command
+scripts/             setup-cli.sh: link and verify the global `leaf` command
 test/                scanner, docs, report, target, and server tests
 tools/shot.mjs       headless screenshot helper
 ```
@@ -21,17 +21,17 @@ No dependencies, no build step. Node 18+.
 ## Commands
 
 ```text
-desk [open] [path] [options]
-desk list [--json]
-desk kill (--all | <pid>...) [--force]
-desk config [command]
-desk help [command]
+leaf [open] [path] [options]
+leaf list [--json]
+leaf kill (--all | <pid>...) [--force]
+leaf config [command]
+leaf help [command]
 ```
 
-`open` is the default command, so `desk notes` and `desk open notes` are the
+`open` is the default command, so `leaf notes` and `leaf open notes` are the
 same. The first positional token is a command only when it is not escaped by
-`--`. A folder literally named `list` therefore opens with `desk open list` or
-`desk -- list`; `desk list` always lists servers.
+`--`. A folder literally named `list` therefore opens with `leaf open list` or
+`leaf -- list`; `leaf list` always lists servers.
 
 The CLI follows these conventions:
 
@@ -44,17 +44,17 @@ The CLI follows these conventions:
 ## Open a path
 
 ```bash
-npm link                                # once, makes `desk` global
-desk                                    # current folder
-desk .context                           # workspace view
-desk .context/issues                    # issues
-desk .context/map                       # map records
-desk .context/GLOSSARY.md               # the glossary
-desk .context/map/server/http.md        # that record
-desk .context/issues/demo/spec.md       # that spec
-desk .context/issues/demo/tasks/cache.md  # that task (route uses its number)
-desk ~/notes                            # Markdown library
-desk ~/notes/guides/install.md          # open that document
+npm link                                # once, makes `leaf` global
+leaf                                    # current folder
+leaf .context                           # workspace view
+leaf .context/issues                    # issues
+leaf .context/map                       # map records
+leaf .context/GLOSSARY.md               # the glossary
+leaf .context/map/server/http.md        # that record
+leaf .context/issues/demo/spec.md       # that spec
+leaf .context/issues/demo/tasks/cache.md  # that task (route uses its number)
+leaf ~/notes                            # Markdown library
+leaf ~/notes/guides/install.md          # open that document
 ```
 
 The target decides the mode:
@@ -68,7 +68,7 @@ The target decides the mode:
 | any other Markdown file | library from its own folder |
 | another non-Markdown file | error |
 
-A Markdown file opens from its own folder (`desk notes/today.md` serves
+A Markdown file opens from its own folder (`leaf notes/today.md` serves
 `notes/`). Workspace documents open at their record route; a workspace folder
 opens its section (`.context/issues` → issues, `.context/map` → the first
 record, `.context/issues/<slug>` → spec), and the workspace root opens on its
@@ -89,18 +89,18 @@ node src/serve.mjs --docs ~/notes --open
 ## Running servers
 
 Each listening server writes a record under
-`$XDG_STATE_HOME/desk/servers/<pid>.json` (default
-`~/.local/state/desk/servers`), and removes it on exit. `DESK_STATE_DIR`
+`$XDG_STATE_HOME/leaf/servers/<pid>.json` (default
+`~/.local/state/leaf/servers`), and removes it on exit. `LEAF_STATE_DIR`
 overrides the directory. Records are advisory; the HTTP server never depends on
 them.
 
 ```bash
-desk list                               # PID, PORT, MODE, URL, TARGET
-desk list --json                        # the full records
-desk kill 48213                         # stop by PID with SIGTERM
-desk kill 48213 48214                   # stop several servers
-desk kill --all                         # stop every visible server
-desk kill --force 48213                 # SIGKILL instead of SIGTERM
+leaf list                               # PID, PORT, MODE, URL, TARGET
+leaf list --json                        # the full records
+leaf kill 48213                         # stop by PID with SIGTERM
+leaf kill 48213 48214                   # stop several servers
+leaf kill --all                         # stop every visible server
+leaf kill --force 48213                 # SIGKILL instead of SIGTERM
 ```
 
 `list` prunes records whose PID is no longer alive. `kill` accepts only PIDs
@@ -110,15 +110,15 @@ mix `--all` with PIDs.
 ## Settings
 
 Workspace top-tab order, visibility, and the landing tab are global settings,
-changed through `desk config` (Markdown libraries keep their folder tabs):
+changed through `leaf config` (Markdown libraries keep their folder tabs):
 
 ```bash
-desk config                              # show settings and the file path
-desk config order issues map glossary
-desk config default issues
-desk config hide map
-desk config unhide map
-desk config reset
+leaf config                              # show settings and the file path
+leaf config order issues map glossary
+leaf config default issues
+leaf config hide map
+leaf config unhide map
+leaf config reset
 ```
 
 `order` sets the tab order, `default` picks the tab that opens when no document
@@ -126,8 +126,8 @@ is named, and `hide` removes a tab from the top bar (its routes still work).
 **Overview** is always the first workspace tab; the configurable sections are
 `glossary`, `map`, and `issues`. The old names `context`, `architecture`, and
 `features` are accepted as aliases so an existing config file keeps working.
-The file lives at `~/.config/desk/config.json`; `XDG_CONFIG_HOME` moves it and
-`DESK_CONFIG` points at another file. A long-running server reads the file per
+The file lives at `~/.config/leaf/config.json`; `XDG_CONFIG_HOME` moves it and
+`LEAF_CONFIG` points at another file. A long-running server reads the file per
 request, so a browser reload applies the change.
 
 ## Hash routes

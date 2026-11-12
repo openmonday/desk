@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  var KEY = "desk.theme";
+  var KEY = "leaf.theme";
   var mode = "system";
   try {
     var saved = window.localStorage.getItem(KEY);

@@ -57,6 +57,6 @@ test("options are validated per command", () => {
   assert.doesNotThrow(() => validateOptions("open", { port: "8080", open: false, quiet: true }));
   assert.doesNotThrow(() => validateOptions("list", { json: true }));
   assert.doesNotThrow(() => validateOptions("kill", { all: true, force: true }));
-  assert.throws(() => validateOptions("list", { port: "8080" }), /not valid for "desk list"/);
-  assert.throws(() => validateOptions("config", { quiet: true }), /not valid for "desk config"/);
+  assert.throws(() => validateOptions("list", { port: "8080" }), /not valid for "leaf list"/);
+  assert.throws(() => validateOptions("config", { quiet: true }), /not valid for "leaf config"/);
 });

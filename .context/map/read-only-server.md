@@ -26,4 +26,4 @@ Serves the page shell and a small JSON/SSE API over `.context/`. A browser can o
 
 ## Architecture
 
-`src/serve.mjs` owns options, lifecycle, and the startup report. `src/server/http.mjs` maps the read routes and static assets, `events.mjs` owns SSE clients, `static.mjs` serves the shell and vendored libraries, and `watcher.mjs` debounces filesystem changes. `src/lib/servers.mjs` records running servers for `desk list` and `desk kill`. Workspace parsing is delegated to `src/lib/scan.mjs`.
+`src/serve.mjs` owns options, lifecycle, and the startup report. `src/server/http.mjs` maps the read routes and static assets, `events.mjs` owns SSE clients, `static.mjs` serves the shell and vendored libraries, and `watcher.mjs` debounces filesystem changes. `src/lib/servers.mjs` records running servers for `leaf list` and `leaf kill`. Workspace parsing is delegated to `src/lib/scan.mjs`.

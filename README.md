@@ -1,4 +1,4 @@
-# desk
+# leaf
 
 A live, read-only view of a `.context` engineering workspace or any folder of
 Markdown. You write Markdown; the page follows. No dependencies, no build step:
@@ -11,35 +11,35 @@ Everything stays local.
 npm start        # serve the sample workspace at http://127.0.0.1:7777
 npm run check    # scan once, print diagnostics, exit 1 on errors
 npm test         # run the test suite
-./scripts/setup-cli.sh  # link, verify, and install the `desk` command
+./scripts/setup-cli.sh  # link, verify, and install the `leaf` command
 ```
 
 ## Open something
 
 ```bash
-desk                                    # current folder
-desk ~/notes                            # a Markdown library
-desk .context                           # a workspace
-desk .context/issues                    # issues
-desk .context/issues/demo               # that issue's spec
-desk .context/issues/demo/tasks/cache-the-tree.md   # that task
-desk .context/map                       # map records
-desk .context/map/server/http.md        # that record
-desk .context/GLOSSARY.md               # the glossary
-desk .context/AGENTS.md                 # any other Markdown document
-desk open list                           # a folder literally named "list"
-desk -- list                             # same, using the option terminator
+leaf                                    # current folder
+leaf ~/notes                            # a Markdown library
+leaf .context                           # a workspace
+leaf .context/issues                    # issues
+leaf .context/issues/demo               # that issue's spec
+leaf .context/issues/demo/tasks/cache-the-tree.md   # that task
+leaf .context/map                       # map records
+leaf .context/map/server/http.md        # that record
+leaf .context/GLOSSARY.md               # the glossary
+leaf .context/AGENTS.md                 # any other Markdown document
+leaf open list                           # a folder literally named "list"
+leaf -- list                             # same, using the option terminator
 ```
 
 The first word is a command. `open` is the default, so a bare path does not
 need it. A command name always wins over a folder with the same name; use
-`desk open <path>` or put `--` before the path to open the folder itself.
+`leaf open <path>` or put `--` before the path to open the folder itself.
 
-On startup, desk lists every Markdown file it detected in the target and marks
+On startup, leaf lists every Markdown file it detected in the target and marks
 the document it opened. The list uses the same `●` / `○` treatment as the
 skills manager: filled means opened, hollow means available.
 
-`desk` decides the mode from the path. The workspace root (the folder that
+`leaf` decides the mode from the path. The workspace root (the folder that
 contains `.context/`), folders under `.context/`, and its documents open in the
 workspace view. Any other Markdown file opens as a Markdown library from its
 own folder. A task opens at its number route, which the page resolves from the
@@ -100,35 +100,35 @@ stay readable and linkable.
 ## Running servers
 
 Every server records itself after it starts listening, then removes the record
-when it exits. `desk list` reads those records, removes stale entries, and
-prints the PID, port, mode, URL, and target. `desk kill` stops the servers you
+when it exits. `leaf list` reads those records, removes stale entries, and
+prints the PID, port, mode, URL, and target. `leaf kill` stops the servers you
 name by PID:
 
 ```bash
-desk list                                # human-readable table
-desk list --json                         # machine-readable records
-desk kill 48213                          # stop one server with SIGTERM
-desk kill 48213 48214                    # stop several servers
-desk kill --all                          # stop every running desk server
-desk kill --force 48213                  # SIGKILL instead of SIGTERM
+leaf list                                # human-readable table
+leaf list --json                         # machine-readable records
+leaf kill 48213                          # stop one server with SIGTERM
+leaf kill 48213 48214                    # stop several servers
+leaf kill --all                          # stop every running leaf server
+leaf kill --force 48213                  # SIGKILL instead of SIGTERM
 ```
 
-Records live under `$XDG_STATE_HOME/desk/servers` (by default
-`~/.local/state/desk/servers`). `DESK_STATE_DIR` overrides the state directory.
+Records live under `$XDG_STATE_HOME/leaf/servers` (by default
+`~/.local/state/leaf/servers`). `LEAF_STATE_DIR` overrides the state directory.
 Only servers started by the current user are visible.
 
 ## Settings
 
 Settings for the `.context` workspace's top tabs are global (stored once per
-user, not per project) and changed with `desk config`:
+user, not per project) and changed with `leaf config`:
 
 ```bash
-desk config                              # show settings and the file path
-desk config order issues map glossary
-desk config default issues
-desk config hide map
-desk config unhide map
-desk config reset
+leaf config                              # show settings and the file path
+leaf config order issues map glossary
+leaf config default issues
+leaf config hide map
+leaf config unhide map
+leaf config reset
 ```
 
 `order` sets the top-tab order, `default` picks the tab that opens when you name
@@ -136,16 +136,16 @@ no document, and `hide` removes a tab from the top bar (the path still works).
 **Overview** is always the first workspace tab and is not configurable; the
 sections are `glossary`, `map`, and `issues`. The old names `context`,
 `architecture`, and `features` are accepted as aliases. Reload an open page to
-apply a change. Set `DESK_CONFIG` to use another file, or `XDG_CONFIG_HOME` to
-move the default `~/.config/desk/config.json`.
+apply a change. Set `LEAF_CONFIG` to use another file, or `XDG_CONFIG_HOME` to
+move the default `~/.config/leaf/config.json`.
 
 ## Markdown libraries
 
 Any folder of Markdown opens the same way:
 
 ```bash
-desk ~/notes
-desk ~/notes/guides/install.md
+leaf ~/notes
+leaf ~/notes/guides/install.md
 ```
 
 Every top-level folder becomes a tab and section; root-level Markdown files go
@@ -188,12 +188,12 @@ them with `--host 0.0.0.0` on an untrusted network.
 ├── .context/               sample workspace: glossary, map records, one issue
 ├── src/                    server and library code
 │   ├── serve.mjs           HTTP entry: options, workspace, lifecycle
-│   ├── desk.mjs            viewer CLI and server commands
+│   ├── leaf.mjs            viewer CLI and server commands
 │   ├── cli/                argument grammar, target detection and hash routes
 │   ├── server/             request handler, SSE, static assets, watcher
 │   └── lib/                scanners, task and record parsing, settings, reads
 ├── public/                 shell, styles, client modules, vendored libraries
-├── scripts/setup-cli.sh    link and verify the global `desk` command
+├── scripts/setup-cli.sh    link and verify the global `leaf` command
 ├── tools/shot.mjs          headless screenshot helper
 ├── docs/                   API reference, design brief, reference images
 └── test/                   node:test fixtures and tests

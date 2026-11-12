@@ -6,7 +6,7 @@ import test from "node:test";
 import { resolveTarget } from "../src/cli/target.mjs";
 
 async function makeTree(t) {
-  const root = await mkdtemp(path.join(os.tmpdir(), "desk-target-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "leaf-target-"));
   t.after(() => rm(root, { recursive: true, force: true }));
 
   await mkdir(path.join(root, ".context", "map", "server"), { recursive: true });

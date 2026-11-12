@@ -109,7 +109,7 @@ function reflowGraph() {
   }, 90);
 }
 
-const RAIL_KEY = "desk.rail";
+const RAIL_KEY = "leaf.rail";
 
 function railRange() {
   return [220, Math.min(560, Math.round(window.innerWidth * 0.45))];

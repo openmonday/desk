@@ -1,6 +1,6 @@
 # Assist Instructions
 
-Project-local conventions for the desk page. Read this file before planning, implementing, or reviewing work in this project.
+Project-local conventions for the leaf page. Read this file before planning, implementing, or reviewing work in this project.
 
 ## Files
 
@@ -23,7 +23,7 @@ Project-local conventions for the desk page. Read this file before planning, imp
 ## Rules
 
 - The page is read-only at runtime. The server exposes GET/HEAD only; do not add mutation endpoints, edit forms, or status changes.
-- `src/serve.mjs`, `src/lib/scan.mjs`, and `public/*` are the shell. Projects use them through `desk <path>`; they do not fork the shell.
+- `src/serve.mjs`, `src/lib/scan.mjs`, and `public/*` are the shell. Projects use them through `leaf <path>`; they do not fork the shell.
 - Markdown is the only document source. No database, generated data files, or runtime dependencies.
 - `reference/` holds checkouts of other projects. Never scan it, list it, or serve it as a document or asset.
 - Keep all runtime requests on localhost. No CDN, analytics, webfont requests, or embedded fonts.

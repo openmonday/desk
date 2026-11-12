@@ -11,7 +11,7 @@ function json(res, code, body) {
   res.end(JSON.stringify(body));
 }
 
-export function createRequestHandler({ mode = "desk", workspace, docsRoot, publicDir, clients, getNav = readNav }) {
+export function createRequestHandler({ mode = "leaf", workspace, docsRoot, publicDir, clients, getNav = readNav }) {
   const docs = mode === "docs";
   const scan = docs ? () => scanDocs(docsRoot) : () => scanWorkspace(workspace);
   const read = docs ? (rel) => readDocsDoc(docsRoot, rel) : (rel) => readDoc(workspace, rel);

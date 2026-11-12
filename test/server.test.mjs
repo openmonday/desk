@@ -29,7 +29,7 @@ async function listen(t, workspace, publicDir, mode = "context") {
 test("the viewer serves reads and refuses writes", async (t) => {
   const w = await makeWorkspace();
   t.after(w.cleanup);
-  const publicDir = await mkdtemp(path.join(os.tmpdir(), "desk-public-"));
+  const publicDir = await mkdtemp(path.join(os.tmpdir(), "leaf-public-"));
   t.after(() => rm(publicDir, { recursive: true, force: true }));
   const base = await listen(t, w.ws, publicDir);
 
@@ -56,7 +56,7 @@ test("workspace assets load, but reference checkouts stay private", async (t) =>
   t.after(w.cleanup);
   await writeFile(path.join(w.issue, "diagram.png"), Buffer.from("89504e470d0a1a0a", "hex"));
   await writeFile(path.join(w.reference, "other", "figure.png"), Buffer.from("89504e470d0a1a0a", "hex"));
-  const publicDir = await mkdtemp(path.join(os.tmpdir(), "desk-public-"));
+  const publicDir = await mkdtemp(path.join(os.tmpdir(), "leaf-public-"));
   t.after(() => rm(publicDir, { recursive: true, force: true }));
   const base = await listen(t, w.ws, publicDir);
 
@@ -74,7 +74,7 @@ test("workspace assets load, but reference checkouts stay private", async (t) =>
 test("the viewer serves vendored KaTeX fonts", async (t) => {
   const w = await makeWorkspace();
   t.after(w.cleanup);
-  const publicDir = await realpath(await mkdtemp(path.join(os.tmpdir(), "desk-public-")));
+  const publicDir = await realpath(await mkdtemp(path.join(os.tmpdir(), "leaf-public-")));
   t.after(() => rm(publicDir, { recursive: true, force: true }));
   await mkdir(path.join(publicDir, "katex", "fonts"), { recursive: true });
   const body = Buffer.from("wOF2\0\0\0\0", "binary");

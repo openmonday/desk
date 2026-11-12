@@ -8,7 +8,7 @@ import { readDocsAsset, readDocsDoc } from "../src/lib/docs/read.mjs";
 
 
 async function makeDocs() {
-  const root = await mkdtemp(path.join(os.tmpdir(), "desk-docs-test-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "leaf-docs-test-"));
   await mkdir(path.join(root, "context", "deep"), { recursive: true });
   await mkdir(path.join(root, "context", "assets"), { recursive: true });
   await mkdir(path.join(root, "architecture"), { recursive: true });
@@ -80,7 +80,7 @@ test("docs reads are confined to the root and markdown only", async (t) => {
 });
 
 test("a top-level overview folder does not collide with root files", async (t) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "desk-docs-home-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "leaf-docs-home-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(path.join(root, "overview"), { recursive: true });
   await writeFile(path.join(root, "README.md"), "# Home\n");
@@ -93,7 +93,7 @@ test("a top-level overview folder does not collide with root files", async (t) =
 });
 
 test("a top-level home folder does not shadow the root Overview section", async (t) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "desk-docs-home2-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "leaf-docs-home2-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(path.join(root, "home"), { recursive: true });
   await writeFile(path.join(root, "README.md"), "# Home\\n");

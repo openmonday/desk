@@ -32,7 +32,7 @@ function renderTabs() {
     const homeKey = navigatingDocs ? null : configuredDefault() || defs[0]?.key || "issues";
     const homeLabel = defs.find((d) => d.key === homeKey)?.label || "workspace";
     brand.href = navigatingDocs ? "#/docs" : `#/${homeKey}`;
-    brand.setAttribute("aria-label", navigatingDocs ? "desk — docs" : `desk — ${homeLabel}`);
+    brand.setAttribute("aria-label", navigatingDocs ? "leaf — docs" : `leaf — ${homeLabel}`);
   }
 
   // With many sections the tab strip scrolls; keep the selected tab in view.
@@ -52,7 +52,7 @@ let renderSeq = 0;
 
 async function render() {
   const seq = ++renderSeq;
-  document.title = S.doc ? `${docTitle()} · desk` : "desk";
+  document.title = S.doc ? `${docTitle()} · leaf` : "leaf";
   const applied = await renderArticle();
   if (!applied || seq !== renderSeq) return;
   renderGraph();

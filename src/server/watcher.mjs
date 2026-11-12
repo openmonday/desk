@@ -10,7 +10,7 @@ export function watchWorkspace(workspace, onChange) {
       onChange();
     });
   } catch (err) {
-    console.error(`desk page: live reload unavailable (${err.message}); the page still reads on demand.`);
+    console.error(`leaf page: live reload unavailable (${err.message}); the page still reads on demand.`);
     return null;
   }
 }

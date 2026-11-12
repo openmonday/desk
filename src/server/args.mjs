@@ -1,12 +1,12 @@
 /* Command-line options for the local viewer server.
  *
- * This is the internal server entry point used by `desk open`. Long options
+ * This is the internal server entry point used by `leaf open`. Long options
  * are kebab-case, values may be written as `--name value` or `--name=value`,
  * and boolean options never take a value.
  */
 
 export function usage() {
-  console.log(`desk page — live Markdown viewer
+  console.log(`leaf page — live Markdown viewer
 
   node src/serve.mjs [options]
 
@@ -25,7 +25,7 @@ const VALUE_OPTIONS = new Set(["root", "docs", "hash", "port", "host"]);
 const BOOLEAN_OPTIONS = new Set(["open", "check", "quiet"]);
 
 function fail(message) {
-  console.error(`desk page: ${message}`);
+  console.error(`leaf page: ${message}`);
   usage();
   process.exit(2);
 }

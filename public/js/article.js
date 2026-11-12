@@ -15,7 +15,7 @@ function emptyArticle() {
   }
   if (S.tree?.mode === "docs") {
     if (!(S.tree.sections || []).length) {
-      return page("No Markdown documents found", "Put .md files in this folder, or point desk at another folder with ", cmd("desk <dir>"), ".");
+      return page("No Markdown documents found", "Put .md files in this folder, or point leaf at another folder with ", cmd("leaf <dir>"), ".");
     }
     return page("Nothing to read here", "This section has no Markdown documents.");
   }

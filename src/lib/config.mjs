@@ -1,7 +1,7 @@
-/* Global desk settings, shared by the CLI and the page server.
+/* Global leaf settings, shared by the CLI and the page server.
  *
  * Settings live once per user (not per project) and are changed through
- * `desk config`. The file is optional: without it the built-in order applies.
+ * `leaf config`. The file is optional: without it the built-in order applies.
  */
 import fsp from "node:fs/promises";
 import os from "node:os";
@@ -10,7 +10,7 @@ import path from "node:path";
 export const SECTIONS = ["glossary", "map", "issues"];
 export const DEFAULT_NAV = { order: [...SECTIONS], hidden: [], default: null };
 
-/* Names used before `.context` replaced the `.desk` layout. An old config file
+/* Names used in the legacy workspace layout, before `.context`. An old config file
  * keeps working without a migration step. */
 const ALIASES = {
   context: "glossary",
@@ -32,11 +32,11 @@ export function assertSection(raw) {
 }
 
 export function configPath(env = process.env) {
-  if (env.DESK_CONFIG) return path.resolve(env.DESK_CONFIG);
+  if (env.LEAF_CONFIG) return path.resolve(env.LEAF_CONFIG);
   const base = env.XDG_CONFIG_HOME
     ? path.resolve(env.XDG_CONFIG_HOME)
     : path.join(os.homedir(), ".config");
-  return path.join(base, "desk", "config.json");
+  return path.join(base, "leaf", "config.json");
 }
 
 /** Fill missing sections, drop duplicates, and keep at least one visible. */
@@ -77,7 +77,7 @@ export async function resetNav(env = process.env) {
   return file;
 }
 
-/* Pure mutations used by `desk config`. */
+/* Pure mutations used by `leaf config`. */
 
 export function setOrder(nav, ids) {
   const current = normalizeNav(nav);

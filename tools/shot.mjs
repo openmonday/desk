@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Screenshot a running desk page with headless Chromium over CDP.
+/* Screenshot a running leaf page with headless Chromium over CDP.
  *
  * Chrome's own `--screenshot` flag never settles on this page because the page
  * holds an SSE connection open, so we drive Chromium through the DevTools
@@ -38,7 +38,7 @@ function findChrome() {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const profile = fs.mkdtempSync(path.join(os.tmpdir(), "desk-shot-"));
+const profile = fs.mkdtempSync(path.join(os.tmpdir(), "leaf-shot-"));
 const chrome = spawn(findChrome(), [
   "--remote-debugging-port=0",
   `--user-data-dir=${profile}`,

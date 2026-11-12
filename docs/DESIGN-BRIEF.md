@@ -1,4 +1,4 @@
-# Design brief — beautify the desk page
+# Design brief — beautify the leaf page
 
 > Historical brief. The app now lives in `src/` (server and library) and
 > `public/` (shell, styles, client modules). The layout has been split since
@@ -14,8 +14,8 @@ contracts below are fixed.
 
 ## What this is
 
-`desk` is a local web page for an engineering workspace. A project keeps a
-`.desk/` directory containing a glossary (`CONTEXT.md`), architecture records
+`leaf` is a local web page for an engineering workspace. A project keeps a
+legacy workspace directory containing a glossary (`CONTEXT.md`), architecture records
 (`architecture/*.md`), and feature specs with tickets (`features/<slug>/{spec.md,tickets/NN-*.md}`).
 The page renders that workspace live, and it is also the control surface an AI
 agent drives: tickets are added, edited, started, and completed by writing those
@@ -27,7 +27,7 @@ while the human watches.
 ## Run it
 
 ```bash
-cd /Users/openmonday/projects/desk
+cd /path/to/leaf
 node src/serve.mjs --root . --open        # http://127.0.0.1:7777 (falls forward)
 node src/serve.mjs --check --root .       # scan + diagnostics, exit 1 on errors
 ```
@@ -38,11 +38,11 @@ browser is enough for CSS/JS changes, while `serve.mjs` changes need a restart.
 ## Where things are
 
 ```text
-/Users/openmonday/projects/desk/
-├── .desk/                      sample workspace (5 tickets, 4 architecture records) — test data
+/path/to/leaf/
+├── legacy-workspace/                      sample workspace (5 tickets, 4 architecture records) — test data
 ├── src/                        server and library code; edit here
 │   ├── serve.mjs               HTTP server: reads, ticket writes, SSE
-│   ├── desk.mjs                agent CLI (add / update / done / rm / list / check / page)
+│   ├── leaf.mjs                agent CLI (add / update / done / rm / list / check / page)
 │   ├── server/                 request handler, SSE, static assets, watcher
 │   ├── lib/scan.mjs            workspace → page model
 │   └── lib/ticket.mjs          ticket file writer
@@ -77,7 +77,7 @@ upstream template, not this copy.
   a rail-dot pulse, a node check + ring, and a toast.
 - Spec view draws a ticket dependency graph; clicking a node opens the ticket and
   syncs the rail (active row + scroll into view).
-- `desk.mjs` behaves as documented. The viewer is read-only; ticket status
+- `leaf.mjs` behaves as documented. The viewer is read-only; ticket status
   changes are ordinary Markdown edits and appear over SSE.
 
 ## The brief
@@ -189,7 +189,7 @@ If you have a better idea than anything above, do it and explain the tradeoff.
   data files, or stored UI state beyond the URL hash.
 - CSP: no inline `<script>`; `style-src` allows inline styles. No external fonts,
   images, or analytics.
-- Do not touch `.desk/` content except temporary tickets you create for testing
+- Do not touch legacy workspace content except temporary tickets you create for testing
   (delete them afterwards). The five sample tickets describe the original
   read-only template and are intentionally stale in places.
 - Do not reintroduce the removed Share and Tree rail blocks.
@@ -205,17 +205,17 @@ Run the server and exercise the real flows:
 node src/serve.mjs --check --root .          # expect: no diagnostics
 
 # horizontal graph with branches and a merge, then clean up
-node src/desk.mjs add plan-page-template --title "Branch A" --blocked-by 02
-node src/desk.mjs add plan-page-template --title "Branch B" --blocked-by 02
-node src/desk.mjs add plan-page-template --title "Merge point" --blocked-by 06,07
-node src/desk.mjs done plan-page-template 8
-node src/desk.mjs rm plan-page-template 8
-node src/desk.mjs rm plan-page-template 7
-node src/desk.mjs rm plan-page-template 6
+node src/leaf.mjs add plan-page-template --title "Branch A" --blocked-by 02
+node src/leaf.mjs add plan-page-template --title "Branch B" --blocked-by 02
+node src/leaf.mjs add plan-page-template --title "Merge point" --blocked-by 06,07
+node src/leaf.mjs done plan-page-template 8
+node src/leaf.mjs rm plan-page-template 8
+node src/leaf.mjs rm plan-page-template 7
+node src/leaf.mjs rm plan-page-template 6
 
 # live change while the page is open (completion animation)
-node src/desk.mjs update plan-page-template 5 --status in-progress
-node src/desk.mjs done plan-page-template 5
+node src/leaf.mjs update plan-page-template 5 --status in-progress
+node src/leaf.mjs done plan-page-template 5
 ```
 
 Screenshots: **do not use Chrome's `--screenshot` flag** — the page holds an SSE

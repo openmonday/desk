@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* desk page server — a live, read-only view of a `.context` workspace or a
+/* leaf page server — a live, read-only view of a `.context` workspace or a
  * folder of Markdown. Reads are plain JSON; edits to the files broadcast over SSE,
  * which is what makes the page move while an agent or editor writes. */
 import http from "node:http";
@@ -34,7 +34,7 @@ async function main() {
       : await findWorkspace(process.cwd());
 
   if (!docsRoot && !workspace) {
-    console.error("desk: no .context directory found. Run /setup-context first, or pass --root or --docs.");
+    console.error("leaf: no .context directory found. Run /setup-context first, or pass --root or --docs.");
     process.exit(1);
   }
 
@@ -45,7 +45,7 @@ async function main() {
     if (mode === "docs") {
       const tree = await scanDocs(root);
       const r = reportDocs(tree);
-      console.log(`desk  ${root}`);
+      console.log(`leaf  ${root}`);
       console.log(`  ${count(r.sections, "section")} · ${count(r.docs, "document")}`);
       if (r.diagnostics) {
         console.log(`  ${r.diagnostics} diagnostics:`);
@@ -57,7 +57,7 @@ async function main() {
     }
     const tree = await scanWorkspace(root);
     const r = report(tree);
-    console.log(`desk  ${root}`);
+    console.log(`leaf  ${root}`);
     console.log(`  ${count(r.issues, "issue")} · ${count(r.tasks, "task")} (${r.done} done) · ${count(r.records, "map record")}`);
     if (r.diagnostics) {
       console.log(`  ${r.diagnostics} diagnostics:`);
@@ -94,7 +94,7 @@ async function main() {
   try {
     port = await listen(opts.port);
   } catch (err) {
-    console.error(`desk page: cannot listen — ${err.message}`);
+    console.error(`leaf page: cannot listen — ${err.message}`);
     process.exit(1);
   }
 
@@ -112,14 +112,14 @@ async function main() {
       startedAt: new Date().toISOString(),
     });
   } catch (err) {
-    if (!opts.quiet) console.error(`desk page: cannot record running server — ${err.message}`);
+    if (!opts.quiet) console.error(`leaf page: cannot record running server — ${err.message}`);
   }
 
   if (!opts.quiet) {
     if (mode === "docs") {
       const tree = await scanDocs(root);
       const r = reportDocs(tree);
-      console.log(`desk  ${url}  (live)`);
+      console.log(`leaf  ${url}  (live)`);
       console.log(`  ${root}`);
       console.log();
       console.log(formatFileList(tree, opts.hash));
@@ -129,7 +129,7 @@ async function main() {
     } else {
       const tree = await scanWorkspace(root);
       const r = report(tree);
-      console.log(`desk  ${url}  (live)`);
+      console.log(`leaf  ${url}  (live)`);
       console.log(`  ${root}`);
       console.log();
       console.log(formatFileList(tree, opts.hash));
@@ -159,6 +159,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(`desk page: ${err?.stack || err}`);
+  console.error(`leaf page: ${err?.stack || err}`);
   process.exit(1);
 });

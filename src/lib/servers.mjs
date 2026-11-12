@@ -1,7 +1,7 @@
-/* Running desk servers, recorded once per user.
+/* Running leaf servers, recorded once per user.
  *
  * Each server writes a small JSON record after it starts listening and removes
- * it on the way out. `desk list` and `desk kill` read the same records, pruning
+ * it on the way out. `leaf list` and `leaf kill` read the same records, pruning
  * entries whose process is gone. The records are advisory state: the HTTP
  * server never depends on them.
  */
@@ -11,11 +11,11 @@ import os from "node:os";
 import path from "node:path";
 
 export function stateDir(env = process.env) {
-  if (env.DESK_STATE_DIR) return path.resolve(env.DESK_STATE_DIR);
+  if (env.LEAF_STATE_DIR) return path.resolve(env.LEAF_STATE_DIR);
   const base = env.XDG_STATE_HOME
     ? path.resolve(env.XDG_STATE_HOME)
     : path.join(os.homedir(), ".local", "state");
-  return path.join(base, "desk");
+  return path.join(base, "leaf");
 }
 
 export function serverDir(env = process.env) {

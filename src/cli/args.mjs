@@ -1,7 +1,7 @@
-/* Command-line grammar for the desk CLI.
+/* Command-line grammar for the leaf CLI.
  *
- * Grammar: `desk <command> [arguments] [options]`. `open` is the default
- * command, so `desk path` and `desk open path` mean the same thing. The first
+ * Grammar: `leaf <command> [arguments] [options]`. `open` is the default
+ * command, so `leaf path` and `leaf open path` mean the same thing. The first
  * positional token is a command only when it is not escaped by `--`; this is
  * how a path literally named `list` or `kill` stays reachable.
  */
@@ -98,7 +98,7 @@ export function validateOptions(command, options) {
   for (const key of Object.keys(options)) {
     if (!allowed.has(key)) {
       const label = OPTION_LABELS[key] || `--${key}`;
-      throw new Error(`${label} is not valid for "desk ${command}"`);
+      throw new Error(`${label} is not valid for "leaf ${command}"`);
     }
   }
 }

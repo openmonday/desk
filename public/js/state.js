@@ -282,7 +282,7 @@ function treeSignature(tree) {
 /* ---------- rail ---------- */
 
 function docTitle() {
-  if (!S.doc) return "desk";
+  if (!S.doc) return "leaf";
   if (S.doc.kind === "spec") return S.doc.issue.title;
   if (S.doc.kind === "task") return `${num(S.doc.task.n)} ${S.doc.task.title}`;
   if (S.doc.kind === "research") return `${S.doc.issue.title} · Research`;

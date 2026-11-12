@@ -20,7 +20,7 @@ die()  { printf '%s✖ Error:%s %s\n' "$RED" "$RESET" "$1" >&2; exit 1; }
 
 command -v npm >/dev/null 2>&1 || die "npm is required. Install Node.js and try again."
 
-PKG_NAME="$(node -p "require('$PROJECT_DIR/package.json').name" 2>/dev/null || echo desk)"
+PKG_NAME="$(node -p "require('$PROJECT_DIR/package.json').name" 2>/dev/null || echo leaf)"
 GLOBAL_PREFIX="$(npm prefix --global)"
 CLI_PATH="$GLOBAL_PREFIX/bin/$PKG_NAME"
 

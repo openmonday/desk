@@ -1,4 +1,4 @@
-/* Resolve `desk <path>` into a server mode, a root, and an initial hash route.
+/* Resolve `leaf <path>` into a server mode, a root, and an initial hash route.
  *
  * The workspace view is for the `.context/` directory, folders under it, and
  * the Markdown files recorded there. Reference checkouts under
@@ -13,7 +13,7 @@ import { parseTask } from "../lib/tasks/parse.mjs";
 
 const DOC_RE = /\.(md|markdown)$/i;
 
-const fail = (message) => Object.assign(new Error(message), { desk: true });
+const fail = (message) => Object.assign(new Error(message), { leaf: true });
 const toPosix = (p) => p.split(path.sep).join("/");
 
 /** Same encoding as public/js/docs-path.js, so the hash route matches. */

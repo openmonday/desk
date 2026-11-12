@@ -11,7 +11,7 @@ import { makeWorkspace } from "./helpers.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SERVE = path.join(HERE, "..", "src", "serve.mjs");
-const DESK = path.join(HERE, "..", "src", "desk.mjs");
+const LEAF = path.join(HERE, "..", "src", "leaf.mjs");
 
 async function waitFor(read, timeout = 5000) {
   const deadline = Date.now() + timeout;
@@ -24,7 +24,7 @@ async function waitFor(read, timeout = 5000) {
 }
 
 async function run(args, env) {
-  const child = spawn(process.execPath, [DESK, ...args], { env, stdio: ["ignore", "pipe", "pipe"] });
+  const child = spawn(process.execPath, [LEAF, ...args], { env, stdio: ["ignore", "pipe", "pipe"] });
   let stdout = "";
   child.stdout.setEncoding("utf8");
   child.stdout.on("data", (chunk) => { stdout += chunk; });
@@ -32,13 +32,13 @@ async function run(args, env) {
   return { code, stdout };
 }
 
-test("desk list and desk kill see a running server", async (t) => {
+test("leaf list and leaf kill see a running server", async (t) => {
   const workspace = await makeWorkspace();
-  const state = await mkdtemp(path.join(os.tmpdir(), "desk-state-"));
+  const state = await mkdtemp(path.join(os.tmpdir(), "leaf-state-"));
   t.after(() => rm(state, { recursive: true, force: true }));
   t.after(workspace.cleanup);
 
-  const env = { ...process.env, DESK_STATE_DIR: state };
+  const env = { ...process.env, LEAF_STATE_DIR: state };
   const server = spawn(process.execPath, [SERVE, "--root", workspace.ws, "--port", "0", "--quiet"], {
     env,
     stdio: ["ignore", "ignore", "pipe"],

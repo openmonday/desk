@@ -127,7 +127,7 @@ function loadScript(src) {
     const script = document.createElement("script");
     script.src = src;
     script.async = true;
-    script.dataset.deskKatex = "";
+    script.dataset.leafKatex = "";
     script.onload = () => resolve();
     script.onerror = () => reject(new Error(`Could not load ${src}`));
     document.head.append(script);
@@ -139,7 +139,7 @@ function loadStyle(href) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = href;
-    link.dataset.deskKatex = "";
+    link.dataset.leafKatex = "";
     link.onload = () => resolve();
     // Missing styling should not take the formulas or the page down.
     link.onerror = () => resolve();

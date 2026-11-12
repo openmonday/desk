@@ -1,4 +1,4 @@
-/* Read-only JSON requests to the local desk server. */
+/* Read-only JSON requests to the local leaf server. */
 
 async function api(path) {
   const res = await fetch(path, { cache: "no-store" });

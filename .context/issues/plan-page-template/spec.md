@@ -38,7 +38,7 @@ A read-only local page that renders the whole workspace as one navigable documen
 - The browser converts markdown with the vendored parser, sanitizes the result, assigns stable deduplicated heading IDs, and rewrites relative links and images to page routes.
 - The URL hash is the source of truth for the open document: `#/glossary`, `#/map/<record>`, `#/issues/<issue>`, `#/issues/<issue>/research`, `#/issues/<issue>/<task-number>`.
 - Live updates arrive through a server-sent event stream. The client debounces a tree refresh and reloads the open document in place.
-- The rail is independently scrollable on desktop, and the whole page scrolls on narrow screens.
+- The rail is independently scrollable on wide screens, and the whole page scrolls on narrow screens.
 - Typography uses the locally installed Anthropic families by name. No font is embedded or fetched.
 - Diagnostics are part of the tree payload and are also produced client-side when markdown cannot be rendered.
 
@@ -62,7 +62,7 @@ None
 
 - Test the scanner against real `.context` shapes and against malformed fixtures: missing status, unknown status, missing spec, dangling blocker, cycle, and malformed heading.
 - Test the server contract with HTTP requests: tree shape, document payload, raw markdown, SSE change notification, path traversal rejection, and 405 on writes.
-- Test the rendered page at desktop and 390px widths: default spec, tab switching, TREE jumps, active section, progress, task meta, diagnostics, and independent scrolling.
+- Test the rendered page at wide screens and 390px widths: default spec, tab switching, TREE jumps, active section, progress, task meta, diagnostics, and independent scrolling.
 - Judge external behavior rather than implementation details. A good test asserts what a reader can see or what the API returns, not internal class names.
 - Verify `--check` exits 1 on an error diagnostic and 0 on a clean workspace.
 - Confirm no runtime request targets a non-local origin.

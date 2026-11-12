@@ -17,7 +17,7 @@ test("findWorkspace walks up to the .context directory", async (t) => {
 });
 
 test("findWorkspace ignores a .context directory with nothing it knows", async (t) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "desk-empty-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "leaf-empty-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(path.join(root, ".context", "logs"), { recursive: true });
   assert.equal(await findWorkspace(root), null);
@@ -181,7 +181,7 @@ test("a record without front matter warns and still renders", async (t) => {
 
 test("readDoc stays inside the workspace and out of reference", async (t) => {
   const w = await makeWorkspace();
-  const outside = await mkdtemp(path.join(os.tmpdir(), "desk-outside-"));
+  const outside = await mkdtemp(path.join(os.tmpdir(), "leaf-outside-"));
   t.after(async () => {
     await w.cleanup();
     await rm(outside, { recursive: true, force: true });

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* desk — open a Markdown file or folder in the live page, and manage the
+/* leaf — open a Markdown file or folder in the live page, and manage the
  * servers started by earlier invocations.
  *
  * The page decides what it is looking at: a `.context` workspace when the
@@ -23,11 +23,11 @@ import { listServers, stopServer } from "./lib/servers.mjs";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 const HELP = `Usage:
-  desk [open] [path] [options]
-  desk list [--json]
-  desk kill (--all | <pid>...) [--force]
-  desk config [command]
-  desk help [command]
+  leaf [open] [path] [options]
+  leaf list [--json]
+  leaf kill (--all | <pid>...) [--force]
+  leaf config [command]
+  leaf help [command]
 
 Open a Markdown file or folder in the live page. Folders under .context, the
 workspace root, and the glossary, map records, and issues open the workspace
@@ -37,8 +37,8 @@ document.
 
 Commands:
   open [path]        Open a path (the default command)
-  list               List running desk servers
-  kill               Stop running desk servers by PID
+  list               List running leaf servers
+  kill               Stop running leaf servers by PID
   config             Show or change workspace settings
   help [command]     Show this help, or help for one command
 
@@ -53,53 +53,53 @@ Open options:
 A command name is always a command. To open a folder with the same name, use
 the open command or the option terminator:
 
-  desk open list
-  desk -- list
+  leaf open list
+  leaf -- list
 
 Settings (workspace tabs; global, stored once per user; reload open pages to apply):
 Overview is always the first workspace tab. These settings apply to
 glossary, map, and issues.
-  desk config                    show current settings
-  desk config order <id...>      reorder the top tabs
-  desk config default <id>       tab to open when no document is given
-  desk config hide <id>          hide a top tab
-  desk config unhide <id>        show a hidden tab
-  desk config reset              restore the defaults
+  leaf config                    show current settings
+  leaf config order <id...>      reorder the top tabs
+  leaf config default <id>       tab to open when no document is given
+  leaf config hide <id>          hide a top tab
+  leaf config unhide <id>        show a hidden tab
+  leaf config reset              restore the defaults
 
   Sections: ${SECTIONS.join(", ")}`;
 
 const COMMAND_HELP = {
   open: HELP,
   list: `Usage:
-  desk list [--json]
+  leaf list [--json]
 
-List every running desk server owned by the current user.
+List every running leaf server owned by the current user.
 
 Options:
   --json         Print machine-readable JSON
   -h, --help     Show this help`,
   kill: `Usage:
-  desk kill (--all | <pid>...) [--force]
+  leaf kill (--all | <pid>...) [--force]
 
-Stop running desk servers. Pass one or more PIDs from \`desk list\`, or use
+Stop running leaf servers. Pass one or more PIDs from \`leaf list\`, or use
 --all to stop every server. SIGTERM is sent by default.
 
 Options:
-  --all          Stop every running desk server
+  --all          Stop every running leaf server
   --force        Send SIGKILL instead of SIGTERM
   -h, --help     Show this help`,
   config: `Usage:
-  desk config                    show current settings
-  desk config order <id...>      reorder the top tabs
-  desk config default <id>       tab to open when no document is given
-  desk config hide <id>          hide a top tab
-  desk config unhide <id>        show a hidden tab
-  desk config reset              restore the defaults
+  leaf config                    show current settings
+  leaf config order <id...>      reorder the top tabs
+  leaf config default <id>       tab to open when no document is given
+  leaf config hide <id>          hide a top tab
+  leaf config unhide <id>        show a hidden tab
+  leaf config reset              restore the defaults
 
 Overview is always the first workspace tab.
 Sections: ${SECTIONS.join(", ")}`,
   help: `Usage:
-  desk help [command]
+  leaf help [command]
 
 Show general help, or help for one command: open, list, kill, or config.`,
 };
@@ -127,7 +127,7 @@ async function runConfig(args) {
   if (sub === "reset") {
     if (rest.length) throw new Error("config reset takes no arguments");
     const file = await resetNav();
-    process.stdout.write(`desk: reset ${file}\n`);
+    process.stdout.write(`leaf: reset ${file}\n`);
     return;
   }
 
@@ -178,7 +178,7 @@ async function runList(options) {
     return;
   }
   if (!servers.length) {
-    process.stdout.write("desk: no running servers\n");
+    process.stdout.write("leaf: no running servers\n");
     return;
   }
 
@@ -213,19 +213,19 @@ async function runKill(options, args) {
     const byPid = new Map(servers.map((server) => [server.pid, server]));
     const missing = pids.filter((pid) => !byPid.has(pid));
     if (missing.length) {
-      throw new Error(`no running desk server with PID ${missing.join(", ")}; run "desk list"`);
+      throw new Error(`no running leaf server with PID ${missing.join(", ")}; run "leaf list"`);
     }
     targets = pids.map((pid) => byPid.get(pid));
   }
 
   if (!targets.length) {
-    process.stdout.write("desk: no running servers\n");
+    process.stdout.write("leaf: no running servers\n");
     return;
   }
 
   for (const server of targets) {
     await stopServer(server, { force: Boolean(options.force) });
-    process.stdout.write(`desk: stopped ${server.pid} (${server.url})\n`);
+    process.stdout.write(`leaf: stopped ${server.pid} (${server.url})\n`);
   }
 }
 
@@ -277,6 +277,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  process.stderr.write(`desk: ${String(err?.message || err)}\n`);
+  process.stderr.write(`leaf: ${String(err?.message || err)}\n`);
   process.exit(1);
 });

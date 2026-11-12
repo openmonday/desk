@@ -20,7 +20,7 @@ test("normalizeNav fills and filters sections", () => {
   assert.deepEqual(normalizeNav(null), { order: ["glossary", "map", "issues"], hidden: [], default: null });
 });
 
-test("sections from the old .desk layout keep working as aliases", () => {
+test("sections from the legacy workspace layout keep working as aliases", () => {
   assert.deepEqual(
     normalizeNav({ order: ["features", "context", "architecture"], hidden: ["architecture"], default: "features" }),
     { order: ["issues", "glossary", "map"], hidden: ["map"], default: "issues" },
@@ -43,11 +43,11 @@ test("mutations reorder, hide, unhide, and keep a visible default", () => {
   assert.deepEqual(setOrder(DEFAULT_NAV, ["issues", "glossary"]).order, ["issues", "glossary", "map"]);
 });
 
-test("config file round-trips under DESK_CONFIG", async (t) => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "desk-config-"));
+test("config file round-trips under LEAF_CONFIG", async (t) => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "leaf-config-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
-  const env = { DESK_CONFIG: path.join(dir, "desk.json") };
-  assert.equal(configPath(env), env.DESK_CONFIG);
+  const env = { LEAF_CONFIG: path.join(dir, "leaf.json") };
+  assert.equal(configPath(env), env.LEAF_CONFIG);
 
   const nav = { order: ["issues", "glossary", "map"], hidden: ["map"], default: "issues" };
   await writeNav(nav, env);
@@ -58,9 +58,9 @@ test("config file round-trips under DESK_CONFIG", async (t) => {
 });
 
 test("a broken config falls back to defaults", async (t) => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "desk-config-"));
+  const dir = await mkdtemp(path.join(os.tmpdir(), "leaf-config-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
-  const file = path.join(dir, "desk.json");
+  const file = path.join(dir, "leaf.json");
   await writeFile(file, "{ not json");
-  assert.deepEqual(await readNav({ DESK_CONFIG: file }), normalizeNav(DEFAULT_NAV));
+  assert.deepEqual(await readNav({ LEAF_CONFIG: file }), normalizeNav(DEFAULT_NAV));
 });

@@ -374,7 +374,7 @@ function diagnosticBlock() {
     })),
     el("p", { class: "diag-hint" }, [
       "Fix the file and this updates by itself. ",
-      cmd(docsMode() ? "desk check --docs <dir>" : "desk check"),
+      cmd(docsMode() ? "leaf check --docs <dir>" : "leaf check"),
       " prints the same list.",
     ]),
   ]);

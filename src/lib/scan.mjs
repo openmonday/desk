@@ -1,4 +1,4 @@
-/* desk scanner public API.
+/* leaf scanner public API.
  *
  * The implementation lives in focused modules; this facade keeps the original
  * `lib/scan.mjs` imports working for the CLI and server. */

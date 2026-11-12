@@ -23,9 +23,9 @@ function record(pid, overrides = {}) {
 }
 
 async function state(t) {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "desk-servers-"));
+  const dir = await mkdtemp(path.join(os.tmpdir(), "leaf-servers-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
-  return { DESK_STATE_DIR: dir };
+  return { LEAF_STATE_DIR: dir };
 }
 
 test("server records round-trip and stale records are pruned", async (t) => {

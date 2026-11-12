@@ -1,4 +1,4 @@
-/* desk page client entry.
+/* leaf page client entry.
  *
  * The UI is split into focused modules under `js/`. This file wires the shared
  * action registry and starts the page; all reads go through the

@@ -5,7 +5,7 @@
 
 import { themeToggle } from "./refs.js";
 
-const KEY = "desk.theme";
+const KEY = "leaf.theme";
 const MODES = new Set(["system", "light", "dark"]);
 const root = document.documentElement;
 const media = window.matchMedia?.("(prefers-color-scheme: dark)") || null;
