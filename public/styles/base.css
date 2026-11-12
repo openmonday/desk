@@ -54,6 +54,8 @@
   --node-blocked-bg-hover: #e9e7df;
   --node-unknown-bg: #fbf1ec;
   --node-unknown-bg-hover: #f7e5dc;
+  --node-dropped-bg: transparent;
+  --node-dropped-bg-hover: #f2f1ec;
   --list-active-bg: #fcf3ee;
 
   /* status hues: shape + label carry meaning, colour reinforces */
@@ -63,6 +65,7 @@
   --k-waiting: #87867f;
   --k-blocked: var(--ink);
   --k-unknown: var(--clay-strong);
+  --k-dropped: var(--muted);
 
   /* type */
   --sans-display: "Anthropic Sans Display", ui-sans-serif, -apple-system, system-ui, sans-serif;
@@ -143,6 +146,8 @@
   --node-blocked-bg-hover: #2b2822;
   --node-unknown-bg: #2c211c;
   --node-unknown-bg-hover: #34251e;
+  --node-dropped-bg: transparent;
+  --node-dropped-bg-hover: #292823;
   --list-active-bg: #30231d;
 
   --k-waiting: #8f8c82;
@@ -191,6 +196,7 @@ button { font-family: inherit; color: inherit; }
 .glyph[data-kind="ready"] { color: var(--k-ready); }
 .glyph[data-kind="blocked"] { color: var(--k-blocked); }
 .glyph[data-kind="unknown"] { color: var(--k-unknown); }
+.glyph[data-kind="dropped"] { color: var(--k-dropped); }
 
 .g-fill { fill: currentColor; }
 .g-ring { fill: none; stroke: currentColor; stroke-width: 1.5; }
@@ -203,7 +209,7 @@ button { font-family: inherit; color: inherit; }
   stroke-linejoin: round;
 }
 
-/* one segment per ticket, in ticket order */
+/* one segment per task, in task order */
 .progress {
   display: flex;
   gap: 2px;
@@ -220,3 +226,4 @@ button { font-family: inherit; color: inherit; }
 .progress i[data-kind="done"] { background: var(--k-done); }
 .progress i[data-kind="active"] { background: var(--clay); }
 .progress i[data-kind="blocked"] { background: var(--ink); }
+.progress i[data-kind="dropped"] { background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); }

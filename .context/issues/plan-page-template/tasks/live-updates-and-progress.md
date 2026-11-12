@@ -5,7 +5,7 @@ Blocked by: 02
 
 ## What to build
 
-The event-stream connection, live tree and document refresh with scroll preservation, reading-progress meter, read-time estimate, ticket and spec meta strips, diagnostics, and empty states.
+The event-stream connection, live tree and document refresh with scroll preservation, reading-progress meter, read-time estimate, task and spec meta strips, diagnostics, and empty states.
 
 ## Acceptance criteria
 
@@ -14,9 +14,9 @@ The event-stream connection, live tree and document refresh with scroll preserva
 - [x] The connection indicator reads live or reconnecting.
 - [x] Progress percentage follows the reading position and the matching TREE item highlights.
 - [x] Read time is computed from word count.
-- [x] Tickets show status, blocked-by numbers or unblocked; specs show done/total tickets.
+- [x] Tasks show status, blocked-by numbers or unblocked; specs show done/total tasks.
 - [x] Diagnostics appear in an expandable rail list.
-- [x] Empty states name `/setup-assist`, `/to-spec`, or `/to-tickets`.
+- [x] Empty states name `/setup-context`, `/to-spec`, or `/to-tasks`.
 - [x] Malformed markdown degrades to a diagnostic and source fallback.
 
 ## Constraints
@@ -25,4 +25,4 @@ No mutation path. SSE only. Progress and active section read the actual scroll c
 
 ## Verification
 
-Changed a ticket status while the server was running; `/api/events` emitted a change and `/api/tree` reported the new status and progress.
+Changed a task status while the server was running; `/api/events` emitted a change and `/api/tree` reported the new status and progress.

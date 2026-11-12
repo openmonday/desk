@@ -10,16 +10,16 @@
 .rail-head .eyebrow { margin: 0; }
 .rail-head .panel-tools { margin-left: auto; }
 
-.features,
+.issues,
 .tree {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.feature + .feature { margin-top: var(--s2); }
+.issue + .issue { margin-top: var(--s2); }
 
-.feature-row {
+.issue-row {
   appearance: none;
   border: 0;
   background: none;
@@ -33,9 +33,9 @@
   color: var(--ink);
 }
 
-.feature-row:hover { background: var(--oat-soft); }
+.issue-row:hover { background: var(--oat-soft); }
 
-.feature-title {
+.issue-title {
   flex: 1;
   min-width: 0;
   font: 500 15px/1.35 var(--sans-display);
@@ -43,7 +43,7 @@
   text-wrap: pretty;
 }
 
-.feature-count {
+.issue-count {
   flex: none;
   font: 400 11px/1 var(--mono);
   color: var(--faint);
@@ -51,7 +51,7 @@
 
 .progress-rail { margin: 2px var(--s2) var(--s3); }
 
-.feature .tree { margin-bottom: var(--s3); }
+.issue .tree { margin-bottom: var(--s3); }
 
 .row {
   appearance: none;
@@ -108,8 +108,10 @@
   min-width: 2ch;
 }
 
-.row-spec .row-lead { padding-left: 19px; }
-.row-spec .row-n { letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; min-width: 4ch; }
+.row-spec .row-lead,
+.row-research .row-lead { padding-left: 19px; }
+.row-spec .row-n,
+.row-research .row-n { letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; min-width: 4ch; }
 .row-spec .row-label { font-style: normal; }
 
 .dot {
@@ -351,25 +353,25 @@
 
 .doc-tree .row[aria-current="true"] .row-label { background: var(--clay-wash); }
 
-/* features tab: keep the feature/ticket view under a `features/` root, with
+/* issues tab: keep the issue/spec/task view under an `issues/` root, with
  * the same tree connectors and folder treatment as the document tree. */
-.feature-list .feature + .feature { margin-top: 0; }
+.issue-list .issue + .issue { margin-top: 0; }
 
-.feature-tree .feature-row {
+.issue-tree .issue-row {
   height: var(--doc-row);
   align-items: center;
   gap: 7px;
   padding: 0 var(--s2) 0 2px;
 }
 
-.feature-tree .feature-row:hover { background: none; }
-.feature-tree .feature-row:hover .feature-title {
+.issue-tree .issue-row:hover { background: none; }
+.issue-tree .issue-row:hover .issue-title {
   text-decoration: underline;
   text-decoration-color: var(--line-strong);
   text-underline-offset: 3px;
 }
 
-.feature-tree .feature-title {
+.issue-tree .issue-title {
   flex: 1;
   min-width: 0;
   font: 500 12.5px/20px var(--mono);
@@ -380,6 +382,6 @@
   white-space: nowrap;
 }
 
-.feature-tree .feature-slash { color: var(--faint); }
-.feature-tree .feature.is-open > .feature-row .doc-icon { color: var(--clay-strong); }
-.feature-tree .progress-rail { margin-left: 24px; margin-right: var(--s2); }
+.issue-tree .issue-slash { color: var(--faint); }
+.issue-tree .issue.is-open > .issue-row .doc-icon { color: var(--clay-strong); }
+.issue-tree .progress-rail { margin-left: 24px; margin-right: var(--s2); }

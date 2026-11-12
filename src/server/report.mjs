@@ -3,11 +3,11 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "bas
 const natural = (a, b) => collator.compare(a, b);
 
 export function report(tree) {
-  const features = tree.features.length;
-  const tickets = tree.features.reduce((n, f) => n + f.tickets.length, 0);
-  const done = tree.features.reduce((n, f) => n + f.progress.done, 0);
+  const issues = tree.issues.length;
+  const tasks = tree.issues.reduce((n, issue) => n + issue.tasks.length, 0);
+  const done = tree.issues.reduce((n, issue) => n + issue.progress.done, 0);
   const errors = tree.diagnostics.filter((d) => d.severity === "error").length;
-  return { features, tickets, done, architecture: tree.architecture.length, errors, diagnostics: tree.diagnostics.length };
+  return { issues, tasks, done, records: tree.map.records.length, errors, diagnostics: tree.diagnostics.length };
 }
 
 /** The one-line startup and --check summary for docs mode. */
@@ -31,18 +31,19 @@ function docsPaths(tree) {
   return paths;
 }
 
-function deskPaths(tree) {
+function contextPaths(tree) {
   if (tree.files?.children) {
     const paths = [];
     walkDocs(tree.files.children, paths);
     return paths;
   }
   const paths = [];
-  if (tree.context?.exists) paths.push(tree.context.path);
-  for (const record of tree.architecture || []) paths.push(record.path);
-  for (const feature of tree.features || []) {
-    if (feature.specPath) paths.push(feature.specPath);
-    for (const ticket of feature.tickets || []) paths.push(ticket.path);
+  if (tree.glossary?.exists) paths.push(tree.glossary.path);
+  for (const record of tree.map?.records || []) paths.push(record.path);
+  for (const issue of tree.issues || []) {
+    if (issue.specPath) paths.push(issue.specPath);
+    if (issue.researchPath) paths.push(issue.researchPath);
+    for (const task of issue.tasks || []) paths.push(task.path);
   }
   return paths;
 }
@@ -63,23 +64,21 @@ function activePath(tree, hash) {
   if (route.startsWith("#/overview/")) {
     return route.slice("#/overview/".length).split("/").map(decodeSegment).join("/");
   }
-  if (route === "#/context") return "CONTEXT.md";
-  if (route === "#/architecture/graph") return null;
-  let match = route.match(/^#\/architecture\/([^/]+)$/);
-  if (match) return `architecture/${decodeSegment(match[1])}.md`;
+  if (route === "#/glossary") return "GLOSSARY.md";
+  if (route === "#/map") return null;
+  let match = route.match(/^#\/map\/(.+)$/);
+  if (match) return `map/${match[1].split("/").map(decodeSegment).join("/")}.md`;
 
-  match = route.match(/^#\/features\/([^/]+)$/);
+  if (route === "#/issues") return null;
+  match = route.match(/^#\/issues\/([^/]+)(?:\/(research|spec|\d+))?$/);
   if (match) {
     const slug = decodeSegment(match[1]);
-    return tree.features?.find((feature) => feature.slug === slug)?.specPath || null;
-  }
-
-  match = route.match(/^#\/features\/([^/]+)\/(\d+)$/);
-  if (match) {
-    const slug = decodeSegment(match[1]);
+    const issue = tree.issues?.find((item) => item.slug === slug);
+    if (!issue) return null;
+    if (match[2] === "research") return issue.researchPath;
+    if (!match[2] || match[2] === "spec") return issue.specPath;
     const n = Number(match[2]);
-    const feature = tree.features?.find((item) => item.slug === slug);
-    return feature?.tickets?.find((ticket) => Number(ticket.n) === n)?.path || null;
+    return issue.tasks?.find((task) => Number(task.n) === n)?.path || null;
   }
 
   return null;
@@ -87,7 +86,7 @@ function activePath(tree, hash) {
 
 /** Every Markdown file the scanner found, with the currently opened one marked. */
 export function detectedFiles(tree, hash = "") {
-  const paths = tree.mode === "docs" ? docsPaths(tree) : deskPaths(tree);
+  const paths = tree.mode === "docs" ? docsPaths(tree) : contextPaths(tree);
   const opened = activePath(tree, hash);
   return [...new Set(paths)]
     .sort(natural)

@@ -7,13 +7,22 @@ import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-export const SECTIONS = ["context", "architecture", "features"];
+export const SECTIONS = ["glossary", "map", "issues"];
 export const DEFAULT_NAV = { order: [...SECTIONS], hidden: [], default: null };
+
+/* Names used before `.context` replaced the `.desk` layout. An old config file
+ * keeps working without a migration step. */
+const ALIASES = {
+  context: "glossary",
+  architecture: "map",
+  features: "issues",
+};
 
 /** Case-insensitive section id, or null when it is not one of the sections. */
 export function sectionId(raw) {
   const id = String(raw ?? "").trim().toLowerCase();
-  return SECTIONS.includes(id) ? id : null;
+  if (SECTIONS.includes(id)) return id;
+  return ALIASES[id] || null;
 }
 
 export function assertSection(raw) {

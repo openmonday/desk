@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-/* desk page server — a live, read-only view of a `.desk` workspace or a folder
- * of Markdown. Reads are plain JSON; edits to the files broadcast over SSE,
+/* desk page server — a live, read-only view of a `.context` workspace or a
+ * folder of Markdown. Reads are plain JSON; edits to the files broadcast over SSE,
  * which is what makes the page move while an agent or editor writes. */
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { findWorkspace, scanWorkspace } from "./lib/scan.mjs";
+import { CONTEXT_DIR, findWorkspace, isContextDir, scanWorkspace } from "./lib/scan.mjs";
 import { scanDocs } from "./lib/docs/scan.mjs";
 import { parseArgs } from "./server/args.mjs";
 import { createBroadcaster } from "./server/events.mjs";
@@ -19,21 +19,26 @@ const PUBLIC = path.resolve(HERE, "..", "public");
 
 const count = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
+/** Accept either the project root or the `.context` directory itself. */
+async function rootWorkspace(dir) {
+  return await isContextDir(dir) ? dir : path.join(dir, CONTEXT_DIR);
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const docsRoot = opts.docs ? path.resolve(opts.docs) : null;
   const workspace = docsRoot
     ? null
     : opts.root
-      ? (opts.root.endsWith(".desk") ? path.resolve(opts.root) : path.join(path.resolve(opts.root), ".desk"))
+      ? await rootWorkspace(path.resolve(opts.root))
       : await findWorkspace(process.cwd());
 
   if (!docsRoot && !workspace) {
-    console.error("desk: no .desk directory found. Run /setup-desk first, or pass --root or --docs.");
+    console.error("desk: no .context directory found. Run /setup-context first, or pass --root or --docs.");
     process.exit(1);
   }
 
-  const mode = docsRoot ? "docs" : "desk";
+  const mode = docsRoot ? "docs" : "context";
   const root = docsRoot || workspace;
 
   if (opts.check) {
@@ -53,7 +58,7 @@ async function main() {
     const tree = await scanWorkspace(root);
     const r = report(tree);
     console.log(`desk  ${root}`);
-    console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.architecture, "architecture record")}`);
+    console.log(`  ${count(r.issues, "issue")} · ${count(r.tasks, "task")} (${r.done} done) · ${count(r.records, "map record")}`);
     if (r.diagnostics) {
       console.log(`  ${r.diagnostics} diagnostics:`);
       for (const d of tree.diagnostics) console.log(`    ${d.severity}  ${d.path}: ${d.message}`);
@@ -129,7 +134,7 @@ async function main() {
       console.log();
       console.log(formatFileList(tree, opts.hash));
       console.log();
-      console.log(`  ${count(r.features, "feature")} · ${count(r.tickets, "ticket")} (${r.done} done) · ${count(r.architecture, "architecture record")}`);
+      console.log(`  ${count(r.issues, "issue")} · ${count(r.tasks, "task")} (${r.done} done) · ${count(r.records, "map record")}`);
       if (r.diagnostics) console.log(`  ${r.diagnostics} diagnostics — node src/serve.mjs --check`);
     }
   }

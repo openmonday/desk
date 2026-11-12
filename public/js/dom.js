@@ -1,6 +1,6 @@
 /* Small DOM builders shared by every view. */
 
-import { featureIndex, key, tallyText } from "./state.js";
+import { issueIndex, key, tallyText } from "./state.js";
 
 /* ---------- helpers ---------- */
 
@@ -48,9 +48,8 @@ function glyph(kind, size = 14) {
     case "waiting":
       s.append(ring(" g-dash"));
       break;
-    case "blocked":
-      s.append(svgEl("circle", { cx: 8, cy: 8, r: 7, class: "g-fill" }),
-        svgEl("path", { d: "M4.8 8h6.4", class: "g-knock" }));
+    case "dropped":
+      s.append(ring(" g-dash"), svgEl("path", { d: "M5 8h6", class: "g-ring", fill: "none" }));
       break;
     default:
       s.append(ring(" g-dash"), svgEl("circle", { cx: 8, cy: 8, r: 1.6, class: "g-fill" }));
@@ -58,12 +57,12 @@ function glyph(kind, size = 14) {
   return s;
 }
 
-function progressLine(f, cls = "") {
-  const { states } = featureIndex(f);
-  const tickets = f.tickets || [];
+function progressLine(issue, cls = "") {
+  const { states } = issueIndex(issue);
+  const tasks = issue.tasks || [];
   return el("div", {
-    class: `progress ${cls}`.trim(), role: "img", "aria-label": tallyText(f),
-  }, tickets.map((t) => el("i", { "data-kind": states.get(key(t.n)).kind })));
+    class: `progress ${cls}`.trim(), role: "img", "aria-label": tallyText(issue),
+  }, tasks.map((t) => el("i", { "data-kind": states.get(key(t.n))?.kind || "unknown" })));
 }
 
 const cmd = (s) => el("code", {}, [s]);

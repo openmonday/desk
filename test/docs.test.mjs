@@ -5,21 +5,18 @@ import path from "node:path";
 import test from "node:test";
 import { scanDocs } from "../src/lib/docs/scan.mjs";
 import { readDocsAsset, readDocsDoc } from "../src/lib/docs/read.mjs";
-import { SPEC_MD, ticket } from "./helpers.mjs";
+
 
 async function makeDocs() {
   const root = await mkdtemp(path.join(os.tmpdir(), "desk-docs-test-"));
   await mkdir(path.join(root, "context", "deep"), { recursive: true });
   await mkdir(path.join(root, "context", "assets"), { recursive: true });
   await mkdir(path.join(root, "architecture"), { recursive: true });
-  await mkdir(path.join(root, "features", "demo", "tickets"), { recursive: true });
 
   await writeFile(path.join(root, "README.md"), "# Welcome\n\nRoot readme.\n");
   await writeFile(path.join(root, "context", "overview.md"), "# Context Overview\n\nIntro.\n");
   await writeFile(path.join(root, "context", "deep", "terms.md"), "# Terms\n\nTerms.\n");
   await writeFile(path.join(root, "architecture", "one.md"), "# One\n\nArchitecture.\n");
-  await writeFile(path.join(root, "features", "demo", "spec.md"), SPEC_MD);
-  await writeFile(path.join(root, "features", "demo", "tickets", "01-do-it.md"), ticket(1, "Do it"));
 
   const png = Buffer.from("89504e470d0a1a0a", "hex");
   await writeFile(path.join(root, "context", "assets", "pixel.png"), png);
@@ -39,7 +36,7 @@ test("scanDocs builds sections and a recursive tree", async (t) => {
   const tree = await scanDocs(d.root);
   assert.equal(tree.ok, true);
   assert.equal(tree.mode, "docs");
-  assert.deepEqual(tree.sections.map((s) => s.key), ["home", "architecture", "context", "features"]);
+  assert.deepEqual(tree.sections.map((s) => s.key), ["home", "architecture", "context"]);
   assert.equal(tree.sections[0].tree[0].path, "README.md");
   assert.equal(tree.sections.find((s) => s.key === "context").firstPath, "context/overview.md");
 
@@ -47,11 +44,6 @@ test("scanDocs builds sections and a recursive tree", async (t) => {
   assert.deepEqual(context.tree.map((n) => [n.type, n.name]), [["file", "overview.md"], ["dir", "deep"]]);
   assert.equal(context.tree[1].title, "deep");
   assert.equal(context.tree[1].children[0].title, "terms.md");
-
-  const features = tree.sections.find((s) => s.key === "features");
-  assert.equal(features.kind, "features");
-  assert.equal(features.features[0].specPath, "features/demo/spec.md");
-  assert.equal(features.features[0].tickets[0].path, "features/demo/tickets/01-do-it.md");
 });
 
 test("README comes before other files and replacement index files sort naturally", async (t) => {
@@ -82,6 +74,8 @@ test("docs reads are confined to the root and markdown only", async (t) => {
   assert.equal(asset.type, "image/png");
   assert.deepEqual(asset.body, d.png);
   assert.equal(await readDocsAsset(d.root, "context/assets/pixel.html"), null);
+  assert.equal(await readDocsAsset(d.root, "context/assets/../outside.md"), null);
+  assert.equal(await readDocsAsset(d.root, "reference/other/figure.png", { deny: ["reference"] }), null);
   assert.equal(await readDocsAsset(d.root, "../outside.md"), null);
 });
 

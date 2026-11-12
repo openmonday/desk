@@ -1,4 +1,4 @@
-/* ---------- ticket graph ---------- */
+/* ---------- task graph ---------- */
 
 .graph { margin: 0; padding: 0; }
 
@@ -86,6 +86,8 @@
 .node[data-kind="waiting"] .node-title { color: var(--ink-soft); }
 .node[data-kind="blocked"] { background: var(--node-blocked-bg); border-color: var(--ink); }
 .node[data-kind="unknown"] { background: var(--node-unknown-bg); border-color: var(--clay-strong); border-style: dashed; }
+.node[data-kind="dropped"] { background: var(--node-dropped-bg); border-color: var(--line-strong); border-style: dashed; }
+.node[data-kind="dropped"] .node-title { color: var(--faint); text-decoration: line-through; text-decoration-color: var(--line-strong); }
 
 .node[data-kind="done"]:hover { background: var(--node-done-bg-hover); border-color: var(--node-done-border-hover); }
 .node[data-kind="active"]:hover { background: var(--node-active-bg-hover); border-color: var(--node-active-border-hover); }
@@ -93,6 +95,7 @@
 .node[data-kind="waiting"]:hover { background: var(--node-waiting-bg-hover); border-color: var(--ink-soft); }
 .node[data-kind="blocked"]:hover { background: var(--node-blocked-bg-hover); border-color: var(--ink); }
 .node[data-kind="unknown"]:hover { background: var(--node-unknown-bg-hover); border-color: var(--clay-ink); }
+.node[data-kind="dropped"]:hover { background: var(--node-dropped-bg-hover); border-color: var(--ink-soft); }
 
 .node.is-active,
 .node.is-active:hover { border-color: var(--ink); }
@@ -123,6 +126,7 @@
 [data-kind="active"] > .node-top .node-state { color: var(--clay-ink); font-weight: 500; }
 [data-kind="ready"] > .node-top .node-state,
 [data-kind="blocked"] > .node-top .node-state { color: var(--ink); font-weight: 500; }
+[data-kind="dropped"] > .node-top .node-state { color: var(--faint); }
 
 .node-title {
   display: -webkit-box;

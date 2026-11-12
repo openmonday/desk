@@ -10,9 +10,9 @@ export function usage() {
 
   node src/serve.mjs [options]
 
-  --root <dir>    .desk workspace root (default: walk up from cwd)
+  --root <dir>    .context workspace root (default: walk up from cwd)
   --docs <dir>    serve a folder as a Markdown library
-  --hash <route>  initial hash route, e.g. "#/features/demo/2"
+  --hash <route>  initial hash route, e.g. "#/issues/demo/2"
   --port <n>      port to listen on (default: 7777, falls forward)
   --host <addr>   bind address (default: 127.0.0.1)
   --open          open the page in the default browser

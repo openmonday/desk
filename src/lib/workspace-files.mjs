@@ -1,11 +1,12 @@
 /* Markdown file tree for the workspace Overview.
  *
- * The workspace model is organized by records and tickets; this scanner adds
- * the filesystem shape behind that model so the rail can show `.desk/` as a
- * real tree. Only Markdown documents are included, matching the read route. */
+ * The workspace model is organized by records, issues, and tasks; this scanner
+ * adds the filesystem shape behind that model so the rail can show `.context/`
+ * as a real tree. Only Markdown documents are included, matching the read
+ * route. Reference checkouts are repositories, so they stay out. */
 import fs from "node:fs/promises";
 import path from "node:path";
-import { isCodeGraphPath } from "./codegraph.mjs";
+import { REFERENCE_DIR } from "./workspace.mjs";
 
 const DOC_RE = /\.md$/i;
 const IGNORED = new Set(["node_modules", "dist", "build", "coverage", ".git"]);
@@ -74,6 +75,7 @@ async function walk(root, rel, depth, state) {
       break;
     }
     if (isIgnored(entry.name)) continue;
+    if (!rel && entry.name === REFERENCE_DIR) continue;
 
     const childRel = rel ? path.posix.join(rel, entry.name) : entry.name;
     if (entry.isDirectory()) {
@@ -90,8 +92,6 @@ async function walk(root, rel, depth, state) {
       continue;
     }
     if (!entry.isFile() || !DOC_RE.test(entry.name)) continue;
-    // The graph input is a data file, never a document in the Overview tree.
-    if (isCodeGraphPath(childRel)) continue;
     const file = await readFileNode(root, childRel, state);
     if (file) nodes.push(file);
   }
@@ -99,7 +99,7 @@ async function walk(root, rel, depth, state) {
   return sortNodes(nodes);
 }
 
-/** Build the root `.desk/` node shown by the workspace Overview. */
+/** Build the root `.context/` node shown by the workspace Overview. */
 export async function scanWorkspaceFiles(assist) {
   const root = await fs.realpath(assist);
   const state = { count: 0, truncated: false };

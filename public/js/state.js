@@ -1,9 +1,7 @@
-/* Shared page state, ticket-state derivations, and small helpers. */
-
-export const CODE_GRAPH_PATH = "architecture/graph.json";
+/* Shared page state, task-state derivations, and small helpers. */
 
 const S = {
-  tab: "features",
+  tab: "issues",
   tree: null,
   doc: null,
   mdError: null,
@@ -11,14 +9,17 @@ const S = {
   graphSig: "",
 };
 
-
 const num = (n) => String(n).padStart(2, "0");
 const key = (n) => String(Number(n));
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const narrow = () => window.matchMedia("(max-width: 900px)").matches;
 
-function featureBySlug(s) {
-  return (S.tree?.features || []).find((f) => f.slug === s) || null;
+function issueBySlug(slug) {
+  return (S.tree?.issues || []).find((issue) => issue.slug === slug) || null;
+}
+
+function recordBySlug(slug) {
+  return (S.tree?.map?.records || []).find((record) => record.slug === slug) || null;
 }
 
 const docsMode = () => S.tree?.mode === "docs";
@@ -27,13 +28,13 @@ function docsSections() {
   return S.tree?.sections || [];
 }
 
-function docsSection(key) {
-  return docsSections().find((s) => s.key === key) || null;
+function docsSection(keyName) {
+  return docsSections().find((section) => section.key === keyName) || null;
 }
 
-const WORKSPACE_TABS = ["context", "architecture", "features"];
+const WORKSPACE_TABS = ["glossary", "map", "issues"];
 const TAB_LABELS = {
-  overview: "Overview", context: "Context", architecture: "Architecture", features: "Features",
+  overview: "Overview", glossary: "Glossary", map: "Map", issues: "Issues",
 };
 
 /** Top tabs in configured order, hidden ones left out. */
@@ -87,34 +88,6 @@ function docsEntryForFile(section, file) {
   };
 }
 
-function docsEntryForFeature(section, feature) {
-  if (feature.specPath) {
-    return {
-      kind: "spec",
-      path: feature.specPath,
-      title: feature.title,
-      tab: section.key,
-      feature,
-    };
-  }
-  const first = feature.tickets?.[0];
-  return first ? {
-    kind: "ticket", path: first.path, title: first.title, tab: section.key, feature, ticket: first,
-  } : null;
-}
-
-function docsFeatureByPath(path) {
-  for (const section of docsSections()) {
-    if (section.kind !== "features") continue;
-    for (const feature of section.features || []) {
-      if (feature.specPath === path) return { section, feature, ticket: null };
-      const ticket = (feature.tickets || []).find((t) => t.path === path);
-      if (ticket) return { section, feature, ticket };
-    }
-  }
-  return null;
-}
-
 function docsEntryByPath(path) {
   for (const section of docsSections()) {
     const file = findTreeFile(section.tree, path);
@@ -125,20 +98,14 @@ function docsEntryByPath(path) {
 
 function docsEntryByTab(tab) {
   const section = docsSection(tab) || docsSections()[0];
-  if (!section) return null;
-  if (section.kind === "features") {
-    const feature = section.features?.find((f) => f.specPath) || section.features?.[0];
-    return feature ? docsEntryForFeature(section, feature) : null;
-  }
-  if (!section.firstPath) return null;
+  if (!section || !section.firstPath) return null;
   return docsEntryByPath(section.firstPath);
 }
 
 function defaultDocsEntry() {
   const overview = docsSections().find((section) => section.kind === "overview");
   const first = overview || docsSections()[0];
-  if (!first) return null;
-  return first.kind === "features" ? docsEntryByTab(first.key) : docsEntryByPath(first.firstPath);
+  return first ? docsEntryByTab(first.key) : null;
 }
 
 function overviewEntryForPath(path) {
@@ -147,52 +114,28 @@ function overviewEntryForPath(path) {
 }
 
 function firstOverviewEntry() {
-  const file = firstTreeFile(S.tree?.files?.children);
+  const file = firstTreeFile(S.tree?.files?.children || S.tree?.files || []);
   return file ? overviewEntryForPath(file.path) : null;
-}
-
-function codeGraphEntry() {
-  return {
-    kind: "codegraph",
-    path: CODE_GRAPH_PATH,
-    title: "Code graph",
-    tab: "architecture",
-    summary: S.tree?.graph || null,
-  };
 }
 
 function entryForPath(path) {
   const t = S.tree;
   if (!t || !path) return null;
-  if (t.mode === "docs") {
-    const feature = docsFeatureByPath(path);
-    if (feature) {
-      if (feature.ticket) {
-        return {
-          kind: "ticket",
-          path,
-          title: feature.ticket.title,
-          tab: feature.section.key,
-          feature: feature.feature,
-          ticket: feature.ticket,
-        };
-      }
-      return docsEntryForFeature(feature.section, feature.feature);
+  if (t.mode === "docs") return docsEntryByPath(path);
+  if (t.glossary?.exists && t.glossary.path === path) {
+    return { kind: "glossary", path, title: t.glossary.title || "Glossary", tab: "glossary" };
+  }
+  const record = (t.map?.records || []).find((item) => item.path === path);
+  if (record) return { kind: "record", path, title: record.title, tab: "map", record };
+  for (const issue of t.issues || []) {
+    if (issue.specPath === path) return { kind: "spec", path, title: issue.title, tab: "issues", issue };
+    if (issue.researchPath === path) {
+      return { kind: "research", path, title: "Research", tab: "issues", issue };
     }
-    return docsEntryByPath(path);
+    const task = (issue.tasks || []).find((item) => item.path === path);
+    if (task) return { kind: "task", path, title: task.title, tab: "issues", issue, task };
   }
-  if (path === CODE_GRAPH_PATH && t.graph) return codeGraphEntry();
-  if (t.context?.path === path && t.context?.exists) {
-    return { kind: "context", path, title: t.context.title || "Context", tab: "context" };
-  }
-  const arch = (t.architecture || []).find((a) => a.path === path);
-  if (arch) return { kind: "arch", path, title: arch.title, tab: "architecture", record: arch };
-  for (const f of t.features || []) {
-    if (f.specPath === path) return { kind: "spec", path, title: f.title, tab: "features", feature: f };
-    const tk = (f.tickets || []).find((x) => x.path === path);
-    if (tk) return { kind: "ticket", path, title: tk.title, tab: "features", feature: f, ticket: tk };
-  }
-  const file = findTreeFile(t.files?.children, path);
+  const file = findTreeFile(t.files?.children || t.files || [], path);
   if (file) {
     return {
       kind: "doc",
@@ -206,45 +149,45 @@ function entryForPath(path) {
   return null;
 }
 
-// "Waiting" = pending with open blockers; "Blocked" = the file says blocked.
+// "Waiting" = pending with open blockers; "Dropped" = removed from the plan.
 
 const KIND_LABEL = {
   done: "Done",
   active: "In progress",
   ready: "Ready",
   waiting: "Waiting",
-  blocked: "Blocked",
+  dropped: "Dropped",
   unknown: "Unknown status",
 };
 
 const indexCache = new WeakMap();
-function featureIndex(f) {
-  let idx = indexCache.get(f);
+function issueIndex(issue) {
+  let idx = indexCache.get(issue);
   if (idx) return idx;
-  const tickets = f.tickets || [];
-  const byN = new Map(tickets.map((t) => [key(t.n), t]));
+  const tasks = issue.tasks || [];
+  const byN = new Map(tasks.filter((t) => t.n != null).map((t) => [key(t.n), t]));
   const dependents = new Map();
-  for (const t of tickets) {
+  for (const t of tasks) {
     for (const b of t.blockedBy) {
       const k = key(b);
       if (!dependents.has(k)) dependents.set(k, []);
       dependents.get(k).push(t);
     }
   }
-  const states = new Map(tickets.map((t) => [key(t.n), stateOf(t, byN)]));
+  const states = new Map(tasks.filter((t) => t.n != null).map((t) => [key(t.n), stateOf(t, byN)]));
   idx = { byN, dependents, states };
-  indexCache.set(f, idx);
+  indexCache.set(issue, idx);
   return idx;
 }
 
 function stateOf(t, byN) {
   const blockers = t.blockedBy.map((b) =>
-    byN.get(key(b)) || { n: Number(b), title: "missing ticket", status: "unknown", missing: true });
+    byN.get(key(b)) || { n: Number(b), title: "missing task", status: "unknown", missing: true });
   const open = blockers.filter((b) => b.status !== "done");
   let kind;
   if (t.status === "done") kind = "done";
   else if (t.status === "in-progress") kind = "active";
-  else if (t.status === "blocked") kind = "blocked";
+  else if (t.status === "dropped") kind = "dropped";
   else if (t.status === "unknown") kind = "unknown";
   else kind = open.length ? "waiting" : "ready";
   return { kind, blockers, open };
@@ -255,23 +198,49 @@ function shortState(st) {
   return KIND_LABEL[st.kind];
 }
 
-function tally(f) {
-  const { states } = featureIndex(f);
-  const c = { done: 0, active: 0, ready: 0, waiting: 0, blocked: 0, unknown: 0 };
+function tally(issue) {
+  const { states } = issueIndex(issue);
+  const c = { done: 0, active: 0, ready: 0, waiting: 0, dropped: 0, unknown: 0 };
   for (const st of states.values()) c[st.kind]++;
   return c;
 }
 
-function tallyText(f) {
-  const c = tally(f);
-  const total = (f.tickets || []).length;
+function tallyText(issue) {
+  const c = tally(issue);
+  const total = (issue.tasks || []).length;
   const parts = [`${c.done} of ${total} done`];
   if (c.active) parts.push(`${c.active} in progress`);
   if (c.ready) parts.push(`${c.ready} ready`);
   if (c.waiting) parts.push(`${c.waiting} waiting`);
-  if (c.blocked) parts.push(`${c.blocked} blocked`);
+  if (c.dropped) parts.push(`${c.dropped} dropped`);
   if (c.unknown) parts.push(`${c.unknown} unknown`);
   return parts.join(" · ");
+}
+
+
+/* ---------- routes ---------- */
+
+const encodeParts = (path) => String(path || "").split("/").map(encodeURIComponent).join("/");
+
+/** The hash a document outside the page's record types opens at. */
+function hashForPath(path) {
+  const t = S.tree;
+  if (!t) return null;
+  if (t.mode === "docs") return `#/docs/${encodeParts(path)}`;
+  const entry = entryForPath(path);
+  return entry ? hashForEntry(entry) : `#/overview/${encodeParts(path)}`;
+}
+
+function hashForEntry(entry) {
+  if (!entry) return null;
+  if (S.tree?.mode === "docs") return `#/docs/${encodeParts(entry.path)}`;
+  if (entry.kind === "glossary") return "#/glossary";
+  if (entry.kind === "record") return `#/map/${encodeParts(entry.record.slug)}`;
+  if (entry.kind === "spec") return `#/issues/${encodeParts(entry.issue.slug)}`;
+  if (entry.kind === "research") return `#/issues/${encodeParts(entry.issue.slug)}/research`;
+  if (entry.kind === "task") return `#/issues/${encodeParts(entry.issue.slug)}/${entry.task.n}`;
+  if (entry.tab === "overview" || entry.kind === "doc") return `#/overview/${encodeParts(entry.path)}`;
+  return `#/${entry.tab}`;
 }
 
 
@@ -286,32 +255,27 @@ function docsPaths(nodes) {
   return out;
 }
 
-function docsFeatureSignature(section) {
-  return (section.features || []).map((f) => [
-    f.slug,
-    f.specPath,
-    f.progress?.done,
-    f.progress?.total,
-    (f.tickets || []).map((t) => [t.path, t.status, t.statusRaw, t.title, t.blockedBy.join(",")]),
-  ]);
+function taskSignature(issue) {
+  return [
+    issue.slug,
+    issue.specPath,
+    issue.researchPath,
+    issue.progress?.done,
+    issue.progress?.total,
+    (issue.tasks || []).map((t) => [t.path, t.status, t.statusRaw, t.title, t.blockedBy.join(",")]),
+  ];
 }
 
 function treeSignature(tree) {
   if (!tree) return "";
   if (tree.mode === "docs") {
-    return JSON.stringify((tree.sections || []).map((s) => [
-      s.key, s.kind, s.firstPath, docsPaths(s.tree), docsFeatureSignature(s),
-    ]));
+    return JSON.stringify((tree.sections || []).map((s) => [s.key, s.kind, s.firstPath, docsPaths(s.tree)]));
   }
   return JSON.stringify({
-    features: (tree.features || []).map((f) => [
-      f.slug,
-      f.progress.done,
-      f.progress.total,
-      (f.tickets || []).map((t) => [t.n, t.status, t.statusRaw, t.title, t.blockedBy.join(",")]),
-    ]),
+    glossary: [tree.glossary?.path, tree.glossary?.exists],
+    records: (tree.map?.records || []).map((r) => [r.path, r.title, r.type, r.since]),
+    issues: (tree.issues || []).map(taskSignature),
     files: docsPaths(tree.files ? [tree.files] : []),
-    graph: tree.graph ? [tree.graph.path, tree.graph.symbols, tree.graph.edges, tree.graph.mtime] : null,
   });
 }
 
@@ -319,16 +283,15 @@ function treeSignature(tree) {
 
 function docTitle() {
   if (!S.doc) return "desk";
-  if (S.doc.kind === "doc") return S.doc.title;
-  if (S.doc.kind === "spec") return S.doc.feature.title;
-  if (S.doc.kind === "ticket") return `${num(S.doc.ticket.n)} ${S.doc.ticket.title}`;
+  if (S.doc.kind === "spec") return S.doc.issue.title;
+  if (S.doc.kind === "task") return `${num(S.doc.task.n)} ${S.doc.task.title}`;
+  if (S.doc.kind === "research") return `${S.doc.issue.title} · Research`;
   return S.doc.title;
 }
 
 export {
-  S, num, key, plural, narrow, featureBySlug, entryForPath, codeGraphEntry,
+  S, num, key, plural, narrow, issueBySlug, recordBySlug, entryForPath, hashForPath, hashForEntry,
   docsMode, docsSections, docsSection, docsEntryByTab, defaultDocsEntry,
-  docsEntryForFeature, docsFeatureByPath, firstOverviewEntry, tabDefs,
-  configuredDefault, KIND_LABEL, featureIndex, stateOf, shortState, tally,
-  tallyText, treeSignature, docTitle,
+  firstOverviewEntry, tabDefs, configuredDefault, KIND_LABEL, issueIndex, stateOf, shortState,
+  tally, tallyText, treeSignature, docTitle,
 };

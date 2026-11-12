@@ -1,7 +1,7 @@
-/* Ticket graph rendering, interaction, and the graph panel contents. */
+/* Task graph rendering, interaction, and the graph panel contents. */
 
 import {
-  S, featureIndex, num, shortState, KIND_LABEL,
+  S, issueIndex, num, shortState, KIND_LABEL,
 } from "./state.js";
 import { cmd, el, glyph, svgEl } from "./dom.js";
 import { actions } from "./actions.js";
@@ -9,11 +9,11 @@ import { articlePanel, graphBody, graphPanel, work } from "./refs.js";
 import { applyPanelChrome } from "./panel.js";
 import { layoutGraph } from "./graph-layout.js";
 
-function graphNode(f, it, L) {
+function graphNode(issue, it, L) {
   const t = it.t;
-  const st = featureIndex(f).states.get(it.id);
+  const st = issueIndex(issue).states.get(it.id);
   const done = S.justDone.has(t.path);
-  const deps = featureIndex(f).dependents.get(it.id) || [];
+  const deps = issueIndex(issue).dependents.get(it.id) || [];
   const spoken = [
     `${num(t.n)}: ${t.title}.`,
     shortState(st) + ".",
@@ -107,8 +107,8 @@ function graphKeys(ev, L) {
 }
 
 // Phone: the same graph as an ordered list, indented by column.
-function graphList(f, L) {
-  const { states } = featureIndex(f);
+function graphList(issue, L) {
+  const { states } = issueIndex(issue);
   const items = L.layers.flatMap((l) => l.filter((it) => !it.dummy));
   return el("ol", { class: "graph-list" }, items.map((it) => {
     const t = it.t;
@@ -133,15 +133,15 @@ function graphList(f, L) {
   }));
 }
 
-function graphBlock(feature) {
-  const tickets = feature.tickets || [];
-  if (!tickets.length) {
+function graphBlock(issue) {
+  const tasks = (issue.tasks || []).filter((task) => task.n != null);
+  if (!tasks.length) {
     graphPanel.dataset.overflow = "false";
     graphPanel.dataset.atEnd = "true";
     return el("div", { class: "graph graph-empty" }, [
       el("p", {}, [
-        "No tickets yet. Add Markdown files under ",
-        cmd(`features/${feature.slug}/tickets/`), ".",
+        "No tasks yet. Add Markdown files under ",
+        cmd(`issues/${issue.slug}/tasks/`), ".",
       ]),
     ]);
   }
@@ -149,10 +149,10 @@ function graphBlock(feature) {
   const cs = getComputedStyle(graphBody);
   const availW = Math.max(360, graphBody.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
   const availH = Math.max(220, graphBody.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 6);
-  const L = layoutGraph(tickets, availW, availH);
+  const L = layoutGraph(tasks, availW, availH);
   const canvas = el("div", { class: "graph-canvas", style: `width:${L.Wtot}px;height:${L.H}px` }, [
     graphSvg(L),
-    ...L.layers.flatMap((l) => l.filter((it) => !it.dummy)).map((it) => graphNode(feature, it, L)),
+    ...L.layers.flatMap((l) => l.filter((it) => !it.dummy)).map((it) => graphNode(issue, it, L)),
   ]);
   canvas.style.marginLeft = `${Math.max(0, Math.round((availW - L.Wtot) / 2))}px`;
   canvas.style.marginTop = `${Math.max(0, Math.round((availH - L.H) / 2))}px`;
@@ -176,9 +176,9 @@ function graphBlock(feature) {
     ]));
   }
 
-  const block = el("div", { class: "graph", "aria-label": "Ticket dependency graph" }, [
+  const block = el("div", { class: "graph", "aria-label": "Task dependency graph" }, [
     scroll,
-    graphList(feature, L),
+    graphList(issue, L),
     ...(notes.length ? [el("p", { class: "graph-note" }, notes)] : []),
   ]);
 
@@ -194,18 +194,18 @@ function graphBlock(feature) {
 
 /* ---------- graph panel ----------
  * The graph sits above the document, split like an IDE editor and terminal.
- * Opening a ticket swaps the document only; the graph keeps its layout and
+ * Opening a task swaps the document only; the graph keeps its layout and
  * scroll, and simply marks the node you are reading. */
 
-function graphSignature(f) {
+function graphSignature(issue) {
   return JSON.stringify([
-    f.slug,
-    f.tickets.map((t) => [t.n, t.title, t.status, t.blockedBy.join(","), S.justDone.has(t.path)]),
+    issue.slug,
+    (issue.tasks || []).map((t) => [t.n, t.title, t.status, t.blockedBy.join(","), S.justDone.has(t.path)]),
   ]);
 }
 
 function updateGraphActive() {
-  const path = S.doc?.kind === "ticket" ? S.doc.path : null;
+  const path = S.doc?.kind === "task" ? S.doc.path : null;
   graphBody.querySelectorAll(".node, .list-node").forEach((n) => {
     const on = Boolean(path) && n.dataset.path === path;
     n.classList.toggle("is-active", on);
@@ -215,8 +215,8 @@ function updateGraphActive() {
 }
 
 function renderGraph(force = false) {
-  const f = S.doc && (S.doc.kind === "spec" || S.doc.kind === "ticket") ? S.doc.feature : null;
-  if (!f) {
+  const issue = S.doc && ["spec", "task", "research"].includes(S.doc.kind) ? S.doc.issue : null;
+  if (!issue) {
     work.dataset.panel = "off";
     work.dataset.view = "article";
     graphPanel.hidden = true;
@@ -236,7 +236,7 @@ function renderGraph(force = false) {
     return;
   }
 
-  const sig = graphSignature(f);
+  const sig = graphSignature(issue);
   if (!force && wasOn && sig === S.graphSig) {
     updateGraphActive();
     return;
@@ -245,7 +245,7 @@ function renderGraph(force = false) {
   const before = graphBody.querySelector(".graph-scroll");
   const left = before ? before.scrollLeft : 0;
   const top = graphBody.scrollTop;
-  graphBody.replaceChildren(graphBlock(f));
+  graphBody.replaceChildren(graphBlock(issue));
   requestAnimationFrame(() => {
     const after = graphBody.querySelector(".graph-scroll");
     if (after) after.scrollLeft = left;

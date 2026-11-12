@@ -1,10 +1,10 @@
 /* Shareable hash routes: read the URL, write the current entry. */
 
 import {
-  S, entryForPath, codeGraphEntry, featureBySlug, key, defaultDocsEntry, docsEntryByTab,
-  docsSection, firstOverviewEntry,
+  S, entryForPath, hashForEntry, issueBySlug, recordBySlug, key, defaultDocsEntry,
+  docsEntryByTab, docsSection, firstOverviewEntry,
 } from "./state.js";
-import { decodeDocPath, encodeDocPath } from "./docs-path.js";
+import { decodeDocPath } from "./docs-path.js";
 
 /* ---------- hash ---------- */
 
@@ -42,54 +42,43 @@ function readHash() {
     const entry = encoded ? entryForPath(decodeDocPath(encoded)) : firstOverviewEntry();
     return { tab, entry: entry ? { ...entry, tab: "overview" } : firstOverviewEntry() };
   }
-  if (tab === "context") return { tab, entry: entryForPath(S.tree?.context?.path) };
-  if (tab === "architecture") {
-    if (parts[1] === "graph") return { tab, entry: codeGraphEntry() };
-    if (parts[1]) {
-      const rec = (S.tree?.architecture || []).find((a) => a.slug === parts[1]);
-      return { tab, entry: rec ? entryForPath(rec.path) : null };
-    }
-    if (S.tree?.graph) return { tab, entry: codeGraphEntry() };
-    const first = (S.tree?.architecture || [])[0];
+  if (tab === "glossary") return { tab, entry: S.tree?.glossary?.exists ? entryForPath("GLOSSARY.md") : null };
+  if (tab === "map") {
+    // The slug is the record path below map/, so module folders survive.
+    const record = parts[1] ? recordBySlug(parts.slice(1).map(decodePart).join("/")) : null;
+    if (record) return { tab, entry: entryForPath(record.path) };
+    const first = (S.tree?.map?.records || [])[0];
     return { tab, entry: first ? entryForPath(first.path) : null };
   }
-  if (tab === "features") {
-    const f = featureBySlug(parts[1]);
-    if (!f) return { tab, entry: null };
+  if (tab === "issues") {
+    // The Issues tab opens on the task graph, so the section route carries no
+    // document; the caller loads the first spec behind the graph.
+    if (!parts[1]) return { tab, entry: null };
+    const issue = issueBySlug(decodePart(parts[1]));
+    if (!issue) return { tab, entry: null };
+    if (parts[2] === "research") return { tab, entry: issue.researchPath ? entryForPath(issue.researchPath) : null };
     if (parts[2] && /^\d+$/.test(parts[2])) {
-      const tk = (f.tickets || []).find((x) => key(x.n) === key(parts[2]));
-      return { tab, entry: tk ? entryForPath(tk.path) : null };
+      const task = (issue.tasks || []).find((item) => key(item.n) === key(parts[2]));
+      return { tab, entry: task ? entryForPath(task.path) : null };
     }
-    return { tab, entry: f.specPath ? entryForPath(f.specPath) : null };
+    return { tab, entry: issue.specPath ? entryForPath(issue.specPath) : null };
   }
   return null;
 }
 
+function decodePart(part) {
+  try { return decodeURIComponent(part); } catch { return part; }
+}
+
 function writeHash(entry) {
   if (!entry) return writeTabHash(S.tab);
-  if (S.tree?.mode === "docs") {
-    history.replaceState(null, "", `#/docs/${encodeDocPath(entry.path)}`);
-    return;
-  }
-  if (entry.tab === "overview") {
-    history.replaceState(null, "", `#/overview/${encodeDocPath(entry.path)}`);
-    return;
-  }
-  if (entry.kind === "codegraph") {
-    history.replaceState(null, "", "#/architecture/graph");
-    return;
-  }
-  let h = `#/${entry.tab}`;
-  if (entry.kind === "arch") h += `/${entry.record.slug}`;
-  if (entry.kind === "spec") h += `/${entry.feature.slug}`;
-  if (entry.kind === "ticket") h += `/${entry.feature.slug}/${entry.ticket.n}`;
-  history.replaceState(null, "", h);
+  history.replaceState(null, "", hashForEntry(entry));
 }
 
 function writeTabHash(tab) {
   if (S.tree?.mode === "docs") {
     const section = docsSection(tab);
-    const path = section && section.kind !== "overview" ? encodeDocPath(tab) : "";
+    const path = section && section.kind !== "overview" ? encodeURIComponent(tab) : "";
     history.replaceState(null, "", path ? `#/docs/${path}` : "#/docs");
     return;
   }
@@ -104,16 +93,16 @@ function defaultEntry() {
   return entryForTab(S.tab);
 }
 
-function entryForTab(tab, preferredFeature) {
+function entryForTab(tab) {
   if (S.tree?.mode === "docs") return docsEntryByTab(tab);
   if (tab === "overview") return firstOverviewEntry();
-  if (tab === "context") return entryForPath(S.tree?.context?.path);
-  if (tab === "architecture") {
-    if (S.tree?.graph) return codeGraphEntry();
-    return entryForPath((S.tree?.architecture || [])[0]?.path);
+  if (tab === "glossary") return S.tree?.glossary?.exists ? entryForPath("GLOSSARY.md") : null;
+  if (tab === "map") {
+    const first = (S.tree?.map?.records || [])[0];
+    return first ? entryForPath(first.path) : null;
   }
-  const f = featureBySlug(preferredFeature) || (S.tree?.features || []).find((x) => x.specPath);
-  return f?.specPath ? entryForPath(f.specPath) : null;
+  const issue = (S.tree?.issues || []).find((item) => item.specPath) || (S.tree?.issues || [])[0];
+  return issue?.specPath ? entryForPath(issue.specPath) : null;
 }
 
 export { readHash, writeHash, writeTabHash, defaultEntry, entryForTab };

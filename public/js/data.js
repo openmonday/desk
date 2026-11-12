@@ -1,15 +1,11 @@
-/* Load the workspace tree and detect tickets that just completed. */
+/* Load the workspace tree and detect tasks that just completed. */
 
 import { S, num } from "./state.js";
 import { api } from "./api.js";
 import { setLive, toast } from "./live.js";
 
-function allFeatures(tree) {
-  if (!tree) return [];
-  if (tree.mode === "docs") {
-    return (tree.sections || []).flatMap((s) => s.features || []);
-  }
-  return tree.features || [];
+function allIssues(tree) {
+  return tree?.issues || [];
 }
 
 async function refreshTree() {
@@ -19,17 +15,21 @@ async function refreshTree() {
     setLive("up");
   } catch {
     setLive("down");
-    if (!S.tree) S.tree = { ok: false, mode: "desk", features: [], architecture: [], context: { exists: false }, diagnostics: [] };
+    if (!S.tree) {
+      S.tree = {
+        ok: false, mode: "context", glossary: { exists: false }, map: { records: [] }, issues: [], diagnostics: [],
+      };
+    }
     return false;
   }
 
   if (prev) {
-    const prevFeatures = allFeatures(prev);
+    const prevIssues = allIssues(prev);
     const finished = [];
-    for (const f of allFeatures(S.tree)) {
-      const old = prevFeatures.find((x) => x.slug === f.slug);
-      for (const t of f.tickets || []) {
-        const before = old?.tickets?.find((x) => x.path === t.path);
+    for (const issue of allIssues(S.tree)) {
+      const old = prevIssues.find((x) => x.slug === issue.slug);
+      for (const t of issue.tasks || []) {
+        const before = old?.tasks?.find((x) => x.path === t.path);
         if (before && before.status !== "done" && t.status === "done") {
           S.justDone.add(t.path);
           finished.push(t);
@@ -37,7 +37,7 @@ async function refreshTree() {
       }
     }
     if (finished.length === 1) toast(`Done · ${num(finished[0].n)} ${finished[0].title}`);
-    else if (finished.length > 1) toast(`${finished.length} tickets done · ${finished.map((t) => num(t.n)).join(", ")}`);
+    else if (finished.length > 1) toast(`${finished.length} tasks done · ${finished.map((t) => num(t.n)).join(", ")}`);
     if (S.justDone.size) {
       setTimeout(() => { S.justDone.clear(); }, 2400);
     }

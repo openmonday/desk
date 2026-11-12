@@ -29,7 +29,7 @@ function renderTabs() {
     nav.setAttribute("aria-label", navigatingDocs ? "Document sections" : "Workspace sections");
   }
   if (brand) {
-    const homeKey = navigatingDocs ? null : configuredDefault() || defs[0]?.key || "features";
+    const homeKey = navigatingDocs ? null : configuredDefault() || defs[0]?.key || "issues";
     const homeLabel = defs.find((d) => d.key === homeKey)?.label || "workspace";
     brand.href = navigatingDocs ? "#/docs" : `#/${homeKey}`;
     brand.setAttribute("aria-label", navigatingDocs ? "desk — docs" : `desk — ${homeLabel}`);

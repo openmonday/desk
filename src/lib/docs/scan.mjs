@@ -1,13 +1,13 @@
 /* Build a docs tree from a folder of Markdown files.
  *
- * Docs mode is deliberately simpler than .desk mode: every top-level folder is
- * a section, and every Markdown file below it is a read-only document. Root
- * Markdown files appear in a synthetic Overview section so a README is still
- * reachable. Hidden folders and common generated folders are ignored. */
+ * Docs mode is deliberately simpler than workspace mode: every top-level
+ * folder is a section, and every Markdown file below it is a read-only
+ * document. Root Markdown files appear in a synthetic Overview section so a
+ * README is still reachable. Hidden folders and common generated folders are
+ * ignored. */
 import fs from "node:fs/promises";
 import path from "node:path";
 import { titleCase } from "../markdown.mjs";
-import { scanFeatures } from "../tickets/scan.mjs";
 
 const DOC_RE = /\.(md|markdown)$/i;
 const IGNORED = new Set(["node_modules", "dist", "build", "coverage", ".git"]);
@@ -29,7 +29,7 @@ function isIgnored(name) {
 
 /** Display-only titles. Folder names are never changed on disk. */
 function sectionTitle(name) {
-  return name.toLowerCase() === "architecture" ? "Architecture" : titleCase(name);
+  return titleCase(name);
 }
 
 /** README/index files first, then other documents, then subfolders. */
@@ -60,24 +60,6 @@ function firstDocument(nodes) {
     if (hit) return hit;
   }
   return null;
-}
-
-async function looksLikeFeatures(root, dir) {
-  let entries;
-  try {
-    entries = await fs.readdir(path.join(root, dir), { withFileTypes: true });
-  } catch {
-    return false;
-  }
-  for (const entry of entries) {
-    if (!entry.isDirectory() || isIgnored(entry.name)) continue;
-    const child = path.join(root, dir, entry.name);
-    const spec = await fs.stat(path.join(child, "spec.md")).catch(() => null);
-    if (spec?.isFile()) return true;
-    const tickets = await fs.stat(path.join(child, "tickets")).catch(() => null);
-    if (tickets?.isDirectory()) return true;
-  }
-  return false;
 }
 
 async function readDocMeta(root, rel, state) {
@@ -173,28 +155,6 @@ export async function scanDocs(inputRoot) {
 
     const tree = await scanDir(root, entry.name, 1, state);
     if (!tree.length) continue;
-
-    // A feature folder is the one special section: it keeps the ticket/graph
-    // view, while every other section remains a generic Markdown tree.
-    if (entry.name === "features" && await looksLikeFeatures(root, entry.name)) {
-      const diagnostics = [];
-      const features = await scanFeatures(root, diagnostics);
-      if (features.length) {
-        state.diagnostics.push(...diagnostics);
-        const first = features.find((f) => f.specPath) || features[0];
-        sections.push({
-          key: entry.name,
-          kind: "features",
-          title: sectionTitle(entry.name),
-          path: entry.name,
-          firstPath: first?.specPath || first?.tickets?.[0]?.path || firstDocument(tree),
-          count: features.reduce((n, f) => n + (f.specPath ? 1 : 0) + f.tickets.length, 0),
-          features,
-          tree,
-        });
-        continue;
-      }
-    }
 
     const firstPath = firstDocument(tree);
     sections.push({

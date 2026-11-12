@@ -2,8 +2,9 @@
 /* desk — open a Markdown file or folder in the live page, and manage the
  * servers started by earlier invocations.
  *
- * The page decides what it is looking at: a `.desk` workspace when the target
- * is the workspace root or lives under `.desk/`, otherwise a Markdown library.
+ * The page decides what it is looking at: a `.context` workspace when the
+ * target is the workspace root or lives under `.context/`, otherwise a
+ * Markdown library.
  * With a file target, the matching document opens in the browser. The viewer
  * is read-only: edit the Markdown and the page follows.
  */
@@ -28,10 +29,11 @@ const HELP = `Usage:
   desk config [command]
   desk help [command]
 
-Open a Markdown file or folder in the live page. Folders under .desk, the
-workspace root, and recognized workspace records open the workspace view. Any
-other Markdown file opens as a library from its own folder. With a file, the
-browser opens that document.
+Open a Markdown file or folder in the live page. Folders under .context, the
+workspace root, and the glossary, map records, and issues open the workspace
+view. Any Markdown file outside .context, or inside .context/reference, opens
+as a library from its own folder. With a file, the browser opens that
+document.
 
 Commands:
   open [path]        Open a path (the default command)
@@ -56,7 +58,7 @@ the open command or the option terminator:
 
 Settings (workspace tabs; global, stored once per user; reload open pages to apply):
 Overview is always the first workspace tab. These settings apply to
-context, architecture, and features.
+glossary, map, and issues.
   desk config                    show current settings
   desk config order <id...>      reorder the top tabs
   desk config default <id>       tab to open when no document is given
@@ -233,7 +235,7 @@ async function runOpen(options, args) {
 
   const resolved = await resolveTarget(target ?? ".");
   const childArgs = [path.join(HERE, "serve.mjs")];
-  childArgs.push(resolved.mode === "desk" ? "--root" : "--docs", resolved.root);
+  childArgs.push(resolved.mode === "context" ? "--root" : "--docs", resolved.root);
   if (resolved.route) childArgs.push("--hash", resolved.route);
   if (options.port) childArgs.push("--port", String(options.port));
   if (options.host) childArgs.push("--host", options.host);

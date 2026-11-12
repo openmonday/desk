@@ -1,7 +1,7 @@
-/* The left rail: features, tickets, and workspace diagnostics. */
+/* The left rail: glossary, map records, issues, tasks, and diagnostics. */
 
 import {
-  S, CODE_GRAPH_PATH, entryForPath, featureIndex, key, num, plural, shortState, tallyText,
+  S, entryForPath, issueIndex, key, num, plural, shortState, tallyText,
   docsMode, docsSection, docsSections,
 } from "./state.js";
 import { cmd, el, glyph, progressLine, svgEl } from "./dom.js";
@@ -24,65 +24,78 @@ function row({ label, lead, sub, active, path, onClick, cls = "", title }) {
   return el("li", {}, [b]);
 }
 
-function ticketRow(f, tk) {
-  const st = featureIndex(f).states.get(key(tk.n));
-  const done = S.justDone.has(tk.path);
+function taskRow(issue, task) {
+  const st = issueIndex(issue).states.get(key(task.n));
+  const done = S.justDone.has(task.path);
   const dot = el("i", {
     class: `dot${done ? " just-done" : ""}`,
-    "data-status": tk.status,
+    "data-status": task.status,
     "data-kind": st.kind,
   }, [glyph(st.kind, 12)]);
   const li = row({
-    cls: "row-ticket",
-    lead: el("span", { class: "row-lead" }, [dot, el("span", { class: "row-n" }, [num(tk.n)])]),
-    label: tk.title,
-    active: S.doc?.path === tk.path,
-    path: tk.path,
-    onClick: () => actions.open(tk.path),
+    cls: "row-task",
+    lead: el("span", { class: "row-lead" }, [dot, el("span", { class: "row-n" }, [num(task.n)])]),
+    label: task.title,
+    active: S.doc?.path === task.path,
+    path: task.path,
+    onClick: () => actions.open(task.path),
   });
-  li.firstChild.title = `${tk.title} — ${shortState(st)} · Status: ${tk.statusRaw}`;
+  li.firstChild.title = `${task.title} — ${shortState(st)} · Status: ${task.statusRaw}`;
   return li;
 }
 
-function featureGroup(f) {
-  const isOpen = S.doc?.feature?.slug === f.slug;
-  const total = (f.tickets || []).length;
+function issueGroup(issue) {
+  const isOpen = S.doc?.issue?.slug === issue.slug;
+  const total = (issue.tasks || []).length;
   const head = el("button", {
     type: "button",
-    class: "feature-row",
+    class: "issue-row",
     "aria-expanded": String(isOpen),
-    title: `${f.title} — ${tallyText(f)}`,
-    onclick: () => (f.specPath ? actions.open(f.specPath) : actions.loadEntry(null)),
+    title: `${issue.title} — ${tallyText(issue)}`,
+    onclick: () => (issue.specPath ? actions.open(issue.specPath) : actions.loadEntry(null)),
   }, [
     folderIcon(),
-    el("span", { class: "feature-title" }, [f.title, el("span", { class: "feature-slash" }, ["/"])]),
-    el("span", { class: "feature-count", title: tallyText(f) }, [total ? `${f.progress.done}/${total}` : "—"]),
+    el("span", { class: "issue-title" }, [issue.title, el("span", { class: "issue-slash" }, ["/"])]),
+    el("span", { class: "issue-count", title: tallyText(issue) }, [total ? `${issue.progress.done}/${issue.progress.total}` : "—"]),
   ]);
   const kids = [head];
-  if (total) kids.push(progressLine(f, "progress-rail"));
+  if (total) kids.push(progressLine(issue, "progress-rail"));
   if (isOpen) {
     const list = [];
-    if (f.specPath) {
+    if (issue.specPath) {
       list.push(row({
         cls: "row-spec",
         lead: el("span", { class: "row-lead" }, [el("span", { class: "row-n" }, ["spec"])]),
         label: "Overview",
         active: S.doc?.kind === "spec",
-        path: f.specPath,
-        onClick: () => actions.open(f.specPath),
+        path: issue.specPath,
+        onClick: () => actions.open(issue.specPath),
       }));
     }
-    for (const tk of f.tickets || []) list.push(ticketRow(f, tk));
-    kids.push(el("ul", { class: "tree doc-tree feature-docs" }, list));
+    if (issue.researchPath) {
+      list.push(row({
+        cls: "row-research",
+        lead: el("span", { class: "row-lead" }, [el("span", { class: "row-n" }, ["research"])]),
+        label: "Report",
+        active: S.doc?.kind === "research",
+        path: issue.researchPath,
+        onClick: () => actions.open(issue.researchPath),
+      }));
+    }
+    for (const task of issue.tasks || []) {
+      if (task.n != null) list.push(taskRow(issue, task));
+    }
+    kids.push(el("ul", { class: "tree doc-tree issue-docs" }, list));
   }
-  return el("li", { class: `feature${isOpen ? " is-open" : ""}` }, kids);
+  return el("li", { class: `issue${isOpen ? " is-open" : ""}` }, kids);
 }
 
-// Keep the feature/ticket view, but put it under a `features/` tree root so
-// the rail reads like the rest of the filesystem.
-function featureRoot(features, path = "features") {
-  if (!(features || []).length) return null;
-  const count = features.reduce((n, f) => n + (f.specPath ? 1 : 0) + (f.tickets || []).length, 0);
+// Keep the spec/task view, but put it under an `issues/` tree root so the rail
+// reads like the rest of the filesystem.
+function issueRoot(issues, path = "issues") {
+  if (!(issues || []).length) return null;
+  const count = issues.reduce((n, issue) => n
+    + (issue.specPath ? 1 : 0) + (issue.researchPath ? 1 : 0) + (issue.tasks || []).length, 0);
   const open = !closedDocs.has(path);
   const details = el("details", {
     class: `doc-details${onDocsPath({ path }) ? " is-branch" : ""}`,
@@ -96,13 +109,13 @@ function featureRoot(features, path = "features") {
       el("span", { class: "doc-folder-label" }, [path]),
       el("span", { class: "doc-count" }, [String(count)]),
     ]),
-    el("ul", { class: "features doc-tree feature-list" }, features.map(featureGroup)),
+    el("ul", { class: "issues doc-tree issue-list" }, issues.map(issueGroup)),
   ]);
   details.addEventListener("toggle", () => {
     if (details.open) closedDocs.delete(path);
     else closedDocs.add(path);
   });
-  return el("ul", { class: "tree doc-tree feature-tree" }, [el("li", { class: "doc-folder" }, [details])]);
+  return el("ul", { class: "tree doc-tree issue-tree" }, [el("li", { class: "doc-folder" }, [details])]);
 }
 
 // Folders are open by default. A collapsed folder is remembered for the life
@@ -124,7 +137,7 @@ function docsParents(path) {
 function revealDocsBranch(path) {
   if (!path || path === lastDocsActive) return;
   lastDocsActive = path;
-  closedDocs.delete(""); // the library root is an ancestor of every document
+  closedDocs.delete(""); // the workspace root is an ancestor of every document
   for (const parent of docsParents(path)) closedDocs.delete(parent);
 }
 
@@ -136,7 +149,7 @@ function docsCount(node) {
 function onDocsPath(node) {
   const p = S.doc?.path;
   if (!p) return false;
-  if (node.path === "") return true; // the library root
+  if (node.path === "") return true; // the workspace root
   return p === node.path || p.startsWith(`${node.path}/`);
 }
 
@@ -281,16 +294,10 @@ function renderDocsRail() {
   railLabel.textContent = section?.title || "Documents";
   railBody.textContent = "";
   revealDocsBranch(S.doc?.path);
-  let list;
-  if (section?.kind === "features") {
-    list = featureRoot(section.features, section.path || "features");
-    if (!list) list = el("p", { class: "empty" }, ["No features in this section."]);
-  } else {
-    const root = section?.kind === "overview" ? docsRoot() : sectionRoot(section);
-    list = root
-      ? el("ul", { class: "tree doc-tree" }, [docsNode(root)])
-      : el("p", { class: "empty" }, ["No Markdown documents in this section."]);
-  }
+  const root = section?.kind === "overview" ? docsRoot() : sectionRoot(section);
+  const list = root
+    ? el("ul", { class: "tree doc-tree" }, [docsNode(root)])
+    : el("p", { class: "empty" }, ["No Markdown documents in this section."]);
   railBody.append(el("nav", { class: "rail-block", "aria-label": section?.title || "Documents" }, [list]));
   const diag = diagnosticBlock();
   if (diag) railBody.append(diag);
@@ -299,43 +306,27 @@ function renderDocsRail() {
 
 function docList() {
   const t = S.tree || {};
-  if (S.tab === "context") {
-    if (!t.context?.exists) return null;
+  if (S.tab === "glossary") {
+    if (!t.glossary?.exists) return null;
     return el("ul", { class: "tree" }, [row({
       label: "Glossary",
-      sub: "CONTEXT.md",
-      active: S.doc?.path === t.context.path,
-      path: t.context.path,
-      onClick: () => actions.open(t.context.path),
+      sub: "GLOSSARY.md",
+      active: S.doc?.path === t.glossary.path,
+      path: t.glossary.path,
+      onClick: () => actions.open(t.glossary.path),
     })]);
   }
-  if (S.tab === "architecture") {
-    const parts = [];
-    if (t.graph) {
-      const symbols = t.graph.symbols ?? 0;
-      const edges = t.graph.edges ?? 0;
-      parts.push(el("ul", { class: "tree cg-entry" }, [row({
-        cls: "row-graph",
-        lead: el("span", { class: "row-lead" }, [el("span", { class: "row-n" }, ["graph"])]),
-        label: "Code graph",
-        sub: `${symbols} · ${edges}`,
-        active: S.doc?.kind === "codegraph",
-        path: CODE_GRAPH_PATH,
-        title: `Code graph — ${symbols} symbols, ${edges} edges`,
-        onClick: () => actions.open(CODE_GRAPH_PATH),
-      })]));
-    }
-    const fallback = (t.architecture || []).map((r) => ({
+  if (S.tab === "map") {
+    const fallback = (t.map?.records || []).map((record) => ({
       type: "file",
-      name: r.path.split("/").pop(),
-      path: r.path,
-      title: r.title,
+      name: record.path.split("/").pop(),
+      path: record.path,
+      title: record.title,
     }));
-    const root = dirRoot("architecture", fallback);
-    if (root) parts.push(el("ul", { class: "tree doc-tree" }, [docsNode(root)]));
-    return parts.length ? el("div", { class: "arch-rail" }, parts) : null;
+    const root = dirRoot("map", fallback);
+    return root ? el("ul", { class: "tree doc-tree" }, [docsNode(root)]) : null;
   }
-  return featureRoot(t.features, "features");
+  return issueRoot(t.issues, "issues");
 }
 
 
@@ -343,13 +334,13 @@ function emptyListHint() {
   if (S.tab === "overview") {
     return el("p", { class: "empty" }, ["No Markdown files in this workspace yet."]);
   }
-  if (S.tab === "context") {
-    return el("p", { class: "empty" }, ["No glossary yet. Run ", cmd("/setup-desk"), " to create ", cmd("CONTEXT.md"), "."]);
+  if (S.tab === "glossary") {
+    return el("p", { class: "empty" }, ["No glossary yet. Run ", cmd("/setup-context"), " to create ", cmd("GLOSSARY.md"), "."]);
   }
-  if (S.tab === "architecture") {
-    return el("p", { class: "empty" }, ["No records yet. Run ", cmd("/setup-desk"), " to create them, or ", cmd("/update-arch"), " after a change."]);
+  if (S.tab === "map") {
+    return el("p", { class: "empty" }, ["No records yet. Run ", cmd("/draw-map"), " to record the committed code."]);
   }
-  return el("p", { class: "empty" }, ["No features yet. Run ", cmd("/to-spec"), " to write a spec, then ", cmd("/to-tickets"), " to split it into tickets."]);
+  return el("p", { class: "empty" }, ["No issues yet. Run ", cmd("/to-spec"), " to write a spec, then ", cmd("/to-tasks"), " to split it into tasks."]);
 }
 
 function diagnostics() {
@@ -405,7 +396,7 @@ function renderRail() {
   if (docsMode()) return renderDocsRail();
   const label = S.tab === "overview"
     ? "Overview"
-    : S.tab === "context" ? "Context" : S.tab === "architecture" ? "Architecture" : "Features";
+    : S.tab === "glossary" ? "Glossary" : S.tab === "map" ? "Map" : "Issues";
   railLabel.textContent = label;
   railBody.textContent = "";
   revealDocsBranch(S.doc?.path);

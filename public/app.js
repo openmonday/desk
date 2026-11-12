@@ -33,14 +33,14 @@ function bindTabs() {
     if (!b || !tabs.contains(b)) return;
     S.tab = b.dataset.tab;
     const loc = readHash();
-    const preferred = loc?.entry?.feature?.slug;
-    const graphLanding = !docsMode() && S.tab === "features";
+    const preferred = loc?.entry?.issue?.slug;
+    const graphLanding = !docsMode() && S.tab === "issues";
     let entry = loc && loc.tab === S.tab && !graphLanding ? loc.entry : null;
     if (!entry) entry = entryForTab(S.tab, preferred);
     await loadEntry(entry, { silent: true });
     if (graphLanding) {
       showGraph();
-      writeTabHash("features");
+      writeTabHash("issues");
     } else {
       writeHash(entry);
     }
@@ -68,11 +68,11 @@ async function boot() {
   }
   const entry = loc ? (loc.entry || entryForTab(loc.tab)) : defaultEntry();
   if (!loc && docsMode() && entry) S.tab = entry.tab;
-  const graphLanding = !docsMode() && (loc ? loc.tab === "features" && !loc.entry : S.tab === "features");
+  const graphLanding = !docsMode() && (loc ? loc.tab === "issues" && !loc.entry : S.tab === "issues");
   await loadEntry(entry, { silent: true });
   if (graphLanding) {
     showGraph();
-    writeTabHash("features");
+    writeTabHash("issues");
   } else if (entry) writeHash(entry);
   else {
     await render();
@@ -85,9 +85,9 @@ window.addEventListener("hashchange", async () => {
   const loc = readHash();
   if (!loc) return;
   S.tab = loc.tab;
-  const preferred = S.doc?.feature?.slug;
+  const preferred = S.doc?.issue?.slug;
   await loadEntry(loc.entry || entryForTab(loc.tab, preferred), { silent: true });
-  if (!docsMode() && loc.tab === "features" && !loc.entry) showGraph();
+  if (!docsMode() && loc.tab === "issues" && !loc.entry) showGraph();
   renderTabs();
 });
 

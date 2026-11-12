@@ -211,7 +211,7 @@
 .next-gap { width: var(--s4); }
 .next-more { color: var(--faint); font-size: 14px; }
 
-/* linked ticket reference: glyph, number, title */
+/* linked task reference: glyph, number, title */
 .tlink {
   display: inline-flex;
   align-items: baseline;
@@ -226,3 +226,73 @@
 .link-n { font: 400 0.8em/1 var(--mono); color: var(--faint); }
 .tlink.is-missing { color: var(--clay-ink); }
 .sep { color: var(--muted); margin: 0 2px; }
+
+/* ---------- map record facts ---------- */
+
+.record-facts {
+  margin: 0 0 var(--s5);
+  padding: var(--s3) 0 var(--s4);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s6);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.fact dt,
+.fact-label {
+  margin: 0;
+  font: 400 10.5px/1.6 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.fact dd {
+  margin: 0;
+  font: 400 13.5px/1.5 var(--sans-text);
+  color: var(--ink-soft);
+}
+
+.fact dd code { font-size: 12.5px; }
+
+.fact-label { margin: var(--s4) 0 var(--s2); }
+
+.record-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record-files li {
+  font: 400 12.5px/1.6 var(--mono);
+  color: var(--ink-soft);
+}
+
+/* ---------- document jumps ---------- */
+
+.doc-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+  margin: var(--s3) 0 0;
+}
+
+.doc-jump {
+  font: 400 13px/1.4 var(--sans-text);
+  color: var(--clay-ink);
+  text-underline-offset: 3px;
+}

@@ -1,13 +1,11 @@
 # desk
 
-A live, read-only view of a `.desk` engineering workspace or any folder of
+A live, read-only view of a `.context` engineering workspace or any folder of
 Markdown. You write Markdown; the page follows. No dependencies, no build step:
 Node 18+ and plain HTML, CSS, and JavaScript. Markdown is rendered with vendored
 marked, highlighted with a vendored highlight.js build, and LaTeX math is
 rendered with vendored KaTeX that loads only when a document contains math.
-When a workspace includes mycel's read-only `architecture/graph.json`, desk also
-draws its code graph: files, symbols, and call edges. The graph is a data input,
-never a document. Everything stays local.
+Everything stays local.
 
 ```bash
 npm start        # serve the sample workspace at http://127.0.0.1:7777
@@ -21,12 +19,14 @@ npm test         # run the test suite
 ```bash
 desk                                    # current folder
 desk ~/notes                            # a Markdown library
-desk .desk                              # a workspace
-desk .desk/features                     # the ticket graph
-desk .desk/architecture                 # architecture records and code graph
-desk .desk/architecture/graph.json      # the code graph route
-desk .desk/AGENTS.md                    # any other Markdown document
-desk .desk/features/demo/spec.md        # that document in the browser
+desk .context                           # a workspace
+desk .context/issues                    # issues
+desk .context/issues/demo               # that issue's spec
+desk .context/issues/demo/tasks/cache-the-tree.md   # that task
+desk .context/map                       # map records
+desk .context/map/server/http.md        # that record
+desk .context/GLOSSARY.md               # the glossary
+desk .context/AGENTS.md                 # any other Markdown document
 desk open list                           # a folder literally named "list"
 desk -- list                             # same, using the option terminator
 ```
@@ -40,58 +40,62 @@ the document it opened. The list uses the same `●` / `○` treatment as the
 skills manager: filled means opened, hollow means available.
 
 `desk` decides the mode from the path. The workspace root (the folder that
-contains `.desk/`), folders under `.desk/`, and recognized records
-(`CONTEXT.md`, `architecture/*.md`, specs, tickets) open in the workspace view.
-Everything else opens as a Markdown library, and a file opens from its own
-folder, so `desk notes/today.md` shows the `notes/` tree at that document. That
-also means a plain file like `.desk/AGENTS.md` opens as a document instead of
-being refused. `architecture/graph.json` is the one non-Markdown target: it
-opens workspace mode at the code-graph route. With a file the browser opens
+contains `.context/`), folders under `.context/`, and its documents open in the
+workspace view. Any other Markdown file opens as a Markdown library from its
+own folder. A task opens at its number route, which the page resolves from the
+`# NN: Title` heading rather than the file name. `reference/` holds checkouts of
+other projects, so it is never scanned, listed, served, or counted: a path
+inside it opens as an ordinary Markdown library. With a file the browser opens
 automatically; pass `--no-open` to keep it closed. `--port`, `--host`, and
 `--quiet` work as expected.
 
-By default, workspaces open on **Overview**, a Markdown file tree rooted at `.desk/`:
-`architecture/`, `features/`, `CONTEXT.md`, `AGENTS.md`, and anything else Markdown.
-The **Context**, **Architecture**, and **Features** tabs keep their focused
-views. **Architecture** shows the `architecture/` folder as its tree root rather
-than the library root; when `architecture/graph.json` exists it adds a **Code
-graph** row and opens that graph, with the Markdown records one click away.
-**Features** does the same for `features/` while keeping the feature progress,
-spec, and numbered ticket rows under each feature folder.
-The page renders `CONTEXT.md`, `architecture/*.md`, and each feature spec and
-its tickets. Opening the **Features** section, or `.desk/features`, lands on
-the ticket graph; clicking a node opens the ticket, and the spec is a click
-away. Edits made by you or an agent appear live over server-sent events.
-Every view can fill the browser window with in-page fullscreen. The round button at the
-top right cycles auto, light, and dark; auto follows the operating system.
+By default, workspaces open on **Overview**, a Markdown file tree rooted at
+`.context/`: `GLOSSARY.md`, `AGENTS.md`, `issues/`, `map/`, and anything else
+Markdown. The **Glossary**, **Map**, and **Issues** tabs keep their focused
+views. **Glossary** shows `GLOSSARY.md`. **Map** shows `map/` as a tree with
+module folders; a record opens with its front matter as record facts: the type,
+the `since` commit, and the project files it covers. **Issues** lists each issue
+with its progress, then its spec, research report, and tasks.
 
-## Code graph
+Opening the **Issues** section, or `.context/issues`, shows the task graph;
+clicking a node opens the task, and the spec is a click away. Edits made by you
+or an agent appear live over server-sent events. Every view can fill the browser
+window with in-page fullscreen. The round button at the top right cycles auto,
+light, and dark; auto follows the operating system.
 
-If the workspace contains mycel's document at `.desk/architecture/graph.json`,
-the Architecture tab draws it at `#/architecture/graph`;
-`desk .desk/architecture/graph.json` opens that route directly, and
-`desk .desk/architecture` lands there when a graph exists. Existing record
-routes such as `#/architecture/<slug>` keep working, and `#/architecture`
-opens the graph when present, otherwise the first record. `graph.json` stays
-out of Overview, the Architecture document tree, the rail file counts, search,
-and every Markdown listing; it is a graph source only.
+## Task graph
 
-The default view shows callable symbols (functions, methods, constructors, and
-destructors) and project-internal call edges. Search filters by name or file,
-the scope selector narrows to a folder or file, and checkboxes reveal external
-and unresolved edges plus non-callable kinds. The page draws at most 240 symbols
-and 2,200 edges at a time and states how many matched symbols and edges were
-hidden; selection favors the most connected symbols and their neighbours so the
-default picture has structure. Clicking a symbol, or focusing it with Tab and
-pressing Enter, shows its kind, file, span, and in/out edge counts. The canvas
-scrolls, zooms, and uses a deterministic layout; an accessible table lists the
-same rendered symbols. External edges are blue and dashed, unresolved edges are
-clay and dashed.
+`Blocked by: 01, 02` draws an arrow from each blocker to its dependent. Columns
+run left to right by dependency depth. The node state comes from the `Status:`
+line: `pending` with no open blockers is **Ready**, `pending` with open blockers
+is **Waiting**, `in-progress` is **In progress**, `done` is **Done**, and
+`dropped` is struck through. A cycle is a diagnostic and its back edges are not
+drawn. The phone layout lists the same tasks, indented by column.
 
-The server reads the graph once per file version, confines it to the workspace,
-and refuses files over 32 MB. `/api/tree` carries only a small summary; the view
-loads the full document from `/api/codegraph`. A malformed or incomplete graph
-becomes a rail diagnostic while the Markdown views keep working.
+Diagnostics catch a missing spec, missing spec sections, a task heading that is
+not `# NN: Title`, a duplicate task number, a missing or unknown status, a
+missing acceptance-criteria section, a dangling blocker, a dependency cycle, and
+record front matter that does not match the map format. A diagnostic never
+blanks the page.
+
+## Map records
+
+A record lives anywhere under `map/`, for example `map/payments/retry.md`, and
+starts with the limited front matter the `draw-map` skill writes:
+
+```markdown
+---
+type: feat
+files:
+  - src/payments/
+since: abc123f
+---
+```
+
+The page shows the type, the `since` commit, and the covered files above the
+record body; the filename is the rail label, never the record title. The body
+renders like any other document, so Constraints, Architecture, and Violations
+stay readable and linkable.
 
 ## Running servers
 
@@ -115,24 +119,25 @@ Only servers started by the current user are visible.
 
 ## Settings
 
-Settings for the `.desk` workspace's top tabs are global (stored once per user,
-not per project) and changed with `desk config`:
+Settings for the `.context` workspace's top tabs are global (stored once per
+user, not per project) and changed with `desk config`:
 
 ```bash
 desk config                              # show settings and the file path
-desk config order features context architecture
-desk config default features
-desk config hide architecture
-desk config unhide architecture
+desk config order issues map glossary
+desk config default issues
+desk config hide map
+desk config unhide map
 desk config reset
 ```
 
 `order` sets the top-tab order, `default` picks the tab that opens when you name
 no document, and `hide` removes a tab from the top bar (the path still works).
 **Overview** is always the first workspace tab and is not configurable; the
-sections are `context`, `architecture`, and `features`. Reload an open page
-to apply a change. Set `DESK_CONFIG` to use another file, or `XDG_CONFIG_HOME`
-to move the default `~/.config/desk/config.json`.
+sections are `glossary`, `map`, and `issues`. The old names `context`,
+`architecture`, and `features` are accepted as aliases. Reload an open page to
+apply a change. Set `DESK_CONFIG` to use another file, or `XDG_CONFIG_HOME` to
+move the default `~/.config/desk/config.json`.
 
 ## Markdown libraries
 
@@ -173,11 +178,6 @@ math and `$$...$$` or `\[...\]` on their own lines for display math.
 Formulas inside code spans and fenced blocks stay literal, and KaTeX loads
 lazily on the first document that needs it.
 
-If a top-level `features/` folder contains feature folders (`spec.md` and/or
-`tickets/`), that section keeps the feature view: spec, numbered tickets, and
-the dependency graph. Every other section stays a plain, read-only document
-tree.
-
 Both modes still bind to `127.0.0.1` and have no authentication. Do not expose
 them with `--host 0.0.0.0` on an untrusted network.
 
@@ -185,13 +185,13 @@ them with `--host 0.0.0.0` on an untrusted network.
 
 ```text
 .
-├── .desk/                  sample workspace: glossary, architecture records, features
+├── .context/               sample workspace: glossary, map records, one issue
 ├── src/                    server and library code
 │   ├── serve.mjs           HTTP entry: options, workspace, lifecycle
 │   ├── desk.mjs            viewer CLI and server commands
 │   ├── cli/                argument grammar, target detection and hash routes
 │   ├── server/             request handler, SSE, static assets, watcher
-│   └── lib/                scanners, settings, reads, running-server registry
+│   └── lib/                scanners, task and record parsing, settings, reads
 ├── public/                 shell, styles, client modules, vendored libraries
 ├── scripts/setup-cli.sh    link and verify the global `desk` command
 ├── tools/shot.mjs          headless screenshot helper

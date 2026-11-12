@@ -17,26 +17,28 @@ const docsTree = {
   ],
 };
 
-const deskTree = {
-  mode: "desk",
+const contextTree = {
+  mode: "context",
   files: {
     type: "dir",
     children: [
       { type: "file", path: "AGENTS.md" },
-      { type: "file", path: "CONTEXT.md" },
-      { type: "dir", children: [{ type: "file", path: "architecture/one.md" }] },
+      { type: "file", path: "GLOSSARY.md" },
+      { type: "dir", children: [{ type: "file", path: "map/one.md" }] },
       { type: "dir", children: [
-        { type: "file", path: "features/demo/spec.md" },
-        { type: "dir", children: [{ type: "file", path: "features/demo/tickets/01-do-it.md" }] },
+        { type: "file", path: "issues/demo/spec.md" },
+        { type: "file", path: "issues/demo/research.md" },
+        { type: "dir", children: [{ type: "file", path: "issues/demo/tasks/cache.md" }] },
       ] },
     ],
   },
-  context: { exists: true, path: "CONTEXT.md" },
-  architecture: [{ path: "architecture/one.md" }],
-  features: [{
+  glossary: { exists: true, path: "GLOSSARY.md" },
+  map: { records: [{ path: "map/one.md" }] },
+  issues: [{
     slug: "demo",
-    specPath: "features/demo/spec.md",
-    tickets: [{ n: 1, path: "features/demo/tickets/01-do-it.md" }],
+    specPath: "issues/demo/spec.md",
+    researchPath: "issues/demo/research.md",
+    tasks: [{ n: 2, path: "issues/demo/tasks/cache.md" }],
   }],
 };
 
@@ -49,21 +51,26 @@ test("detectedFiles lists every docs file and marks the opened document", () => 
   ]);
 });
 
-test("detectedFiles lists workspace files and resolves ticket routes", () => {
-  const files = detectedFiles(deskTree, "#/features/demo/1");
+test("detectedFiles lists workspace files and resolves task routes", () => {
+  const files = detectedFiles(contextTree, "#/issues/demo/2");
   assert.deepEqual(files, [
     { path: "AGENTS.md", opened: false },
-    { path: "architecture/one.md", opened: false },
-    { path: "CONTEXT.md", opened: false },
-    { path: "features/demo/spec.md", opened: false },
-    { path: "features/demo/tickets/01-do-it.md", opened: true },
+    { path: "GLOSSARY.md", opened: false },
+    { path: "issues/demo/research.md", opened: false },
+    { path: "issues/demo/spec.md", opened: false },
+    { path: "issues/demo/tasks/cache.md", opened: true },
+    { path: "map/one.md", opened: false },
   ]);
 });
 
-test("detectedFiles resolves overview file routes", () => {
-  const files = detectedFiles(deskTree, "#/overview/architecture/one.md");
-  assert.equal(files.find((file) => file.path === "architecture/one.md").opened, true);
-  assert.equal(files.filter((file) => file.opened).length, 1);
+test("detectedFiles resolves overview and record routes", () => {
+  const overview = detectedFiles(contextTree, "#/overview/map/one.md");
+  assert.equal(overview.find((file) => file.path === "map/one.md").opened, true);
+  assert.equal(overview.filter((file) => file.opened).length, 1);
+
+  assert.equal(detectedFiles(contextTree, "#/map/one")[5].opened, true);
+  assert.equal(detectedFiles(contextTree, "#/glossary")[1].opened, true);
+  assert.equal(detectedFiles(contextTree, "#/issues/demo/research")[2].opened, true);
 });
 
 test("formatFileList uses the skm-style installed/opened list", () => {
@@ -72,10 +79,4 @@ test("formatFileList uses the skm-style installed/opened list", () => {
   assert.match(text, /● guides\/install\.md  opened/);
   assert.match(text, /○ README\.md/);
   assert.doesNotMatch(text, /\u001b\[/);
-});
-
-test("the code graph route does not mark a Markdown file as opened", () => {
-  const files = detectedFiles({ ...deskTree, graph: { path: "architecture/graph.json" } }, "#/architecture/graph");
-  assert.equal(files.filter((file) => file.opened).length, 0);
-  assert.ok(!files.some((file) => file.path === "architecture/graph.json"));
 });

@@ -1,6 +1,7 @@
 /* Markdown parsing and sanitizing for the article body. */
 
 import { encodeDocPath, isDocPath, resolveDocPath } from "./docs-path.js";
+import { hashForPath } from "./state.js";
 import { ensureMath, hasMath } from "./math.js";
 
 const slug = (s) =>
@@ -25,7 +26,7 @@ function splitUrl(value) {
   return { path: match?.[1] || "", suffix: match?.[2] || "" };
 }
 
-function docsTarget(value, basePath, isImage) {
+function localTarget(value, basePath, mode, isImage) {
   if (!value || value.startsWith("#") || value.startsWith("//") || EXTERNAL_RE.test(value)) return null;
   const { path, suffix } = splitUrl(value);
   if (!path) return null;
@@ -40,7 +41,8 @@ function docsTarget(value, basePath, isImage) {
 
   if (!isImage && isDocPath(resolved)) {
     // The hash route cannot carry a second fragment; open the document itself.
-    return `#/docs/${encodeDocPath(resolved)}`;
+    if (mode === "docs") return `#/docs/${encodeDocPath(resolved)}`;
+    return hashForPath(resolved);
   }
   if (ASSET_RE.test(path)) {
     return `/api/asset?path=${encodeURIComponent(resolved)}${suffix.startsWith("?") ? "&" + suffix.slice(1) : ""}`;
@@ -48,16 +50,16 @@ function docsTarget(value, basePath, isImage) {
   return null;
 }
 
-/** Rewrite relative Markdown links and images to docs-mode routes. */
-function rewriteDocsLinks(root, basePath) {
+/** Rewrite relative Markdown links and images to page routes. */
+function rewriteLocalLinks(root, basePath, mode) {
   for (const a of root.querySelectorAll("a[href]")) {
     const href = a.getAttribute("href");
-    const next = docsTarget(href, basePath, false);
+    const next = localTarget(href, basePath, mode, false);
     if (next) a.setAttribute("href", next);
   }
   for (const img of root.querySelectorAll("img[src]")) {
     const src = img.getAttribute("src");
-    const next = docsTarget(src, basePath, true);
+    const next = localTarget(src, basePath, mode, true);
     if (next) img.setAttribute("src", next);
   }
 }
@@ -110,7 +112,7 @@ async function mdToNodes(md, opts = null) {
     used.add(id);
     h.id = id;
   });
-  if (opts?.basePath) rewriteDocsLinks(holder, opts.basePath);
+  if (opts?.basePath) rewriteLocalLinks(holder, opts.basePath, opts.mode);
   return holder;
 }
 

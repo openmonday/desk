@@ -44,7 +44,7 @@ function validRecord(record) {
     && Number.isInteger(record.port)
     && record.port > 0
     && typeof record.host === "string"
-    && (record.mode === "desk" || record.mode === "docs")
+    && (record.mode === "context" || record.mode === "docs")
     && typeof record.root === "string"
     && typeof record.url === "string"
     && typeof record.startedAt === "string",

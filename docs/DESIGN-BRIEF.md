@@ -2,8 +2,10 @@
 
 > Historical brief. The app now lives in `src/` (server and library) and
 > `public/` (shell, styles, client modules). The layout has been split since
-> this brief was written, but the visual and behaviour contracts below still
-> apply.
+> this brief was written, and the workspace moved to `.context/` (glossary, map
+> records, issues, tasks). The visual and behaviour contracts below still
+> apply; read "ticket" as "task", "feature" as "issue", and "architecture
+> record" as "map record".
 
 You are taking over a small, self-contained tool and making it beautiful, clear,
 and unmistakably Claude. This is a visual and interaction redesign, not a

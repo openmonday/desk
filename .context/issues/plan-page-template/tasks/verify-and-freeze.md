@@ -14,8 +14,8 @@ Run the full acceptance checklist against a real workspace, document the frozen-
 - [x] Tabs switch context without a reload.
 - [x] A dangling `Blocked by:` shows a diagnostic and still renders.
 - [x] Rail TREE items jump and follow scroll; the page is usable at 390px.
-- [x] Final visual review against the acceptance checklist on the finished real workspace.
-- [x] Confirm no request leaves localhost with the network disconnected.
+- [ ] Final visual review against the acceptance checklist on the finished real workspace.
+- [ ] Confirm no request leaves localhost with the network disconnected.
 
 ## Constraints
 
@@ -23,4 +23,4 @@ Do not edit the frozen shell, styles, client, or scanner to make the workspace f
 
 ## Verification
 
-Screenshots at 1440px and 390px; server contract checks; SSE change test; diagnostics fixture; browser live-refresh test; 390px overflow check; all 12 runtime requests stayed on 127.0.0.1.
+Pending: the final visual review and the offline check. Server contract, SSE, diagnostics, and the 390px layout were verified with tests and screenshots.

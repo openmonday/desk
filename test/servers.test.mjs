@@ -14,7 +14,7 @@ function record(pid, overrides = {}) {
     pid,
     port: 7777,
     host: "127.0.0.1",
-    mode: "desk",
+    mode: "context",
     root: "/tmp/workspace",
     url: "http://127.0.0.1:7777",
     startedAt: "2026-01-01T00:00:00.000Z",

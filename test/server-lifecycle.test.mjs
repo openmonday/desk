@@ -49,7 +49,7 @@ test("desk list and desk kill see a running server", async (t) => {
     const servers = await listServers(env);
     return servers.length ? servers : null;
   });
-  assert.equal(record.mode, "desk");
+  assert.equal(record.mode, "context");
   assert.equal(record.root, workspace.ws);
 
   const listed = await run(["list", "--json"], env);

@@ -27,38 +27,6 @@ function settleView(entry, opts, top) {
   if (!opts.silent) writeHash(entry);
 }
 
-async function loadCodeGraph(entry, opts) {
-  const top = scroller.scrollTop;
-  let payload = null;
-  let error = null;
-  try {
-    payload = await api("/api/codegraph");
-  } catch {
-    error = "The code graph could not be loaded. It may be malformed, missing, or larger than the read limit.";
-  }
-
-  if (S.doc?.kind === "codegraph" && S.doc.path === entry.path
-    && S.doc.mtime === (payload?.mtime || 0) && opts.keepScroll && !opts.force) {
-    S.doc = { ...S.doc, summary: entry.summary || S.tree?.graph || S.doc.summary };
-    return;
-  }
-
-  S.doc = {
-    ...entry,
-    summary: entry.summary || S.tree?.graph || null,
-    codegraph: payload?.graph || null,
-    codegraphError: error,
-    mtime: payload?.mtime || 0,
-  };
-  S.mdError = null;
-  if (!opts.keepScroll) {
-    noteNavigation();
-    actions.showArticle();
-  }
-  await actions.render();
-  settleView(entry, opts, top);
-}
-
 async function loadEntry(entry, opts = {}) {
   // A rail can point at a document outside the selected section. Follow the
   // document so the tab bar and rail heading stay in sync.
@@ -71,11 +39,6 @@ async function loadEntry(entry, opts = {}) {
     await actions.render();
     return;
   }
-  if (entry.kind === "codegraph") {
-    await loadCodeGraph(entry, opts);
-    return;
-  }
-
   const top = scroller.scrollTop;
   let payload;
   try {
@@ -85,7 +48,13 @@ async function loadEntry(entry, opts = {}) {
   }
   if (S.doc && S.doc.path === entry.path && S.doc.mtime === payload.mtime && opts.keepScroll && !opts.force) {
     // Same document, same bytes: keep the DOM and only refresh tree-derived refs.
-    S.doc = { ...S.doc, feature: entry.feature || S.doc.feature, ticket: entry.ticket || S.doc.ticket, title: entry.title };
+    S.doc = {
+      ...S.doc,
+      issue: entry.issue || S.doc.issue,
+      task: entry.task || S.doc.task,
+      record: entry.record || S.doc.record,
+      title: entry.title,
+    };
     return;
   }
   S.doc = { ...entry, md: payload.md, mtime: payload.mtime };

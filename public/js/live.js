@@ -8,7 +8,7 @@ import { live } from "./refs.js";
 
 function setLive(state) {
   live.dataset.state = state;
-  const target = S.tree?.mode === "docs" ? "docs" : ".desk";
+  const target = S.tree?.mode === "docs" ? "docs" : ".context";
   live.title = state === "up"
     ? `Live: watching ${target}. Changes made by you or an agent appear here on their own.`
     : state === "stale"

@@ -1,8 +1,8 @@
-/* Ticket graph layout: layered left-to-right columns with orthogonal edges.
+/* Task graph layout: layered left-to-right columns with orthogonal edges.
  *
- * A ticket's column is its longest blocker chain. Adjacent dependencies turn in
+ * A task's column is its longest blocker chain. Adjacent dependencies turn in
  * the gutter between their columns; edges that skip columns travel on a labeled
- * bus below the graph. No line ever crosses a ticket card, so the SVG can never
+ * bus below the graph. No line ever crosses a task card, so the SVG can never
  * sit on top of node text.
  *
  * The layout adapts to the panel: each column is only as wide as its titles
@@ -59,8 +59,8 @@ function columnWidths(layers, font) {
   ));
 }
 
-function layoutGraph(tickets, availW, availH) {
-  const byN = new Map(tickets.map((t) => [key(t.n), t]));
+function layoutGraph(tasks, availW, availH) {
+  const byN = new Map(tasks.map((t) => [key(t.n), t]));
   const layerOf = new Map();
   const visiting = new Set();
   const walk = (t) => {
@@ -79,12 +79,12 @@ function layoutGraph(tickets, availW, availH) {
     layerOf.set(k, d);
     return d;
   };
-  tickets.forEach(walk);
+  tasks.forEach(walk);
 
   const nL = Math.max(0, ...layerOf.values()) + 1;
   const layers = Array.from({ length: nL }, () => []);
   const items = new Map();
-  for (const t of [...tickets].sort((a, b) => a.n - b.n)) {
+  for (const t of [...tasks].sort((a, b) => a.n - b.n)) {
     const it = { id: key(t.n), t, layer: layerOf.get(key(t.n)), y: 0, h: GR.h, pred: [], succ: [] };
     items.set(it.id, it);
     layers[it.layer].push(it);
@@ -92,7 +92,7 @@ function layoutGraph(tickets, availW, availH) {
 
   const edges = [];
   const back = [];
-  for (const t of tickets) {
+  for (const t of tasks) {
     for (const b of t.blockedBy) {
       const bt = byN.get(key(b));
       if (!bt || key(bt.n) === key(t.n)) continue;

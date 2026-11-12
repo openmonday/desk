@@ -1,4 +1,4 @@
-/* The work area's two views: ticket graph and article.
+/* The work area's two views: task graph and article.
  *
  * Only one is visible at a time. The graph is opened from the rail; choosing
  * any document switches back to the article. The rail keeps its resize handle,
@@ -29,7 +29,7 @@ function applyPanelChrome() {
     graphToggle.hidden = !available;
     graphToggle.setAttribute("aria-pressed", String(onGraph));
     graphToggle.setAttribute("aria-expanded", String(onGraph));
-    const text = onGraph ? "Show article" : "Show ticket graph";
+    const text = onGraph ? "Show article" : "Show task graph";
     graphToggle.title = text;
     graphToggle.setAttribute("aria-label", text);
   }
@@ -80,7 +80,7 @@ function toggleGraphView() {
     return;
   }
   showGraph();
-  if (S.tab === "features") writeTabHash("features");
+  if (S.tab === "issues") writeTabHash("issues");
 }
 
 function initTools() {
@@ -94,7 +94,7 @@ function initTools() {
   graphToggle.addEventListener("click", toggleGraphView);
 
   railTools.append(graphToggle, fullscreenButton("rail", "navigation"));
-  graphFs = fullscreenButton("graph", "ticket graph");
+  graphFs = fullscreenButton("graph", "task graph");
   graphTools.append(graphFs);
   articleTools.append(fullscreenButton("article", "article"));
   initFullscreen();

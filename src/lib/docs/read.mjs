@@ -1,4 +1,7 @@
-/* Safe reads for docs documents and their local assets. */
+/* Safe reads for Markdown documents and their local assets.
+ *
+ * Docs mode and workspace mode share these reads: both confine the path to a
+ * root, refuse symlink escapes, and allowlist asset types. */
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -29,9 +32,10 @@ function inside(root, real) {
   return real === root || real.startsWith(root + path.sep);
 }
 
-async function resolveInside(root, rel) {
+async function resolveInside(root, rel, deny = []) {
   if (typeof rel !== "string" || !rel || rel.includes("\0")) return null;
   if (path.isAbsolute(rel)) return null;
+  if (deny.includes(rel.split(/[\\/]/)[0])) return null;
 
   const rootReal = await fs.realpath(root);
   const abs = path.resolve(rootReal, rel);
@@ -45,28 +49,31 @@ async function resolveInside(root, rel) {
   }
   if (!inside(rootReal, real)) return null;
 
+  const within = path.relative(rootReal, real).split(path.sep).join("/");
+  if (deny.includes(within.split("/")[0])) return null;
+
   const st = await fs.stat(real).catch(() => null);
   if (!st?.isFile()) return null;
-  return { real, stat: st, rel: path.relative(rootReal, real).split(path.sep).join("/") };
+  return { real, stat: st, rel: within };
 }
 
-/** Read a Markdown document, confined to the docs root. */
-export async function readDocsDoc(root, rel) {
+/** Read a Markdown document, confined to the root. */
+export async function readDocsDoc(root, rel, opts = {}) {
   if (typeof rel !== "string" || !DOC_RE.test(rel)) return null;
-  const hit = await resolveInside(root, rel);
+  const hit = await resolveInside(root, rel, opts.deny);
   if (!hit || hit.stat.size > MAX_DOC_BYTES) return null;
   const md = await fs.readFile(hit.real, "utf8");
   return { md, mtime: hit.stat.mtimeMs, path: hit.rel };
 }
 
-/** Read an allowlisted asset (images, media, downloads), confined to the docs root. */
-export async function readDocsAsset(root, rel) {
+/** Read an allowlisted asset (images, media, downloads), confined to the root. */
+export async function readDocsAsset(root, rel, opts = {}) {
   if (typeof rel !== "string" || !rel) return null;
   const ext = path.extname(rel).toLowerCase();
   const type = ASSET_TYPES[ext];
   if (!type) return null;
 
-  const hit = await resolveInside(root, rel);
+  const hit = await resolveInside(root, rel, opts.deny);
   if (!hit || hit.stat.size > MAX_ASSET_BYTES) return null;
   const body = await fs.readFile(hit.real);
   return { body, type, size: body.length };

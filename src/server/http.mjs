@@ -3,7 +3,6 @@ import { readDoc, scanWorkspace } from "../lib/scan.mjs";
 import { scanDocs } from "../lib/docs/scan.mjs";
 import { readDocsAsset, readDocsDoc } from "../lib/docs/read.mjs";
 import { readNav } from "../lib/config.mjs";
-import { readCodeGraph } from "../lib/codegraph.mjs";
 import { attachEventStream } from "./events.mjs";
 import { serveStatic } from "./static.mjs";
 
@@ -16,6 +15,9 @@ export function createRequestHandler({ mode = "desk", workspace, docsRoot, publi
   const docs = mode === "docs";
   const scan = docs ? () => scanDocs(docsRoot) : () => scanWorkspace(workspace);
   const read = docs ? (rel) => readDocsDoc(docsRoot, rel) : (rel) => readDoc(workspace, rel);
+  // Reference checkouts are repositories, not part of the workspace page.
+  const assetRoot = docs ? docsRoot : workspace;
+  const assetOptions = docs ? {} : { deny: ["reference"] };
 
   return async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
@@ -48,26 +50,6 @@ export function createRequestHandler({ mode = "desk", workspace, docsRoot, publi
       }
     }
 
-    if (!docs && route === "/api/codegraph") {
-      try {
-        const result = await readCodeGraph(workspace);
-        if (!result.ok) {
-          return json(res, result.missing ? 404 : 422, {
-            ok: false,
-            error: result.message || "code graph not found",
-          });
-        }
-        return json(res, 200, {
-          ok: true,
-          path: result.path,
-          mtime: result.mtime,
-          graph: result.graph,
-        });
-      } catch (err) {
-        return json(res, 500, { ok: false, error: String(err?.message || err) });
-      }
-    }
-
     if (route === "/api/doc" || route === "/api/raw") {
       const rel = url.searchParams.get("path") || "";
       let doc = null;
@@ -82,11 +64,11 @@ export function createRequestHandler({ mode = "desk", workspace, docsRoot, publi
       return json(res, 200, { path: doc.path || rel, md: doc.md, mtime: doc.mtime });
     }
 
-    if (docs && route === "/api/asset") {
+    if (route === "/api/asset") {
       const rel = url.searchParams.get("path") || "";
       let asset = null;
       try {
-        asset = await readDocsAsset(docsRoot, rel);
+        asset = await readDocsAsset(assetRoot, rel, assetOptions);
       } catch { /* fall through */ }
       if (!asset) return json(res, 404, { ok: false, error: "not found" });
       res.writeHead(200, {

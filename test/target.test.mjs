@@ -9,17 +9,19 @@ async function makeTree(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "desk-target-"));
   t.after(() => rm(root, { recursive: true, force: true }));
 
-  await mkdir(path.join(root, ".desk", "architecture"), { recursive: true });
-  await mkdir(path.join(root, ".desk", "features", "demo", "tickets"), { recursive: true });
+  await mkdir(path.join(root, ".context", "map", "server"), { recursive: true });
+  await mkdir(path.join(root, ".context", "issues", "demo", "tasks"), { recursive: true });
+  await mkdir(path.join(root, ".context", "reference", "other"), { recursive: true });
   await mkdir(path.join(root, "docs"), { recursive: true });
 
   const write = (rel, text = "# Doc\n") => writeFile(path.join(root, rel), text);
-  await write(".desk/CONTEXT.md");
-  await write(".desk/AGENTS.md");
-  await write(".desk/AGENTS.txt");
-  await write(".desk/architecture/one.md");
-  await write(".desk/features/demo/spec.md");
-  await write(".desk/features/demo/tickets/02-cache.md");
+  await write(".context/GLOSSARY.md");
+  await write(".context/AGENTS.md");
+  await write(".context/map/server/http.md", "---\ntype: feat\nfiles:\n  - src/http.mjs\nsince: 0123456\n---\n\n# HTTP\n");
+  await write(".context/issues/demo/spec.md", "## Problem Statement\n\nA fixture.\n");
+  await write(".context/issues/demo/research.md", "# Research\n");
+  await write(".context/issues/demo/tasks/cache-the-tree.md", "# 02: Cache the tree\n\nStatus: pending\n");
+  await write(".context/reference/other/README.md");
   await write("docs/api.md");
   await write("docs/a b.md");
   await write("README.md");
@@ -27,34 +29,52 @@ async function makeTree(t) {
   return root;
 }
 
-test("workspace roots and folders under .desk open in workspace mode", async (t) => {
+test("the workspace root and its folders open in workspace mode", async (t) => {
   const root = await makeTree(t);
+  const ws = path.join(root, ".context");
 
   assert.deepEqual(
     await resolveTarget(".", root),
-    { mode: "desk", root, dataDir: path.join(root, ".desk"), route: null, file: false },
+    { mode: "context", root, dataDir: ws, route: null, file: false },
   );
-  assert.equal((await resolveTarget(".desk", root)).root, root);
-  assert.equal((await resolveTarget(".desk/features/demo", root)).mode, "desk");
-  assert.equal((await resolveTarget(".desk/features", root)).route, "#/features");
-  assert.equal((await resolveTarget(".desk/features/demo", root)).route, "#/features/demo");
-  assert.equal((await resolveTarget(".desk/features/demo/tickets", root)).route, "#/features/demo");
-  assert.equal((await resolveTarget(".desk/architecture", root)).route, "#/architecture");
+  assert.equal((await resolveTarget(".context", root)).root, root);
+  assert.equal((await resolveTarget(".context/issues/demo", root)).mode, "context");
+  assert.equal((await resolveTarget(".context/issues", root)).route, "#/issues");
+  assert.equal((await resolveTarget(".context/issues/demo", root)).route, "#/issues/demo");
+  assert.equal((await resolveTarget(".context/issues/demo/tasks", root)).route, "#/issues/demo");
+  assert.equal((await resolveTarget(".context/map", root)).route, "#/map");
+  assert.equal((await resolveTarget(".context/map/server", root)).route, null);
 });
 
 test("workspace files open at the route the page uses", async (t) => {
   const root = await makeTree(t);
 
-  assert.equal((await resolveTarget(".desk/CONTEXT.md", root)).route, "#/context");
-  assert.equal((await resolveTarget(".desk/architecture/one.md", root)).route, "#/architecture/one");
-  assert.equal((await resolveTarget(".desk/features/demo/spec.md", root)).route, "#/features/demo");
+  assert.equal((await resolveTarget(".context/GLOSSARY.md", root)).route, "#/glossary");
+  assert.equal((await resolveTarget(".context/map/server/http.md", root)).route, "#/map/server/http");
+  assert.equal((await resolveTarget(".context/issues/demo/spec.md", root)).route, "#/issues/demo");
+  assert.equal((await resolveTarget(".context/issues/demo/research.md", root)).route, "#/issues/demo/research");
+  assert.equal((await resolveTarget(".context/AGENTS.md", root)).route, "#/overview/AGENTS.md");
 
-  const ticket = await resolveTarget(".desk/features/demo/tickets/02-cache.md", root);
-  assert.equal(ticket.route, "#/features/demo/2");
-  assert.equal(ticket.file, true);
+  const task = await resolveTarget(".context/issues/demo/tasks/cache-the-tree.md", root);
+  assert.equal(task.route, "#/issues/demo/2");
+  assert.equal(task.file, true);
 });
 
-test("a file outside .desk opens as a library from its own folder", async (t) => {
+test("reference checkouts open as Markdown libraries", async (t) => {
+  const root = await makeTree(t);
+  const ref = path.join(root, ".context", "reference", "other");
+
+  assert.deepEqual(
+    await resolveTarget(".context/reference/other", root),
+    { mode: "docs", root: ref, dataDir: null, route: null, file: false },
+  );
+  assert.deepEqual(
+    await resolveTarget(".context/reference/other/README.md", root),
+    { mode: "docs", root: ref, dataDir: null, route: "#/docs/README.md", file: true },
+  );
+});
+
+test("a file outside .context opens as a library from its own folder", async (t) => {
   const root = await makeTree(t);
 
   assert.deepEqual(
@@ -63,15 +83,6 @@ test("a file outside .desk opens as a library from its own folder", async (t) =>
   );
   assert.equal((await resolveTarget("README.md", root)).root, root);
   assert.equal((await resolveTarget("docs", root)).mode, "docs");
-});
-
-test("other Markdown under .desk opens as a library from its own folder", async (t) => {
-  const root = await makeTree(t);
-
-  assert.deepEqual(
-    await resolveTarget(".desk/AGENTS.md", root),
-    { mode: "docs", root: path.join(root, ".desk"), dataDir: null, route: "#/docs/AGENTS.md", file: true },
-  );
 });
 
 test("library routes encode path segments", async (t) => {
@@ -84,5 +95,4 @@ test("unsupported targets fail with a readable message", async (t) => {
 
   await assert.rejects(resolveTarget("missing.md", root), /no such file or folder/);
   await assert.rejects(resolveTarget("README.txt", root), /not a Markdown file/);
-  await assert.rejects(resolveTarget(".desk/AGENTS.txt", root), /not a Markdown file/);
 });

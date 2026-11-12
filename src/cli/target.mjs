@@ -1,11 +1,15 @@
 /* Resolve `desk <path>` into a server mode, a root, and an initial hash route.
  *
- * The workspace view is for the workspace root, folders under `.desk/`, and the
- * Markdown files that map to a workspace record. Any other Markdown file opens
- * as a library from its own folder, even when it lives under `.desk/`.
+ * The workspace view is for the `.context/` directory, folders under it, and
+ * the Markdown files recorded there. Reference checkouts under
+ * `.context/reference/` are repositories, so they open as Markdown libraries
+ * instead. Any Markdown file outside `.context/` opens as a library from its
+ * own folder.
  */
 import fsp from "node:fs/promises";
 import path from "node:path";
+import { CONTEXT_DIR, REFERENCE_DIR, isContextDir, isReferencePath } from "../lib/workspace.mjs";
+import { parseTask } from "../lib/tasks/parse.mjs";
 
 const DOC_RE = /\.(md|markdown)$/i;
 
@@ -17,44 +21,51 @@ export function encodeDocPath(rel) {
   return String(rel || "").split("/").map(encodeURIComponent).join("/");
 }
 
-/** The hash route the page should open for a file inside a `.desk` workspace. */
-export function deskRoute(dataDir, file) {
+/** The hash route the page should open for a file inside a `.context` workspace. */
+export async function contextRoute(dataDir, file) {
   const rel = toPosix(path.relative(dataDir, file));
-  if (rel === "architecture/graph.json") return "#/architecture/graph";
-  if (rel === "CONTEXT.md") return "#/context";
+  if (rel === "GLOSSARY.md") return "#/glossary";
+  if (isReferencePath(rel)) return null;
 
-  const arch = rel.match(/^architecture\/([^/]+)$/);
-  if (arch) return `#/architecture/${arch[1].replace(/\.md$/, "")}`;
+  const record = rel.match(/^map\/(.+)\.md$/);
+  if (record) return `#/map/${encodeDocPath(record[1])}`;
 
-  const spec = rel.match(/^features\/([^/]+)\/spec\.md$/);
-  if (spec) return `#/features/${spec[1]}`;
+  const spec = rel.match(/^issues\/([^/]+)\/spec\.md$/);
+  if (spec) return `#/issues/${encodeDocPath(spec[1])}`;
 
-  const ticket = rel.match(/^features\/([^/]+)\/tickets\/(\d+)[^/]*$/);
-  if (ticket) return `#/features/${ticket[1]}/${Number(ticket[2])}`;
+  const research = rel.match(/^issues\/([^/]+)\/research\.md$/);
+  if (research) return `#/issues/${encodeDocPath(research[1])}/research`;
 
-  return null;
+  const taskFile = rel.match(/^issues\/([^/]+)\/tasks\/[^/]+\.md$/);
+  if (taskFile) {
+    const md = await fsp.readFile(file, "utf8").catch(() => null);
+    const n = md == null ? null : parseTask(md).n;
+    if (n != null) return `#/issues/${encodeDocPath(taskFile[1])}/${n}`;
+  }
+
+  // Every other Markdown file opens from the Overview tree.
+  return `#/overview/${encodeDocPath(rel)}`;
 }
 
-/** The hash route the page should open for a folder inside a `.desk` workspace. */
-export function deskDirRoute(dataDir, dir) {
+/** The hash route the page should open for a folder inside a `.context` workspace. */
+export function contextDirRoute(dataDir, dir) {
   const rel = toPosix(path.relative(dataDir, dir));
-  if (rel === "features") return "#/features";
-  if (rel === "architecture") return "#/architecture";
-  const feature = rel.match(/^features\/([^/]+)(?:\/tickets)?$/);
-  if (feature) return `#/features/${feature[1]}`;
+  if (rel === "map") return "#/map";
+  if (rel === "issues") return "#/issues";
+  const issue = rel.match(/^issues\/([^/]+)(?:\/(?:tasks|research))?$/);
+  if (issue) return `#/issues/${encodeDocPath(issue[1])}`;
   return null;
 }
 
 async function findDataDir(target, isDir) {
   if (isDir) {
-    if (path.basename(target) === ".desk") return target;
-    const child = path.join(target, ".desk");
-    const st = await fsp.stat(child).catch(() => null);
-    if (st?.isDirectory()) return child;
+    if (path.basename(target) === CONTEXT_DIR && await isContextDir(target)) return target;
+    const child = path.join(target, CONTEXT_DIR);
+    if (await isContextDir(child)) return child;
   }
   let dir = target;
   for (;;) {
-    if (path.basename(dir) === ".desk") return dir;
+    if (path.basename(dir) === CONTEXT_DIR && await isContextDir(dir)) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) return null;
     dir = parent;
@@ -76,10 +87,10 @@ export async function resolveTarget(input = ".", cwd = process.cwd()) {
 
   if (stat.isDirectory()) {
     const dataDir = await findDataDir(abs, true);
-    if (dataDir) {
+    if (dataDir && !isReferencePath(path.relative(dataDir, abs))) {
       return {
-        mode: "desk", root: path.dirname(dataDir), dataDir,
-        route: deskDirRoute(dataDir, abs), file: false,
+        mode: "context", root: path.dirname(dataDir), dataDir,
+        route: contextDirRoute(dataDir, abs), file: false,
       };
     }
     return { mode: "docs", root: abs, dataDir: null, route: null, file: false };
@@ -88,12 +99,11 @@ export async function resolveTarget(input = ".", cwd = process.cwd()) {
   if (!stat.isFile()) throw fail(`not a file or folder: ${input}`);
 
   const dataDir = await findDataDir(path.dirname(abs), false);
-  if (dataDir) {
-    const route = deskRoute(dataDir, abs);
+  if (dataDir && !isReferencePath(toPosix(path.relative(dataDir, abs)))) {
+    const route = await contextRoute(dataDir, abs);
     if (route) {
-      return { mode: "desk", root: path.dirname(dataDir), dataDir, route, file: true };
+      return { mode: "context", root: path.dirname(dataDir), dataDir, route, file: true };
     }
-    // Not a workspace record: fall through and open it as plain Markdown.
   }
 
   if (!DOC_RE.test(abs)) throw fail(`not a Markdown file: ${input}`);

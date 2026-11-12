@@ -9,7 +9,7 @@ The top tab bar, the two-pane viewport, the paper-like visual system, and the re
 
 ## Acceptance criteria
 
-- [x] CONTEXT, ARCHITECTURE, and FEATURES tabs are present and keyboard reachable.
+- [x] OVERVIEW, GLOSSARY, MAP, and ISSUES tabs are present and keyboard reachable.
 - [x] Rail and article scroll independently on desktop.
 - [x] Page and rail titles use Sans Display 500; body prose uses Serif Text at 18.5px / 1.7 and a 67ch measure.
 - [x] H2 headings are Sans Text 500, 12.5px, uppercase, letter-spacing .15em.

@@ -1,7 +1,7 @@
 # desk usage and API
 
-A live, read-only view of a `.desk/` workspace or any folder of Markdown. Edit
-the files in any editor; the page follows.
+A live, read-only view of a `.context/` workspace or any folder of Markdown.
+Edit the files in any editor; the page follows.
 
 ```text
 src/
@@ -46,12 +46,13 @@ The CLI follows these conventions:
 ```bash
 npm link                                # once, makes `desk` global
 desk                                    # current folder
-desk .desk                              # workspace view
-desk .desk/features                     # the ticket graph
-desk .desk/architecture                 # records and the code graph
-desk .desk/architecture/graph.json      # the code graph route
-desk .desk/AGENTS.md                    # any other Markdown document
-desk .desk/features/demo/spec.md        # open that document
+desk .context                           # workspace view
+desk .context/issues                    # issues
+desk .context/map                       # map records
+desk .context/GLOSSARY.md               # the glossary
+desk .context/map/server/http.md        # that record
+desk .context/issues/demo/spec.md       # that spec
+desk .context/issues/demo/tasks/cache.md  # that task (route uses its number)
 desk ~/notes                            # Markdown library
 desk ~/notes/guides/install.md          # open that document
 ```
@@ -60,22 +61,21 @@ The target decides the mode:
 
 | Target | Mode |
 | --- | --- |
-| the workspace root, or a folder under `.desk/` | workspace |
-| `CONTEXT.md`, `architecture/*.md`, a spec, or a ticket under `.desk/` | workspace |
-| `.desk/architecture/graph.json` | workspace, code graph route |
+| the workspace root, or a folder under `.context/` | workspace |
+| `GLOSSARY.md`, `map/**/*.md`, an issue spec or research report, or a task | workspace |
+| any other Markdown file under `.context/` | workspace, Overview route |
+| a folder or file under `.context/reference/` | library from its own folder |
 | any other Markdown file | library from its own folder |
 | another non-Markdown file | error |
 
 A Markdown file opens from its own folder (`desk notes/today.md` serves
-`notes/`). Workspace records open at their record, feature, or ticket route; a
-workspace folder opens its section (`.desk/features` → graph,
-`.desk/architecture` → records plus the code graph when present,
-`.desk/features/<slug>` → spec), and the workspace root opens on its Overview
-file tree. `desk .desk/architecture/graph.json` resolves to workspace mode and
-the `#/architecture/graph` route instead of a Markdown document. Other Markdown under `.desk/`, such as
-`.desk/AGENTS.md`, opens as a library of that folder rather than being refused.
-With a file the browser opens automatically. Options: `--no-open`, `--port
-<n>`, `--host <addr>`, `--quiet`.
+`notes/`). Workspace documents open at their record route; a workspace folder
+opens its section (`.context/issues` → issues, `.context/map` → the first
+record, `.context/issues/<slug>` → spec), and the workspace root opens on its
+Overview file tree. Reference checkouts are repositories, not workspace
+content, so they open as ordinary Markdown libraries. With a file the browser
+opens automatically. Options: `--no-open`, `--port <n>`, `--host <addr>`,
+`--quiet`.
 
 For development without the global link:
 
@@ -114,37 +114,38 @@ changed through `desk config` (Markdown libraries keep their folder tabs):
 
 ```bash
 desk config                              # show settings and the file path
-desk config order features context architecture
-desk config default features
-desk config hide architecture
-desk config unhide architecture
+desk config order issues map glossary
+desk config default issues
+desk config hide map
+desk config unhide map
 desk config reset
 ```
 
 `order` sets the tab order, `default` picks the tab that opens when no document
 is named, and `hide` removes a tab from the top bar (its routes still work).
 **Overview** is always the first workspace tab; the configurable sections are
-`context`, `architecture`, and `features`. The file lives at
-`~/.config/desk/config.json`; `XDG_CONFIG_HOME` moves it and `DESK_CONFIG`
-points at another file. A long-running server reads the file per request, so a
-browser reload applies the change.
+`glossary`, `map`, and `issues`. The old names `context`, `architecture`, and
+`features` are accepted as aliases so an existing config file keeps working.
+The file lives at `~/.config/desk/config.json`; `XDG_CONFIG_HOME` moves it and
+`DESK_CONFIG` points at another file. A long-running server reads the file per
+request, so a browser reload applies the change.
 
 ## Hash routes
 
-The open document or code graph is in the URL fragment, so views can be
-bookmarked and shared with yourself.
+The open document is in the URL fragment, so views can be bookmarked and shared
+with yourself.
 
 | Route | Document |
 | --- | --- |
-| `#/overview` | the first Markdown file in `.desk/` |
-| `#/overview/<path>` | any Markdown file under `.desk/` |
-| `#/context` | `.desk/CONTEXT.md` |
-| `#/architecture` | the code graph when present, otherwise the first record |
-| `#/architecture/graph` | the architecture code graph |
-| `#/architecture/<slug>` | `.desk/architecture/<slug>.md` |
-| `#/features` | the ticket graph |
-| `#/features/<slug>` | feature spec |
-| `#/features/<slug>/<n>` | ticket `<n>` of that feature |
+| `#/overview` | the first Markdown file in `.context/` |
+| `#/overview/<path>` | any Markdown file under `.context/` |
+| `#/glossary` | `.context/GLOSSARY.md` |
+| `#/map` | the first map record |
+| `#/map/<record>` | `.context/map/<record>.md`; folders become path segments, e.g. `#/map/server/http` |
+| `#/issues` | the task graph of the first issue |
+| `#/issues/<issue>` | issue spec |
+| `#/issues/<issue>/research` | the issue's research report |
+| `#/issues/<issue>/<n>` | task `<n>` of that issue |
 | `#/docs/<path>` | a document in a Markdown library |
 
 ## Read-only API
@@ -153,67 +154,44 @@ The server exposes reads only. `POST`, `PATCH`, and `DELETE` return `405`.
 
 ```bash
 curl -s 'localhost:7777/api/tree'
-curl -s 'localhost:7777/api/doc?path=features/demo/spec.md'
-curl -s 'localhost:7777/api/raw?path=features/demo/spec.md'
-curl -s 'localhost:7777/api/codegraph'
+curl -s 'localhost:7777/api/doc?path=issues/demo/spec.md'
+curl -s 'localhost:7777/api/raw?path=issues/demo/spec.md'
+curl -s 'localhost:7777/api/asset?path=issues/demo/flow.svg'
 curl -s 'localhost:7777/api/events'          # SSE
 ```
 
-In workspace mode, `/api/tree` also includes `files`, the `.desk/` Markdown
-tree used by the Overview tab. Directories have `name`, `path`, `title`,
-`count`, and `children`; files have `name`, `path`, `title`, and `mtime`.
-For files, `title` is the filename, not the document H1.
-
-When `architecture/graph.json` is present, `/api/tree` adds a small `graph`
-summary and never the document itself:
+In workspace mode, `/api/tree` carries the glossary, the map records, the
+issues with their tasks, the Overview `files` tree, and diagnostics. The `files`
+tree contains only Markdown: `reference/` is excluded, and directories have
+`name`, `path`, `title`, `count`, and `children`; files have `name`, `path`,
+`title`, and `mtime`. A file's `title` is the filename, not the document H1.
 
 ```json
 {
-  "graph": {
-    "path": "architecture/graph.json",
-    "root": ".",
-    "symbols": 3138,
-    "edges": 10000,
-    "files": 160,
-    "hierarchies": 3000,
-    "translationUnits": 20,
-    "generator": { "name": "mycel", "version": "0.1.0" },
-    "mtime": 1760000000000,
-    "bytes": 3269780
-  }
+  "mode": "context",
+  "glossary": { "exists": true, "path": "GLOSSARY.md", "headings": ["..."] },
+  "map": { "path": "map", "records": [
+    { "slug": "server/http", "path": "map/server/http.md", "type": "feat", "files": ["src/http.mjs"], "since": "0123456" }
+  ] },
+  "issues": [
+    { "slug": "demo", "title": "Demo", "specPath": "issues/demo/spec.md", "researchPath": null,
+      "progress": { "done": 1, "total": 2, "dropped": 0 },
+      "tasks": [{ "n": 2, "title": "Cache the tree", "status": "pending", "blockedBy": ["01"] }] }
+  ]
 }
 ```
 
-`GET /api/codegraph` returns the full document once it passes the top-level
-contract:
-
-```json
-{ "ok": true, "path": "architecture/graph.json", "mtime": 1760000000000, "graph": { "...": "..." } }
-```
-
-The read is confined to the workspace, cheap for repeated requests (parsed once
-per file size and mtime), and refused above 32 MB. A missing graph returns
-`404`; malformed JSON or a missing required array returns `422` with an
-`error`. The raw file is never served by `/api/doc` or `/api/raw`, and it is
-absent from every Markdown tree.
-
-Library mode also serves local images, PDFs, and media through a confined
-asset route:
-
-```bash
-curl -s 'localhost:7777/api/asset?path=guides/images/install.png'
-```
-
-It serves only allowlisted extensions under the library root and rejects path
-traversal, symlink escapes, and files over 8 MB.
+`/api/doc` and `/api/raw` read one Markdown document. `/api/asset` serves
+allowlisted local assets (images, PDFs, media) beside a document, confined to
+the root; in workspace mode it refuses every path below `reference/`. Both
+routes reject traversal, symlink escapes, and oversized files.
 
 ## Live updates
 
 `/api/events` fires when the watcher sees a file change. The page rescans,
-updates the open document and rail, and redraws the ticket graph or the
-architecture code graph when it is open. A ticket that just reached `done` is
-animated: the rail dot pulses, the graph node shows a check, and a toast names
-the ticket. No reload, no polling.
+updates the open document and rail, and redraws the task graph when it is open.
+A task that just reached `done` is animated: the rail dot pulses, the graph node
+shows a check, and a toast names the task. No reload, no polling.
 
 ## Markdown libraries
 
@@ -222,63 +200,50 @@ is a section; root Markdown files are collected into a section with key `home`
 and title `Overview` (so a real `overview/` folder can coexist). Ordering is
 deterministic: `README.md` / `index.md`, then other files, then folders, with
 natural numeric sorting. Hidden folders and common generated folders are
-skipped, and a file opens from the folder you named, not from a parent.
-
-If a top-level `features/` folder contains feature folders (`spec.md` and/or
-`tickets/`), that section keeps the feature view: spec, numbered tickets, and
-the dependency graph. Every other section stays a plain document tree.
+skipped, and a file opens from the folder you named, not from a parent. Every
+section is a plain document tree.
 
 The rail roots the Overview at the library folder and every other section at
-its own folder, so Questions starts at `questions/` and Architecture at `architecture/`
-instead of showing the parent library. The Features view keeps its progress,
-spec, and ticket rows under a `features/` root.
+its own folder, so Questions starts at `questions/` instead of showing the
+parent library.
 
-LaTeX math is rendered locally with KaTeX. `$...$` and `\(...\)` are inline;
-`$$...$$` and `\[...\]` are display, including multiline blocks. Code spans and
-fenced blocks are left literal. The KaTeX bundle and fonts load only for a
-document that contains a math delimiter.
+Relative links between documents become page routes, and relative images and
+media load through the asset route. LaTeX math is rendered locally with KaTeX.
+`$...$` and `\(...\)` are inline; `$$...$$` and `\[...\]` are display, including
+multiline blocks. Code spans and fenced blocks are left literal. The KaTeX
+bundle and fonts load only for a document that contains a math delimiter.
 
 ## Diagnostics
 
 `npm run check` (or `node src/serve.mjs --check --docs <dir>`) scans once,
 prints a summary, and exits 1 when a diagnostic has severity `error`. The page
 also shows diagnostics in the rail. A malformed document is a diagnostic, not a
-render failure: it still shows what it can. The same applies to
-`architecture/graph.json`: invalid JSON, a missing required array, or a file
-over 32 MB becomes a diagnostic and the Markdown views remain usable.
+render failure: it still shows what it can.
 
-## The ticket graph
+Workspace diagnostics cover a missing spec, missing spec sections, a task
+heading that is not `# NN: Title`, a duplicate number, a missing or unknown
+`Status:`, a missing acceptance-criteria section, dangling blockers, dependency
+cycles, and record front matter that does not match the map format.
 
-Opening the Features tab, or `.desk/features`, shows the ticket graph instead of
-a file. Clicking a node opens that ticket and syncs the rail; choosing a feature
-or the graph icon switches back to reading. The graph and article are two views
-of the same work area, so they are never shown together. Every view has an
+## The task graph
+
+Opening the Issues tab, or `.context/issues`, shows the task graph instead of a
+file. Clicking a node opens that task and syncs the rail; choosing an issue or
+the graph icon switches back to reading. The graph and article are two views of
+the same work area, so they are never shown together. Every view has an
 in-page fullscreen button that fills the browser window; Esc exits.
 
-The graph draws every ticket as a node and every `Blocked by:` entry as an arrow
-from blocker to dependent. Layers run left to right by dependency depth;
-"ready" means no open blockers.
+The graph draws every task as a node and every `Blocked by:` entry as an arrow
+from blocker to dependent. Layers run left to right by dependency depth.
+Statuses come from the `Status:` line: `pending` with no open blockers reads
+**Ready**, `pending` with open blockers reads **Waiting**, `in-progress` reads
+**In progress**, `done` reads **Done**, and `dropped` is drawn struck through.
+A cycle is reported as a diagnostic and the back edges are not drawn.
 
-## The architecture code graph
+## Map records
 
-The Architecture tab adds a **Code graph** row when
-`architecture/graph.json` exists; `#/architecture/graph` is the shareable
-route, and `#/architecture` opens the graph rather than the first record.
-`#/architecture/<slug>` still opens that Markdown record, and the record tree
-stays in the rail beside the graph.
-
-The view consumes `symbols`, `edges`, and `files` from the mycel contract. It
-defaults to callable symbols (`function`, `method`, `constructor`,
-`destructor`) and project-internal call edges. Controls filter by name or file,
-scope to a folder or file, allow external or unresolved edges, and reveal
-non-callable kinds. At most 240 symbols and 2,200 edges are drawn at once; the
-count line reports matched, drawn, and hidden totals, so a few-thousand-symbol
-graph stays responsive. Symbol selection is deterministic and, when the limit
-applies, follows the most connected symbols and their neighbours.
-
-Clicking or keyboard-selecting a symbol shows its kind, name, file, span, and
-full in/out edge counts. The layout is deterministic and dependency-free; the
-canvas scrolls, starts centered, zooms between 50% and 250%, and is paired with
-an accessible table of the rendered symbols. External edges draw blue and
-dashed, unresolved edges clay and dashed. The raw `graph.json` never appears in
-the rail, Overview, Architecture record tree, search, or startup file list.
+The Map tab shows `map/` as a document tree, module folders included. A record
+opens as a document with its front matter shown as record facts: type, `since`
+commit, and the project files it covers. The files list is the link between a
+record and the code it governs; the body keeps the record's Constraints,
+Architecture, and any Violations.
